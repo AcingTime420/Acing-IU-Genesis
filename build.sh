@@ -18,6 +18,8 @@ build_security_platform() {
     cp system/security/guardian/build/out/guardian_init.sh "$OUTPUT_DIR/security/guardian/"
     cp system/security/guardian/build/out/iu_security_init "$OUTPUT_DIR/security/guardian/"
     cp system/security/guardian/build/out/iu_auth_service "$OUTPUT_DIR/security/guardian/"
+    cp system/security/guardian/build/out/acing_vault_init "$OUTPUT_DIR/security/guardian/"
+    cp system/security/guardian/build/out/acing_vault_check_tamper "$OUTPUT_DIR/security/guardian/"
 }
 
 build_system_image() {
