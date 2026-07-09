@@ -1,0 +1,26 @@
+#!/system/bin/sh
+# Interface User (IU) Security Feature
+# This runs very early in boot and protects the user-facing admin interface
+
+echo "[IU Security] Initializing Interface User protection..."
+
+# Create secure flag file
+mkdir -p /data/acing/secure
+echo "1" > /data/acing/secure/iu_protected
+
+# Bind mount protection for critical UI components
+mount --bind /system/acing/guardian/ui /data/system/iu
+
+# Anti-tampering checks
+if [ -f /data/acing/tamper_detected ]; then
+    echo "[IU Security] Tamper detected! Entering restricted mode."
+    setprop acing.iu.security restricted
+    # Optional: Launch minimal secure UI only
+else
+    setprop acing.iu.security enabled
+fi
+
+# Start IU Authentication Service
+/system/bin/iu_auth_service --boot &
+
+echo "[IU Security] Interface User protection active"

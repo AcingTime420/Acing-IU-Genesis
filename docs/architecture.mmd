@@ -1,0 +1,30 @@
+graph TD
+    subgraph "Acing Guardian (Security Platform)"
+        Hardware[Hardware Abstraction<br/>Keystore + TrustZone]
+        BootIntegrity[Boot Integrity Layer<br/>Verified Boot + AVB 2.0]
+        GuardianInit[guardian_init.sh<br/>Boot Integration]
+        IUSecurityInit[iu_security_init<br/>Interface User Security]
+        IUSecurityAuth[iu_auth_service<br/>Auth Stub]
+        GuardianService[GuardianService.kt<br/>System Service]
+        ThreatEngine[Real-time Threat Engine<br/>Malware, Anomaly, Network]
+        PolicyEngine[Policy & Compliance Engine<br/>policies.json]
+        SecureWorkspace[Secure Workspace Container<br/>Secure Folder-like]
+        AdminDashboard[Admin Dashboard<br/>Centralized Security Center]
+        AdminDashboardCard[AdminDashboardSecurityCard.kt]
+    end
+
+    Hardware -- "Provides Root of Trust" --> BootIntegrity
+    BootIntegrity -- "Triggers" --> GuardianInit
+    GuardianInit -- "Activates" --> IUSecurityInit
+    GuardianInit -- "Initializes Keystore" --> Hardware
+    GuardianInit -- "Starts Monitoring" --> ThreatEngine
+    GuardianInit -- "Loads Policies" --> PolicyEngine
+    IUSecurityInit -- "Starts" --> IUSecurityAuth
+    IUSecurityInit -- "Protects UI Components" --> AdminDashboard
+    GuardianService -- "Manages" --> ThreatEngine
+    GuardianService -- "Feeds Data" --> AdminDashboard
+    GuardianService -- "Enhances Protection" --> IUSecurityInit
+    GuardianService -- "Enables for Roles" --> SecureWorkspace
+    PolicyEngine -- "Enforces Rules" --> GuardianService
+    AdminDashboard -- "Displays" --> AdminDashboardCard
+    ThreatEngine -- "Reports Threats" --> GuardianService
