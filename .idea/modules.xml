@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/acing-os-guardian.iml" filepath="$PROJECT_DIR$/.idea/acing-os-guardian.iml" />
+      <module fileurl="file://$PROJECT_DIR$/system/security/security.iml" filepath="$PROJECT_DIR$/system/security/security.iml" />
+      <module fileurl="file://$PROJECT_DIR$/system/system.iml" filepath="$PROJECT_DIR$/system/system.iml" />
+    </modules>
+  </component>
+</project>
