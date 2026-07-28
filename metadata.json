@@ -1,0 +1,6 @@
+{
+  "name": "Acing IU",
+  "description": "Acing IU Project Foundation & Evaluation - Simulation and Control Panel for SM-S938U Verizon US custom firmware baseline.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

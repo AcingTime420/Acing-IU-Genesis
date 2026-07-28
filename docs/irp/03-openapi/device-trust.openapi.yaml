@@ -1,0 +1,320 @@
+openapi: 3.1.0
+
+info:
+  title: Acing IU Device Trust API
+  version: 1.0.0
+  description: |
+    Genesis device-trust service for telemetry submission, device trust
+    evaluation, inventory lookup, and health monitoring.
+
+    Trust scoring follows configured policy rules. Errors use RFC 9457
+    problem details with the application/problem+json media type.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+
+servers:
+  - url: /
+    description: Current gateway host
+
+tags:
+  - name: Trust
+    description: Device telemetry, trust state, and device inventory
+  - name: Health
+    description: Service health and readiness checks
+
+paths:
+  /api/trust/telemetry/submit:
+    post:
+      summary: Submit device telemetry
+      operationId: submitTelemetry
+      tags:
+        - Trust
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelemetrySubmission'
+      responses:
+        '200':
+          description: Telemetry accepted and trust state evaluated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustEvaluationResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /api/trust/devices/{hwId}:
+    get:
+      summary: Retrieve a device by hardware identifier
+      operationId: getDevice
+      tags:
+        - Trust
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: hwId
+          in: path
+          required: true
+          description: Stable hardware identifier for the device
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Device trust record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDetails'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /api/trust/devices:
+    get:
+      summary: List registered devices
+      operationId: listDevices
+      tags:
+        - Trust
+      security:
+        - bearerAuth: []
+      description: Requires Admin or Operator role
+      responses:
+        '200':
+          description: Device list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceListItem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+
+  /health/live:
+    get:
+      summary: Check service liveness
+      operationId: trustLive
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: Service process is alive
+        '429':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+
+  /health/ready:
+    get:
+      summary: Check service readiness
+      operationId: trustReady
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: Service is ready to receive traffic
+        '429':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token supplied in the Authorization header
+
+  responses:
+    Problem:
+      description: RFC 9457 problem details response
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+  schemas:
+    TelemetrySubmission:
+      type: object
+      additionalProperties: false
+      required:
+        - hardwareId
+      properties:
+        hardwareId:
+          type: string
+          minLength: 1
+        deviceName:
+          type:
+            - string
+            - 'null'
+        platform:
+          type:
+            - string
+            - 'null'
+        operatingSystemVersion:
+          type:
+            - string
+            - 'null'
+        rooted:
+          type: boolean
+        bootloaderUnlocked:
+          type: boolean
+        secureBootEnabled:
+          type: boolean
+        diskEncryptionEnabled:
+          type: boolean
+        knoxIntact:
+          type: boolean
+        submittedAt:
+          type: string
+          format: date-time
+
+    TrustEvaluationResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - hardwareId
+        - trustScore
+        - trusted
+      properties:
+        hardwareId:
+          type: string
+        trustScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        trusted:
+          type: boolean
+        evaluatedAt:
+          type: string
+          format: date-time
+        reasons:
+          type: array
+          items:
+            type: string
+
+    DeviceDetails:
+      type: object
+      additionalProperties: false
+      required:
+        - hardwareId
+        - trustScore
+        - trusted
+      properties:
+        hardwareId:
+          type: string
+        deviceName:
+          type:
+            - string
+            - 'null'
+        platform:
+          type:
+            - string
+            - 'null'
+        operatingSystemVersion:
+          type:
+            - string
+            - 'null'
+        trustScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        trusted:
+          type: boolean
+        rooted:
+          type: boolean
+        bootloaderUnlocked:
+          type: boolean
+        secureBootEnabled:
+          type: boolean
+        diskEncryptionEnabled:
+          type: boolean
+        knoxIntact:
+          type: boolean
+        firstSeenAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        lastSeenAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+
+    DeviceListItem:
+      type: object
+      additionalProperties: false
+      required:
+        - hardwareId
+        - trustScore
+        - trusted
+      properties:
+        hardwareId:
+          type: string
+        deviceName:
+          type:
+            - string
+            - 'null'
+        platform:
+          type:
+            - string
+            - 'null'
+        trustScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        trusted:
+          type: boolean
+        lastSeenAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+
+    ProblemDetails:
+      type: object
+      additionalProperties: true
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          default: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        detail:
+          type:
+            - string
+            - 'null'
+        traceId:
+          type:
+            - string
+            - 'null'

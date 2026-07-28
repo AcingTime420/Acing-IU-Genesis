@@ -1,0 +1,16 @@
+# =============================================================================
+# Acing IU — Temporary Identity service placeholder
+# Replace this with the real backend/Identity Dockerfile once S2 lands.
+# Provides /health/live and /api/auth/* stub responses so the gateway can boot.
+# =============================================================================
+
+FROM nginx:1.27-alpine
+
+RUN rm -f /etc/nginx/conf.d/default.conf
+
+COPY identity-placeholder.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/health/live || exit 1

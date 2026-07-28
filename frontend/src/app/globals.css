@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0B0F19;
+  --foreground: #F8FAFC;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom glassmorphism cards and glow styles */
+.glass-card {
+  background: rgba(21, 29, 48, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(34, 49, 77, 0.8);
+  transition: border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card.selected-card {
+  border-color: rgba(47, 88, 205, 0.9) !important;
+  box-shadow: 0 10px 30px -5px rgba(47, 88, 205, 0.25), 0 4px 12px -5px rgba(47, 88, 205, 0.2);
+  background-color: rgba(21, 29, 48, 0.85);
+  transform: translateY(-2px);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(47, 88, 205, 0.15);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+/* Print-specific media queries for generating high-fidelity PDF reports */
+@media print {
+  body, html, main, aside, header, nav, button, .no-print {
+    display: none !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  .print-report-container {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    background: white !important;
+    color: #1a1a1a !important;
+    font-family: 'Courier New', Courier, monospace, system-ui, -apple-system;
+    font-size: 11pt;
+    line-height: 1.5;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-title {
+    font-size: 18pt !important;
+    font-weight: bold !important;
+    color: #000000 !important;
+    border-bottom: 3px double #000000;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .print-section-title {
+    font-size: 13pt !important;
+    font-weight: bold !important;
+    border-bottom: 1px solid #333333;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .print-grid {
+    display: grid !important;
+    grid-template-cols: 1fr 1fr !important;
+    gap: 15px !important;
+  }
+
+  .print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 15px !important;
+  }
+
+  .print-table th, .print-table td {
+    border: 1px solid #333333 !important;
+    padding: 6px 10px !important;
+    font-size: 9.5pt !important;
+    text-align: left !important;
+  }
+
+  .print-table th {
+    background-color: #f2f2f2 !important;
+    color: black !important;
+    font-weight: bold !important;
+  }
+
+  .print-badge {
+    border: 1px solid black !important;
+    padding: 1px 6px !important;
+    font-weight: bold !important;
+    font-size: 8.5pt !important;
+    text-transform: uppercase !important;
+    display: inline-block !important;
+  }
+}
+
+/* Default state for print containers in screen view */
+.print-report-container {
+  display: none;
+}
+
