@@ -1,5 +1,5 @@
-﻿# Acing IU â€” Platform Foundation Stack (S1â€“S3)
-# Required secrets (fail closed â€” no insecure defaults):
+﻿# Acing IU - Platform Foundation Stack (S1-S3)
+# Required secrets (fail closed - no insecure defaults):
 #   POSTGRES_PASSWORD, MIGRATOR_DB_PASSWORD, IDENTITY_DB_PASSWORD,
 #   DEVICE_TRUST_DB_PASSWORD, REDIS_PASSWORD, JWT_SIGNING_KEY
 #
@@ -21,7 +21,7 @@ services:
       IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?IDENTITY_DB_PASSWORD must be set}
       DEVICE_TRUST_DB_PASSWORD: ${DEVICE_TRUST_DB_PASSWORD:?DEVICE_TRUST_DB_PASSWORD must be set}
     ports:
-      # Development only â€” localhost. Production: omit ports or use internal network only.
+      # Development only - localhost. Production: omit ports or use internal network only.
       - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
