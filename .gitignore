@@ -76,3 +76,10 @@ artifacts/
 # Local Refact runtime state
 .refact/buddy/briefings/
 .refact/buddy/memory_ops.jsonl
+
+# Local IDE, runtime, and backup artifacts
+**/*.bak
+**/*.backup
+**/*.encoding-backup
+**/*.before-*
+backend_structure.txt
