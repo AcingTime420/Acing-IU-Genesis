@@ -1,0 +1,38 @@
+name: Containers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: containers-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  # No packages:write on PR — this workflow does not run on pull_request
+
+jobs:
+  build-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.7.1
+      - name: Build Identity
+        run: docker build -t acing-identity:ci backend/Identity/src/AcingIU.Identity.Api
+      - name: Build Device Trust
+        run: docker build -t acing-device-trust:ci backend/DeviceTrust/src/AcingIU.DeviceTrust.Api
+      - name: Trivy Identity
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: acing-identity:ci
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+      - name: Trivy Device Trust
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: acing-device-trust:ci
+          severity: CRITICAL,HIGH
+          exit-code: "1"

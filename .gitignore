@@ -1,0 +1,78 @@
+*.iml
+.gradle
+.kotlin
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+.env
+debug.keystore
+
+.gemini/
+gha-creds-*.json
+
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# Next.js generated output
+.next/
+**/.next/
+out/
+**/out/
+
+# .NET generated output
+bin/
+obj/
+**/bin/
+**/obj/
+**/TestResults/
+
+# Local logs and reports
+*.log
+coverage/
+artifacts/
+
+# Local environment and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local editor and AI runtime state
+.vs/
+.vscode/
+.idea/
+.refact/buddy/runtime_queue.jsonl
+.refact/buddy/state.json
+
+# Refact/Buddy local runtime records
+.refact/buddy/state.json
+.refact/buddy/runtime_queue.jsonl
+.refact/buddy/chats/workflows/*.json
+
+# Generated build and dependency artifacts
+**/coverage/
+*.user
+*.suo
+*.cache
+# Local configuration and secrets
+!.env.example
+# Temporary editor and backup files
+*.bak
+*.tmp
+*.swp
+*~
+# Local Refact runtime state
+.refact/buddy/briefings/
+.refact/buddy/memory_ops.jsonl

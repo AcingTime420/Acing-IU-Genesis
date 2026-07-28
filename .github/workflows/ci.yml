@@ -1,0 +1,79 @@
+name: Acing IU CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8.0 SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore backend/AcingIU.sln
+
+    - name: Build Backend Solution
+      run: dotnet build backend/AcingIU.sln --configuration Release --no-restore
+
+    - name: Run Backend Tests
+      run: dotnet test backend/AcingIU.sln --configuration Release --no-build --verbosity normal
+
+  frontend-build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: 'frontend/package*.json'
+
+    - name: Install dependencies
+      run: |
+        if [ -f frontend/package.json ]; then
+          cd frontend && npm install
+        fi
+
+    - name: Lint and Test Frontend
+      run: |
+        if [ -f frontend/package.json ]; then
+          cd frontend && npm run lint --if-present && npm test --if-present
+        fi
+      env:
+        CI: true
+        
+    - name: Build Next.js Frontend
+      run: |
+        if [ -f frontend/package.json ]; then
+          cd frontend && npm run build --if-present
+        fi
+
+  containerization:
+    needs: [backend-build-test, frontend-build-test]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Gateway Service Container
+      run: |
+        docker build -t acing-iu-gateway:latest -f backend/Gateway/Dockerfile backend || echo "Dockerfile not ready"
+
+    - name: Build Next.js Frontend Container
+      run: |
+        docker build -t acing-iu-frontend:latest -f frontend/Dockerfile frontend || echo "Dockerfile not ready"
