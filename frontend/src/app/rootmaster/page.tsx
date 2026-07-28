@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import * as d3 from "d3";
 import {
   ResponsiveContainer,
@@ -81,9 +81,9 @@ const initialBuildLogsHistory = [
       "[STAGE 4] COMPRESSING FILESYSTEM & REBUILDING GRUB BOOT SYSTEM",
       "  - Compression ratio: 4.2:1 - Reduced 2.8GB system workspace into 610MB SquashFS image.",
       "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED (Build #1)",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ ISO NAME: RootMasterOS_b1.iso",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SIZE: 610 MB",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ STATUS: Ready to flash",
+      "* ISO NAME: RootMasterOS_b1.iso",
+      "* SIZE: 610 MB",
+      "* STATUS: Ready to flash",
     ],
   },
   {
@@ -97,8 +97,8 @@ const initialBuildLogsHistory = [
       "Initializing RootMasterOS Bootable OS Builder Environment...",
       "[SYSTEM] Host Architecture detected: x86_64, Linux Kernel Baseline v6.8.0",
       "[STAGE 1] EXTRACTING AND MERGING USER ARCHIVES",
-      "ÃƒÂ¢Ã‚ÂÃ…â€™ [ERROR] Stage 1 failed: corrupt archive signature detected in custom overlay payload.",
-      "ÃƒÂ¢Ã‚ÂÃ…â€™ Build execution terminated.",
+      "[ERROR] Stage 1 failed: corrupt archive signature detected in custom overlay payload.",
+      "[ERROR] Build execution terminated.",
     ],
   },
   {
@@ -117,9 +117,9 @@ const initialBuildLogsHistory = [
       "[STAGE 4] COMPRESSING FILESYSTEM & REBUILDING GRUB BOOT SYSTEM",
       "  - Compression ratio: 4.5:1 - Reduced 2.8GB system workspace into 625MB SquashFS image.",
       "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED (Build #2)",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ ISO NAME: RootMasterOS_b2.iso",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SIZE: 625 MB",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ STATUS: Ready to flash",
+      "* ISO NAME: RootMasterOS_b2.iso",
+      "* SIZE: 625 MB",
+      "* STATUS: Ready to flash",
     ],
   },
   {
@@ -138,9 +138,9 @@ const initialBuildLogsHistory = [
       "[STAGE 4] COMPRESSING FILESYSTEM & REBUILDING GRUB BOOT SYSTEM",
       "  - Compression ratio: 4.6:1 - Reduced 2.8GB system workspace into 630MB SquashFS image.",
       "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED (Build #3)",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ ISO NAME: RootMasterOS_b3.iso",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SIZE: 630 MB",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ STATUS: Ready to flash",
+      "* ISO NAME: RootMasterOS_b3.iso",
+      "* SIZE: 630 MB",
+      "* STATUS: Ready to flash",
     ],
   },
   {
@@ -156,8 +156,8 @@ const initialBuildLogsHistory = [
       "[STAGE 1] EXTRACTING AND MERGING USER ARCHIVES",
       "[STAGE 2] CREATING MINIMAL UBUNTU BASE FILESYSTEM (debootstrap)",
       "[STAGE 3] INJECTING OS FILES, RUNTIMES, AND AUTOSTART CRONS",
-      "ÃƒÂ¢Ã‚ÂÃ…â€™ [ERROR] chroot command failed: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem.",
-      "ÃƒÂ¢Ã‚ÂÃ…â€™ Compilation failed during third stage run.",
+      "[ERROR] chroot command failed: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem.",
+      "[ERROR] Compilation failed during third stage run.",
     ],
   },
   {
@@ -176,9 +176,9 @@ const initialBuildLogsHistory = [
       "[STAGE 4] COMPRESSING FILESYSTEM & REBUILDING GRUB BOOT SYSTEM",
       "  - Compression ratio: 4.7:1 - Reduced 2.8GB system workspace into 640MB SquashFS image.",
       "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED (Build #4)",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ ISO NAME: RootMasterOS_b4.iso",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SIZE: 640 MB",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ STATUS: Ready to flash",
+      "* ISO NAME: RootMasterOS_b4.iso",
+      "* SIZE: 640 MB",
+      "* STATUS: Ready to flash",
     ],
   },
   {
@@ -197,9 +197,9 @@ const initialBuildLogsHistory = [
       "[STAGE 4] COMPRESSING FILESYSTEM & REBUILDING GRUB BOOT SYSTEM",
       "  - Compression ratio: 4.8:1 - Reduced 2.8GB system workspace into 642MB SquashFS image.",
       "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED (Build #5)",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ ISO NAME: RootMasterOS_b5.iso",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SIZE: 642 MB",
-      "ÃƒÂ¢Ã…Â¡Ã‚Â¡ STATUS: Ready to flash",
+      "* ISO NAME: RootMasterOS_b5.iso",
+      "* SIZE: 642 MB",
+      "* STATUS: Ready to flash",
     ],
   },
 ];
@@ -1170,8 +1170,8 @@ function PartitionHierarchyD3({
       <div className="flex items-center justify-between mb-2 min-h-[24px]">
         <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">
           {viewMode === "tree"
-            ? "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¡ Directory Node-Link Structure"
-            : "ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Radial File Proportional Area"}
+            ? "Tree: Directory Node-Link Structure"
+            : "Sunburst: Radial File Proportional Area"}
         </span>
         {hoveredNode && (
           <div className="text-[10px] bg-slate-900/95 px-2 py-0.5 rounded border border-slate-700/50 flex items-center gap-2 animate-pulse font-mono">
@@ -1417,7 +1417,7 @@ function FirmwarePartitions() {
               Byte Size: {hoveredPartition.size.toLocaleString()} bytes
             </div>
             <div className="text-[10px] text-indigo-400 font-semibold animate-pulse mt-0.5">
-              ÃƒÂ¢Ã…Â¡Ã‚Â¡ Click block to open deconstruction details
+              Click block to open deconstruction details
             </div>
             <div className="text-purple-400 break-all leading-normal">
               SHA-256:
@@ -1463,7 +1463,7 @@ function FirmwarePartitions() {
                 onClick={() => setSelectedPartition(null)}
                 className="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-1.5 rounded-lg transition-all"
               >
-                ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢
+                X
               </button>
             </div>
 
@@ -1534,8 +1534,8 @@ function FirmwarePartitions() {
                         className={`text-xs font-bold font-mono block ${isEncrypted ? "text-emerald-400" : "text-amber-500"}`}
                       >
                         {isEncrypted
-                          ? "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â„¢ FBE AES-256-XTS Active (Hardware Wrapped)"
-                          : "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å“ Plaintext Decrypted (Security Keys Zeroed / Raw Access)"}
+                          ? "FBE AES-256-XTS Active (Hardware Wrapped)"
+                          : "Plaintext Decrypted (Security Keys Zeroed / Raw Access)"}
                       </span>
                     </div>
                   </div>
@@ -1555,8 +1555,8 @@ function FirmwarePartitions() {
                     }`}
                   >
                     {isEncrypted
-                      ? "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Å“ Decrypt Partition"
-                      : "ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬â„¢ Enable FBE Encryption"}
+                      ? "Decrypt Partition"
+                      : "Enable FBE Encryption"}
                   </button>
                 </div>
               );
@@ -1566,20 +1566,20 @@ function FirmwarePartitions() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <h4 className="text-xs font-extrabold text-white uppercase tracking-wider">
-                  ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¦ D3.js Directory Hierarchy Visualizer
+                  D3.js Directory Hierarchy Visualizer
                 </h4>
                 <div className="flex gap-1 bg-[#0F172A] p-0.5 border border-[#22314D] rounded-lg">
                   <button
                     onClick={() => setHierarchyViewMode("tree")}
                     className={`px-3 py-1 text-[9px] font-extrabold uppercase rounded-md transition-all ${hierarchyViewMode === "tree" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-white"}`}
                   >
-                    ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Å¡ Tree View
+                    Tree View
                   </button>
                   <button
                     onClick={() => setHierarchyViewMode("sunburst")}
                     className={`px-3 py-1 text-[9px] font-extrabold uppercase rounded-md transition-all ${hierarchyViewMode === "sunburst" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-white"}`}
                   >
-                    ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Sunburst Chart
+                    Sunburst Chart
                   </button>
                 </div>
               </div>
@@ -1675,7 +1675,7 @@ function FirmwarePartitions() {
                               Rebranding Component
                             </span>
                             <span className="text-emerald-400 font-bold block mt-0.5">
-                              ÃƒÂ¢Ã…Â¡Ã¢â€žÂ¢ÃƒÂ¯Ã‚Â¸Ã‚Â {sub.rebrandingTarget}
+                              {sub.rebrandingTarget}
                             </span>
                           </div>
                         ) : (
@@ -1685,16 +1685,16 @@ function FirmwarePartitions() {
                             </span>
                             {integrityCheckStates[sub.name] === "verified" ? (
                               <span className="text-emerald-400 font-bold block mt-0.5 font-mono text-[9px]">
-                                ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ MATCH (Knox Baseline Verified)
+                                MATCH (Knox Baseline Verified)
                               </span>
                             ) : integrityCheckStates[sub.name] ===
                               "verifying" ? (
                               <span className="text-indigo-400 font-semibold block mt-0.5 font-mono text-[9px] animate-pulse">
-                                ÃƒÂ¢Ã‚ÂÃ‚Â³ Fetching Knox baseline...
+                                Fetching Knox baseline...
                               </span>
                             ) : (
                               <span className="text-slate-500 font-medium block mt-0.5 font-mono text-[9px]">
-                                ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â² Hash check pending
+                                Hash check pending
                               </span>
                             )}
                           </div>
@@ -1735,301 +1735,304 @@ function FirmwarePartitions() {
 
 export default function RootMasterLab() {
   // Master 100+ task backlog items structured from past sessions, S25 Ultra firmware parameters, and dynamic debugging.
-  const defaultTasks: Task[] = [
-    // MODULE 7: DISSECTION & STORAGE OPTIMIZATION
-    {
-      id: "RM-DIS-01",
-      module: "Dissection & Storage",
-      title: "Extract S25 Ultra Stock2026_05_04.rar firmware archive",
-      desc: "Verify RAR integrity and extract baseline AP, BL, CP, CSC tar packages.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DIS-02",
-      module: "Dissection & Storage",
-      title: "Extract super.img dynamic partition from AP tar.md5",
-      desc: "Utilize simg2img tool to convert sparse system imagery into raw mountable ext4 images.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DIS-03",
-      module: "Dissection & Storage",
-      title: "Unzip and analyze IML TOOL PRO FREE repair suite",
-      desc: "Identify system drivers, DLL payloads, and flash command endpoints.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DIS-04",
-      module: "Dissection & Storage",
-      title: "Parse firmware partition schema via IML dynamic reader",
-      desc: "Map logical blocks for system, vendor, odm, product, and boot partitions.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DIS-05",
-      module: "Dissection & Storage",
-      title: "Clear Android device internal storage using ADB shell",
-      desc: "Run logcat clear, purge /data/cache, and clean old log files to make room for 17GB stock file operations.",
-      priority: "Medium",
-      status: "Pending",
-    },
-    {
-      id: "RM-DIS-06",
-      module: "Dissection & Storage",
-      title: "Verify boot.img kernel signature & headers",
-      desc: "Analyze S938U boot image header version 4, extracting dtb (device tree blob) and ramdisk.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DIS-07",
-      module: "Dissection & Storage",
-      title: "Decompile bootloader BL_S938USQS3CXH2 trustlets",
-      desc: "Analyze Secure World TA (Trusted Applications) binaries managing Knox Vault keys.",
-      priority: "Low",
-      status: "Pending",
-    },
-    {
-      id: "RM-DIS-08",
-      module: "Dissection & Storage",
-      title: "Mount product.img and customize app overlays",
-      desc: "Identify bloating carrier apk lists and verify where overlay packages reside.",
-      priority: "Medium",
-      status: "Pending",
-    },
+  const defaultTasks: Task[] = useMemo(
+    () => [
+      // MODULE 7: DISSECTION & STORAGE OPTIMIZATION
+      {
+        id: "RM-DIS-01",
+        module: "Dissection & Storage",
+        title: "Extract S25 Ultra Stock2026_05_04.rar firmware archive",
+        desc: "Verify RAR integrity and extract baseline AP, BL, CP, CSC tar packages.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DIS-02",
+        module: "Dissection & Storage",
+        title: "Extract super.img dynamic partition from AP tar.md5",
+        desc: "Utilize simg2img tool to convert sparse system imagery into raw mountable ext4 images.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DIS-03",
+        module: "Dissection & Storage",
+        title: "Unzip and analyze IML TOOL PRO FREE repair suite",
+        desc: "Identify system drivers, DLL payloads, and flash command endpoints.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DIS-04",
+        module: "Dissection & Storage",
+        title: "Parse firmware partition schema via IML dynamic reader",
+        desc: "Map logical blocks for system, vendor, odm, product, and boot partitions.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DIS-05",
+        module: "Dissection & Storage",
+        title: "Clear Android device internal storage using ADB shell",
+        desc: "Run logcat clear, purge /data/cache, and clean old log files to make room for 17GB stock file operations.",
+        priority: "Medium",
+        status: "Pending",
+      },
+      {
+        id: "RM-DIS-06",
+        module: "Dissection & Storage",
+        title: "Verify boot.img kernel signature & headers",
+        desc: "Analyze S938U boot image header version 4, extracting dtb (device tree blob) and ramdisk.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DIS-07",
+        module: "Dissection & Storage",
+        title: "Decompile bootloader BL_S938USQS3CXH2 trustlets",
+        desc: "Analyze Secure World TA (Trusted Applications) binaries managing Knox Vault keys.",
+        priority: "Low",
+        status: "Pending",
+      },
+      {
+        id: "RM-DIS-08",
+        module: "Dissection & Storage",
+        title: "Mount product.img and customize app overlays",
+        desc: "Identify bloating carrier apk lists and verify where overlay packages reside.",
+        priority: "Medium",
+        status: "Pending",
+      },
 
-    // MODULE 1: EXECUTIVE DASHBOARD
-    {
-      id: "RM-DASH-01",
-      module: "Executive Dashboard",
-      title: "Build Project Lifecycle visual progress widgets",
-      desc: "Design clean Material 3 linear telemetry meters tracking overall MVP milestone states.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DASH-02",
-      module: "Executive Dashboard",
-      title: "Implement dynamic AI Diagnostic status indicators",
-      desc: "Add glowing widgets flashing real-time state changes for local neural firmware sweeps.",
-      priority: "Medium",
-      status: "Pending",
-    },
-    {
-      id: "RM-DASH-03",
-      module: "Executive Dashboard",
-      title: "Create interactive Gantt timeline grid component",
-      desc: "Visualize 3-year development plan containing critical path milestones.",
-      priority: "Low",
-      status: "Pending",
-    },
-    {
-      id: "RM-DASH-04",
-      module: "Executive Dashboard",
-      title: "Integrate active device trust score matrix stats",
-      desc: "Show distribution of client integrity values across current active fleet.",
-      priority: "Medium",
-      status: "Pending",
-    },
-    {
-      id: "RM-DASH-05",
-      module: "Executive Dashboard",
-      title: "Add real-time workspace threat feeds panel",
-      desc: "Display audit trail alarms on the dashboard with responsive flash animation.",
-      priority: "High",
-      status: "Pending",
-    },
+      // MODULE 1: EXECUTIVE DASHBOARD
+      {
+        id: "RM-DASH-01",
+        module: "Executive Dashboard",
+        title: "Build Project Lifecycle visual progress widgets",
+        desc: "Design clean Material 3 linear telemetry meters tracking overall MVP milestone states.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DASH-02",
+        module: "Executive Dashboard",
+        title: "Implement dynamic AI Diagnostic status indicators",
+        desc: "Add glowing widgets flashing real-time state changes for local neural firmware sweeps.",
+        priority: "Medium",
+        status: "Pending",
+      },
+      {
+        id: "RM-DASH-03",
+        module: "Executive Dashboard",
+        title: "Create interactive Gantt timeline grid component",
+        desc: "Visualize 3-year development plan containing critical path milestones.",
+        priority: "Low",
+        status: "Pending",
+      },
+      {
+        id: "RM-DASH-04",
+        module: "Executive Dashboard",
+        title: "Integrate active device trust score matrix stats",
+        desc: "Show distribution of client integrity values across current active fleet.",
+        priority: "Medium",
+        status: "Pending",
+      },
+      {
+        id: "RM-DASH-05",
+        module: "Executive Dashboard",
+        title: "Add real-time workspace threat feeds panel",
+        desc: "Display audit trail alarms on the dashboard with responsive flash animation.",
+        priority: "High",
+        status: "Pending",
+      },
 
-    // MODULE 2: DEVICE INVENTORY
-    {
-      id: "RM-DEV-01",
-      module: "Device Inventory",
-      title: "Design Samsung Galaxy S25 Ultra (SM-S938U) profile specs",
-      desc: "Map critical attributes: Snapdragon 8 Elite SoC, Knox version 3.10, eSIM profile metadata.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DEV-02",
-      module: "Device Inventory",
-      title: "Configure Knox e-fuse hardware warranty tracker",
-      desc: "Read Knox status register. If 0x1 (warranty void), instantly update compliance to QUARANTINED.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DEV-03",
-      module: "Device Inventory",
-      title: "Verify Verizon custom radio frequency standard parameters",
-      desc: "Integrate RF diagnostics for LTE/5G bands (B13, B66, n2, n5, n77) matching CTIA limits.",
-      priority: "Medium",
-      status: "Pending",
-    },
-    {
-      id: "RM-DEV-04",
-      module: "Device Inventory",
-      title: "Implement system-wide Quarantine isolation workflows",
-      desc: "Allow admins to click isolation action, instantly severing tokens for substandard client states.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DEV-05",
-      module: "Device Inventory",
-      title: "Build dynamic device health telemetry list",
-      desc: "Expose CPU temperature, battery health cycle count, and RAM headroom statistics.",
-      priority: "Low",
-      status: "Pending",
-    },
+      // MODULE 2: DEVICE INVENTORY
+      {
+        id: "RM-DEV-01",
+        module: "Device Inventory",
+        title: "Design Samsung Galaxy S25 Ultra (SM-S938U) profile specs",
+        desc: "Map critical attributes: Snapdragon 8 Elite SoC, Knox version 3.10, eSIM profile metadata.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DEV-02",
+        module: "Device Inventory",
+        title: "Configure Knox e-fuse hardware warranty tracker",
+        desc: "Read Knox status register. If 0x1 (warranty void), instantly update compliance to QUARANTINED.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DEV-03",
+        module: "Device Inventory",
+        title: "Verify Verizon custom radio frequency standard parameters",
+        desc: "Integrate RF diagnostics for LTE/5G bands (B13, B66, n2, n5, n77) matching CTIA limits.",
+        priority: "Medium",
+        status: "Pending",
+      },
+      {
+        id: "RM-DEV-04",
+        module: "Device Inventory",
+        title: "Implement system-wide Quarantine isolation workflows",
+        desc: "Allow admins to click isolation action, instantly severing tokens for substandard client states.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DEV-05",
+        module: "Device Inventory",
+        title: "Build dynamic device health telemetry list",
+        desc: "Expose CPU temperature, battery health cycle count, and RAM headroom statistics.",
+        priority: "Low",
+        status: "Pending",
+      },
 
-    // MODULE 3: FIRMWARE RESEARCH CENTER
-    {
-      id: "RM-FIRM-01",
-      module: "Firmware Research",
-      title: "Map system.img file-system and verify SHA-256 hashes",
-      desc: "Extract block-level checksums from stock partition images, comparing against VRU3CXH2 baseline.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-FIRM-02",
-      module: "Firmware Research",
-      title: "Create side-by-side firmware comparison workspace",
-      desc: "Build comparative UI comparing system headers, kernel build numbers, and security patches.",
-      priority: "Medium",
-      status: "Pending",
-    },
-    {
-      id: "RM-FIRM-03",
-      module: "Firmware Research",
-      title: "Develop delta-OTA update analyzer",
-      desc: "Parse binary diffs inside Verizon OTA payloads to track changes in driver layouts.",
-      priority: "Low",
-      status: "Pending",
-    },
-    {
-      id: "RM-FIRM-04",
-      module: "Firmware Research",
-      title: "Map SELinux rule compiler and check context bounds",
-      desc: "Scan sepolicy binaries in vendor partition to search for permissive rules or context loopholes.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-FIRM-05",
-      module: "Firmware Research",
-      title: "Document RKP (Real-time Kernel Protection) hooks",
-      desc: "Trace RKP hypervisor intercepts designed to block credential modifications in memory.",
-      priority: "Medium",
-      status: "Pending",
-    },
+      // MODULE 3: FIRMWARE RESEARCH CENTER
+      {
+        id: "RM-FIRM-01",
+        module: "Firmware Research",
+        title: "Map system.img file-system and verify SHA-256 hashes",
+        desc: "Extract block-level checksums from stock partition images, comparing against VRU3CXH2 baseline.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-FIRM-02",
+        module: "Firmware Research",
+        title: "Create side-by-side firmware comparison workspace",
+        desc: "Build comparative UI comparing system headers, kernel build numbers, and security patches.",
+        priority: "Medium",
+        status: "Pending",
+      },
+      {
+        id: "RM-FIRM-03",
+        module: "Firmware Research",
+        title: "Develop delta-OTA update analyzer",
+        desc: "Parse binary diffs inside Verizon OTA payloads to track changes in driver layouts.",
+        priority: "Low",
+        status: "Pending",
+      },
+      {
+        id: "RM-FIRM-04",
+        module: "Firmware Research",
+        title: "Map SELinux rule compiler and check context bounds",
+        desc: "Scan sepolicy binaries in vendor partition to search for permissive rules or context loopholes.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-FIRM-05",
+        module: "Firmware Research",
+        title: "Document RKP (Real-time Kernel Protection) hooks",
+        desc: "Trace RKP hypervisor intercepts designed to block credential modifications in memory.",
+        priority: "Medium",
+        status: "Pending",
+      },
 
-    // MODULE 4: AI ASSISTANT WORKSPACE
-    {
-      id: "RM-AI-01",
-      module: "AI Operations & Logs",
-      title: "Build local firmware analysis prompt compiler",
-      desc: "Create specialized prompt constructors instructing Gemini to dissect system crash dumps.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-AI-02",
-      module: "AI Operations & Logs",
-      title: "Design live Logcat parser with classification neural maps",
-      desc: "Classify incoming log streams into INFO, DEBUG, WARNING, and CRITICAL_KNOX buckets.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-AI-03",
-      module: "AI Operations & Logs",
-      title: "Develop automatic script generator for Magisk injection",
-      desc: "Generate custom post-fs-data shell scripts targeting modular system mounting.",
-      priority: "Medium",
-      status: "Pending",
-    },
-    {
-      id: "RM-AI-04",
-      module: "AI Operations & Logs",
-      title: "Implement offline intelligence troubleshooting wiki",
-      desc: "Cache detailed knowledge base containing common recovery loop resolutions.",
-      priority: "Low",
-      status: "Pending",
-    },
+      // MODULE 4: AI ASSISTANT WORKSPACE
+      {
+        id: "RM-AI-01",
+        module: "AI Operations & Logs",
+        title: "Build local firmware analysis prompt compiler",
+        desc: "Create specialized prompt constructors instructing Gemini to dissect system crash dumps.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-AI-02",
+        module: "AI Operations & Logs",
+        title: "Design live Logcat parser with classification neural maps",
+        desc: "Classify incoming log streams into INFO, DEBUG, WARNING, and CRITICAL_KNOX buckets.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-AI-03",
+        module: "AI Operations & Logs",
+        title: "Develop automatic script generator for Magisk injection",
+        desc: "Generate custom post-fs-data shell scripts targeting modular system mounting.",
+        priority: "Medium",
+        status: "Pending",
+      },
+      {
+        id: "RM-AI-04",
+        module: "AI Operations & Logs",
+        title: "Implement offline intelligence troubleshooting wiki",
+        desc: "Cache detailed knowledge base containing common recovery loop resolutions.",
+        priority: "Low",
+        status: "Pending",
+      },
 
-    // MODULE 5: ROOTMASTEROS DESIGN LAB
-    {
-      id: "RM-DSN-01",
-      module: "RootMasterOS Design Lab",
-      title: "Apply One UI 8.1 geometric spacing system",
-      desc: "Style interface elements utilizing the 40-60 reachability rule and rounded 28dp card models.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DSN-02",
-      module: "RootMasterOS Design Lab",
-      title: "Build interactive Quick Settings toggles constructor",
-      desc: "Allow dragging, dropping, and configuring system buttons for Wi-Fi, Root Mode, and Safe Vault.",
-      priority: "Medium",
-      status: "Pending",
-    },
-    {
-      id: "RM-DSN-03",
-      module: "RootMasterOS Design Lab",
-      title: "Configure AMOLED-friendly pure black theme stylesheet",
-      desc: "Establish contrast bounds using background hex #000000 paired with vibrant blue #1A73FF.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-DSN-04",
-      module: "RootMasterOS Design Lab",
-      title: "Simulate custom Boot Animation designer",
-      desc: "Upload PNG arrays to render a frame-by-frame loop representing Knox matrix boot streams.",
-      priority: "Low",
-      status: "Pending",
-    },
+      // MODULE 5: ROOTMASTEROS DESIGN LAB
+      {
+        id: "RM-DSN-01",
+        module: "RootMasterOS Design Lab",
+        title: "Apply One UI 8.1 geometric spacing system",
+        desc: "Style interface elements utilizing the 40-60 reachability rule and rounded 28dp card models.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DSN-02",
+        module: "RootMasterOS Design Lab",
+        title: "Build interactive Quick Settings toggles constructor",
+        desc: "Allow dragging, dropping, and configuring system buttons for Wi-Fi, Root Mode, and Safe Vault.",
+        priority: "Medium",
+        status: "Pending",
+      },
+      {
+        id: "RM-DSN-03",
+        module: "RootMasterOS Design Lab",
+        title: "Configure AMOLED-friendly pure black theme stylesheet",
+        desc: "Establish contrast bounds using background hex #000000 paired with vibrant blue #1A73FF.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-DSN-04",
+        module: "RootMasterOS Design Lab",
+        title: "Simulate custom Boot Animation designer",
+        desc: "Upload PNG arrays to render a frame-by-frame loop representing Knox matrix boot streams.",
+        priority: "Low",
+        status: "Pending",
+      },
 
-    // MODULE 6: TESTING & COMPLIANCE
-    {
-      id: "RM-TEST-01",
-      module: "Testing & Compliance",
-      title: "Draft CTIA 3.8.2 RF Signal compliance reports",
-      desc: "Generate official compliance records certifying total radiated power limits are achieved.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-TEST-02",
-      module: "Testing & Compliance",
-      title: "Develop automated system-test plan execution scheduler",
-      desc: "Trigger dynamic verification lists evaluating API latency and biometric validation bounds.",
-      priority: "Medium",
-      status: "Pending",
-    },
-    {
-      id: "RM-TEST-03",
-      module: "Testing & Compliance",
-      title: "Build immutable blockchain audit trail logging queue",
-      desc: "Write cryptographically signed actions to local auditing tables for unalterable records.",
-      priority: "High",
-      status: "Pending",
-    },
-    {
-      id: "RM-TEST-04",
-      module: "Testing & Compliance",
-      title: "Integrate dynamic PDF report print export with Security Seal",
-      desc: "Ensure PDF reports dynamically overlay custom SVG Knox certified verification insignias.",
-      priority: "High",
-      status: "Pending",
-    },
-  ];
+      // MODULE 6: TESTING & COMPLIANCE
+      {
+        id: "RM-TEST-01",
+        module: "Testing & Compliance",
+        title: "Draft CTIA 3.8.2 RF Signal compliance reports",
+        desc: "Generate official compliance records certifying total radiated power limits are achieved.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-TEST-02",
+        module: "Testing & Compliance",
+        title: "Develop automated system-test plan execution scheduler",
+        desc: "Trigger dynamic verification lists evaluating API latency and biometric validation bounds.",
+        priority: "Medium",
+        status: "Pending",
+      },
+      {
+        id: "RM-TEST-03",
+        module: "Testing & Compliance",
+        title: "Build immutable blockchain audit trail logging queue",
+        desc: "Write cryptographically signed actions to local auditing tables for unalterable records.",
+        priority: "High",
+        status: "Pending",
+      },
+      {
+        id: "RM-TEST-04",
+        module: "Testing & Compliance",
+        title: "Integrate dynamic PDF report print export with Security Seal",
+        desc: "Ensure PDF reports dynamically overlay custom SVG Knox certified verification insignias.",
+        priority: "High",
+        status: "Pending",
+      },
+    ],
+    [],
+  );
 
   // Load state from localStorage or default
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -2270,9 +2273,7 @@ export default function RootMasterLab() {
               ? "corrupted"
               : "verified";
           updated[currentIdx] = { ...file, status: finalStatus };
-          setCurrentScanningFile(
-            `${file.partition} ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â ${file.filepath}`,
-          );
+          setCurrentScanningFile(`${file.partition} -> ${file.filepath}`);
           return updated;
         });
         currentIdx++;
@@ -2314,7 +2315,7 @@ export default function RootMasterLab() {
     } else {
       setTasks(defaultTasks);
     }
-  }, []);
+  }, [defaultTasks]);
 
   // Save on state change
   const saveTasks = (updated: Task[]) => {
@@ -2652,10 +2653,10 @@ export default function RootMasterLab() {
         "=================================================================",
         "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED",
         "=================================================================",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ ISO NAME: RootMasterOS.iso",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SIZE: 642 MB",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SHA-256 HASH: a510f92b7c43df1290e21a81232ff4cd9481977e201bcf5a2de2cfc19929831c",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ STATUS: Ready to flash to USB or mount inside VirtualBox VM!",
+        "* ISO NAME: RootMasterOS.iso",
+        "* SIZE: 642 MB",
+        "* SHA-256 HASH: a510f92b7c43df1290e21a81232ff4cd9481977e201bcf5a2de2cfc19929831c",
+        "* STATUS: Ready to flash to USB or mount inside VirtualBox VM!",
       ];
 
       let index = 0;
@@ -2686,11 +2687,11 @@ export default function RootMasterLab() {
               "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED (" +
                 nextId +
                 ")",
-              "ÃƒÂ¢Ã…Â¡Ã‚Â¡ ISO NAME: RootMasterOS_" +
+              "* ISO NAME: RootMasterOS_" +
                 nextId.replace(" ", "_").toLowerCase() +
                 ".iso",
-              "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SIZE: 642 MB",
-              "ÃƒÂ¢Ã…Â¡Ã‚Â¡ STATUS: Ready to flash",
+              "* SIZE: 642 MB",
+              "* STATUS: Ready to flash",
             ];
             return [
               ...prev,
@@ -2773,10 +2774,10 @@ export default function RootMasterLab() {
             "=================================================================",
             "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED",
             "=================================================================",
-            "ÃƒÂ¢Ã…Â¡Ã‚Â¡ ISO NAME: RootMasterOS.iso",
-            "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SIZE: 642 MB",
-            "ÃƒÂ¢Ã…Â¡Ã‚Â¡ SHA-256 HASH: a510f92b7c43df1290e21a81232ff4cd9481977e201bcf5a2de2cfc19929831c",
-            "ÃƒÂ¢Ã…Â¡Ã‚Â¡ STATUS: Ready to flash to USB",
+            "* ISO NAME: RootMasterOS.iso",
+            "* SIZE: 642 MB",
+            "* SHA-256 HASH: a510f92b7c43df1290e21a81232ff4cd9481977e201bcf5a2de2cfc19929831c",
+            "* STATUS: Ready to flash to USB",
           ];
 
     const textContent = logsToExport.join("\n");
@@ -2970,8 +2971,8 @@ export default function RootMasterLab() {
         "=================================================================",
         "[COMPLETED] AP DISSECTION SUCCESSFUL",
         "=================================================================",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ Extracted sub-partitions are ready for system overlay mounts!",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ Status registers and RKP kernel structures mapped cleanly.",
+        "* Extracted sub-partitions are ready for system overlay mounts!",
+        "* Status registers and RKP kernel structures mapped cleanly.",
       ];
 
       let index = 0;
@@ -3008,8 +3009,8 @@ export default function RootMasterLab() {
         "=================================================================",
         "[COMPLETED] BL DISSECTION SUCCESSFUL",
         "=================================================================",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ Knox hardware Vault key parameters mapped cleanly.",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ Secure boot signature validations verified OK.",
+        "* Knox hardware Vault key parameters mapped cleanly.",
+        "* Secure boot signature validations verified OK.",
       ];
 
       let index = 0;
@@ -3047,7 +3048,7 @@ export default function RootMasterLab() {
         "=================================================================",
         "[COMPLETED] CP BASEBAND RE-ENGINEERING COMPLETED",
         "=================================================================",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ Verizon baseband LTE/5G RF signal standard fully certified.",
+        "* Verizon baseband LTE/5G RF signal standard fully certified.",
       ];
 
       let index = 0;
@@ -3077,7 +3078,7 @@ export default function RootMasterLab() {
         "=================================================================",
         "[COMPLETED] CSC CUSTOMIZATION EXPOSURE SUCCESSFUL",
         "=================================================================",
-        "ÃƒÂ¢Ã…Â¡Ã‚Â¡ Carrier overlay mappings and APN lists fully detailed.",
+        "* Carrier overlay mappings and APN lists fully detailed.",
       ];
 
       let index = 0;
@@ -3184,14 +3185,14 @@ export default function RootMasterLab() {
               </span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-              RootMaster Lab Blueprint & OS Assembly
+              Acing IU: Genesis Lab Blueprint & OS Assembly
             </h1>
             <p className="text-sm font-medium text-slate-400 leading-relaxed max-w-3xl">
               Construct a real, bootable Ubuntu-based live Linux ISO embedding
-              RootMasterOS, All-in-One dashboards, and Magisk Android modules.
-              Complete with interactive simulators for Samsung S25 Ultra Odin
-              firmware partition reverse-engineering, IML tools, and storage
-              optimizations.
+              Acing IU: Genesis modules, All-in-One dashboards, and Magisk
+              Android modules. Complete with interactive simulators for Samsung
+              S25 Ultra Odin firmware partition reverse-engineering, IML tools,
+              and storage optimizations.
             </p>
           </div>
 
@@ -3415,7 +3416,7 @@ export default function RootMasterLab() {
                         }`}
                       >
                         {isResizingSandbox
-                          ? "ÃƒÂ¢Ã…Â¡Ã‚Â¡ REALLOCATING BOUNDS..."
+                          ? "REALLOCATING BOUNDS..."
                           : "STATUS: OPTIMIZED"}
                       </span>
                     </div>
@@ -3568,11 +3569,11 @@ export default function RootMasterLab() {
                   {osBuildLogs.length === 0 ? (
                     <div className="text-slate-500 text-center py-20 flex flex-col items-center justify-center space-y-3">
                       <Terminal className="h-8 w-8 text-slate-600 animate-bounce" />
-                    <span>
-                       {
-                        'Console idle. Click "Assemble Bootable OS" to begin compilation stream.'
-                      }
-                    </span>
+                      <span>
+                        {
+                          'Console idle. Click "Assemble Bootable OS" to begin compilation stream.'
+                        }
+                      </span>
                     </div>
                   ) : (
                     osBuildLogs.map((log, i) => (
@@ -3732,7 +3733,7 @@ export default function RootMasterLab() {
                       }
                     >
                       <strong className="text-white block text-[11px]">
-                        ÃƒÂ°Ã…Â¸Ã‚Â§Ã‚Â¬ 1. Kali Security Linux Baseline
+                        1. Kali Security Linux Baseline
                       </strong>
                       <span className="block text-[10px] text-slate-400 mt-0.5 leading-normal">
                         Inject cybersecurity audit tools (nmap, aircrack-ng,
@@ -3749,7 +3750,7 @@ export default function RootMasterLab() {
                       }
                     >
                       <strong className="text-white block text-[11px]">
-                        ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¾ 2. Live Persistence storage
+                        2. Live Persistence storage
                       </strong>
                       <span className="block text-[10px] text-slate-400 mt-0.5 leading-normal">
                         Utilize dual-partition flashing setups. Partition A
@@ -3767,7 +3768,7 @@ export default function RootMasterLab() {
                       }
                     >
                       <strong className="text-white block text-[11px]">
-                        ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â± 3. Unified Android SDK Bridge
+                        3. Unified Android SDK Bridge
                       </strong>
                       <span className="block text-[10px] text-slate-400 mt-0.5 leading-normal">
                         Include ADB client, fastboot triggers, and a local
@@ -4031,8 +4032,8 @@ export default function RootMasterLab() {
                   {dissectLogs.length === 0 ? (
                     <div className="text-slate-500 text-center py-20">
                       {
-                       'Terminal empty. Select a firmware block and click "Run Decompile Sweep" to view dynamic decompression, sparse conversions, and SHA-256 checksum maps.'
-                    }
+                        'Terminal empty. Select a firmware block and click "Run Decompile Sweep" to view dynamic decompression, sparse conversions, and SHA-256 checksum maps.'
+                      }
                     </div>
                   ) : (
                     dissectLogs.map((log, i) => (
@@ -4469,8 +4470,8 @@ export default function RootMasterLab() {
                 <div className="p-5 font-mono text-[11px] leading-relaxed text-emerald-400 h-80 overflow-y-auto scrollbar-thin flex flex-col space-y-1">
                   {storageLogs.length === 0 ? (
                     <div className="text-slate-500 text-center py-20">
-                     {
-                      'Shell inactive. Click "Run Cache Optimizer" to launch automated ADB cleanup sweeps.'
+                      {
+                        'Shell inactive. Click "Run Cache Optimizer" to launch automated ADB cleanup sweeps.'
                       }
                     </div>
                   ) : (
@@ -4930,7 +4931,7 @@ export default function RootMasterLab() {
             {/* Header */}
             <div className="border-b border-[#22314D] pb-6 space-y-2">
               <h2 className="text-2xl font-black text-white flex items-center gap-2.5">
-                <FileText className="h-6 w-6 text-blue-500" /> ROOTMASTEROS
+                <FileText className="h-6 w-6 text-blue-500" /> ACING IU: GENESIS
                 ENGINEERING MANUAL
               </h2>
               <p className="text-xs text-slate-400 leading-relaxed">
@@ -4951,45 +4952,27 @@ export default function RootMasterLab() {
                 </span>
                 RootMasterOS.iso
                 <br />
-                ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ boot/{" "}
+                |-- boot/{" "}
+                <span className="text-slate-500">Bootloader components</span>
+                <br />| |-- vmlinuz{" "}
+                <span className="text-slate-500">Linux Kernel v6.8 image</span>
+                <br />| |-- initrd{" "}
+                <span className="text-slate-500">RAMDisk load state</span>
+                <br />| |-- grub/{" "}
+                <span className="text-slate-500">GRUB environment configs</span>
+                <br />| | `-- grub.cfg{" "}
                 <span className="text-slate-500">
-                  ÃƒÂ¢Ã¢â‚¬Â Ã‚Â Bootloader components
+                  Bootloader display list menu
                 </span>
                 <br />
-                ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
-                ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ vmlinuz{" "}
+                |-- filesystem.squashfs{" "}
                 <span className="text-slate-500">
-                  ÃƒÂ¢Ã¢â‚¬Â Ã‚Â Linux Kernel v6.8 image
+                  Ultra-compressed read-only rootfs (Ubuntu base + UI + apps)
                 </span>
                 <br />
-                ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
-                ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ initrd{" "}
+                `-- EFI/{" "}
                 <span className="text-slate-500">
-                  ÃƒÂ¢Ã¢â‚¬Â Ã‚Â RAMDisk load state
-                </span>
-                <br />
-                ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
-                ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ grub/{" "}
-                <span className="text-slate-500">
-                  ÃƒÂ¢Ã¢â‚¬Â Ã‚Â GRUB environment configs
-                </span>
-                <br />
-                ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡
-                ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ grub.cfg{" "}
-                <span className="text-slate-500">
-                  ÃƒÂ¢Ã¢â‚¬Â Ã‚Â Bootloader display list menu
-                </span>
-                <br />
-                ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
-                filesystem.squashfs{" "}
-                <span className="text-slate-500">
-                  ÃƒÂ¢Ã¢â‚¬Â Ã‚Â Ultra-compressed read-only rootfs (Ubuntu base
-                  + UI + apps)
-                </span>
-                <br />
-                ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ EFI/{" "}
-                <span className="text-slate-500">
-                  ÃƒÂ¢Ã¢â‚¬Â Ã‚Â UEFI secure startup modules
+                  UEFI secure startup modules
                 </span>
               </div>
             </div>
@@ -5146,7 +5129,7 @@ npm --prefix frontend start`}
 
             {/* Footnotes */}
             <div className="border-t border-[#22314D] pt-6 flex justify-between items-center text-[10px] text-slate-500 font-bold uppercase">
-              <span>ROOTMASTER ENGINEERS COOPERATIVE</span>
+              <span>ACING IU: GENESIS ENGINEERING COOPERATIVE</span>
               <span>EST. 2026 - COMPLIANT CTIA 3.8.2</span>
             </div>
           </div>
@@ -5161,7 +5144,7 @@ npm --prefix frontend start`}
               <div className="flex items-center gap-2.5">
                 <Package className="h-5 w-5 text-[#2F58CD]" />
                 <h3 className="text-base font-bold text-white">
-                  RootMaster OS Master Project Blueprint Spec Export
+                  Acing IU: Genesis Master Project Blueprint Spec Export
                 </h3>
               </div>
               <button
@@ -5181,13 +5164,15 @@ npm --prefix frontend start`}
             <div className="bg-[#0B0F19] border border-[#22314D] rounded-xl p-4 max-h-[380px] overflow-y-auto font-mono text-[10px] text-purple-400 space-y-5 scrollbar-thin selection:bg-[#2F58CD]/30 selection:text-white">
               <div>
                 <span className="text-white font-bold">
-  {
-    "// ========================================================================="
-  }
-</span>
+                  {
+                    "// ========================================================================="
+                  }
+                </span>
                 <br />
                 <span className="text-white font-bold">
-                  {"// ROOTMASTER LAB PROJECT SPECIFICATION & BACKLOG BLUEPRINT"}
+                  {
+                    "// ACING IU: GENESIS LAB PROJECT SPECIFICATION & BACKLOG BLUEPRINT"
+                  }
                 </span>
                 <br />
                 <span className="text-white font-bold">
@@ -5215,18 +5200,18 @@ npm --prefix frontend start`}
                   # 1. LIVE OS COMPILING ARCHITECTURE SCHEMA
                 </span>
                 <br />
-                <span>ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ISO NAME: RootMasterOS.iso</span>
+                <span>* ISO NAME: RootMasterOS.iso</span>
                 <br />
                 <span>
-                  {'• GRUB MENU ENTRY: "RootMasterOS Bootable Distro"'}
+                  {'* GRUB MENU ENTRY: "RootMasterOS Bootable Distro"'}
                 </span>
                 <br />
                 <span>
-                  ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ STARTUP ACTION: Auto Login to XFCE -&gt;
-                  Launch `/usr/bin/start-os` script
+                  * STARTUP ACTION: Auto Login to XFCE -&gt; Launch
+                  `/usr/bin/start-os` script
                 </span>
                 <br />
-                <span>ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ SERVICES RUNNING:</span>
+                <span>* SERVICES RUNNING:</span>
                 <br />
                 <span> - Node.js backend/server.js (port 5000)</span>
                 <br />
@@ -5248,36 +5233,35 @@ npm --prefix frontend start`}
                 </span>
                 <br />
                 <span>
-                  ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Users (id UUID PRIMARY KEY, email VARCHAR
-                  UNIQUE, password_hash VARCHAR, clearance_level INT)
+                  * Users (id UUID PRIMARY KEY, email VARCHAR UNIQUE,
+                  password_hash VARCHAR, clearance_level INT)
                 </span>
                 <br />
                 <span>
-                  ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Devices (id UUID, serial_number VARCHAR,
-                  model_code VARCHAR, trust_score INT, status VARCHAR)
+                  * Devices (id UUID, serial_number VARCHAR, model_code VARCHAR,
+                  trust_score INT, status VARCHAR)
                 </span>
                 <br />
                 <span>
-                  ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ FirmwareRecords (id UUID, build_number
-                  VARCHAR, system_img_sha256 VARCHAR, patch_date DATE)
+                  * FirmwareRecords (id UUID, build_number VARCHAR,
+                  system_img_sha256 VARCHAR, patch_date DATE)
                 </span>
                 <br />
                 <span>
-                  ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ BacklogTasks (id VARCHAR PRIMARY KEY,
-                  module_name VARCHAR, title VARCHAR, priority VARCHAR, status
-                  VARCHAR)
+                  * BacklogTasks (id VARCHAR PRIMARY KEY, module_name VARCHAR,
+                  title VARCHAR, priority VARCHAR, status VARCHAR)
                 </span>
                 <br />
                 <span>
-                  ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ AuditLogs (id UUID, operator_id UUID,
-                  timestamp TIMESTAMP, action VARCHAR, signature VARCHAR)
+                  * AuditLogs (id UUID, operator_id UUID, timestamp TIMESTAMP,
+                  action VARCHAR, signature VARCHAR)
                 </span>
                 <br />
               </div>
 
               <div>
                 <span className="text-blue-400 font-bold">
-                  # 3. ROOTMASTER BACKLOG CHECKLIST PROGRESS DATA (
+                  # 3. ACING IU: GENESIS BACKLOG CHECKLIST PROGRESS DATA (
                   {completedCount} of {totalCount} completed)
                 </span>
                 <br />
@@ -5285,7 +5269,7 @@ npm --prefix frontend start`}
                   <div key={t.id} className="pl-4">
                     <span>{`[${t.status === "Completed" ? "x" : " "}] ${t.id} (${t.priority}): ${t.title}`}</span>
                     <br />
-                    <span className="text-slate-500 pl-8">{`ÃƒÂ¢Ã¢â‚¬Â Ã‚Â³ ${t.desc}`}</span>
+                    <span className="text-slate-500 pl-8">{`-> ${t.desc}`}</span>
                     <br />
                   </div>
                 ))}
