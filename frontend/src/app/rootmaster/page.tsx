@@ -3568,10 +3568,11 @@ export default function RootMasterLab() {
                   {osBuildLogs.length === 0 ? (
                     <div className="text-slate-500 text-center py-20 flex flex-col items-center justify-center space-y-3">
                       <Terminal className="h-8 w-8 text-slate-600 animate-bounce" />
-                      <span>
-                        Console idle. Click "Assemble Bootable OS" to begin
-                        compilation stream.
-                      </span>
+                    <span>
+                       {
+                        'Console idle. Click "Assemble Bootable OS" to begin compilation stream.'
+                      }
+                    </span>
                     </div>
                   ) : (
                     osBuildLogs.map((log, i) => (
@@ -4029,9 +4030,9 @@ export default function RootMasterLab() {
                 <div className="p-5 font-mono text-[11px] leading-relaxed text-indigo-400 h-80 overflow-y-auto scrollbar-thin flex flex-col space-y-1">
                   {dissectLogs.length === 0 ? (
                     <div className="text-slate-500 text-center py-20">
-                      Terminal empty. Select a firmware block and click "Run
-                      Decompile Sweep" to view dynamic decompression, sparse
-                      conversions, and sha256 checksum maps.
+                      {
+                       'Terminal empty. Select a firmware block and click "Run Decompile Sweep" to view dynamic decompression, sparse conversions, and SHA-256 checksum maps.'
+                    }
                     </div>
                   ) : (
                     dissectLogs.map((log, i) => (
@@ -4468,8 +4469,9 @@ export default function RootMasterLab() {
                 <div className="p-5 font-mono text-[11px] leading-relaxed text-emerald-400 h-80 overflow-y-auto scrollbar-thin flex flex-col space-y-1">
                   {storageLogs.length === 0 ? (
                     <div className="text-slate-500 text-center py-20">
-                      Shell inactive. Click "Run Cache Optimizer" to launch
-                      automated ADB cleanup sweeps.
+                     {
+                      'Shell inactive. Click "Run Cache Optimizer" to launch automated ADB cleanup sweeps.'
+                      }
                     </div>
                   ) : (
                     storageLogs.map((log, i) => (
@@ -4515,7 +4517,7 @@ export default function RootMasterLab() {
                   <div className="space-y-3 font-mono text-[10px]">
                     <div>
                       <span className="text-white font-bold">
-                        // 1. Free dynamic packages cache (e.g. 10G)
+                        {"// 1. Free dynamic packages cache (e.g. 10G)"}
                       </span>
                       <code className="block bg-[#070B14] border border-[#22314D] p-2 rounded mt-1 text-purple-400">
                         adb shell pm trim-caches 10G
@@ -4524,7 +4526,7 @@ export default function RootMasterLab() {
 
                     <div>
                       <span className="text-white font-bold">
-                        // 2. Trigger hardware storage FSTRIM routine
+                        {"// 2. Trigger hardware storage FSTRIM routine"}
                       </span>
                       <code className="block bg-[#070B14] border border-[#22314D] p-2 rounded mt-1 text-purple-400">
                         adb shell fstrim -v /data
@@ -4533,7 +4535,7 @@ export default function RootMasterLab() {
 
                     <div>
                       <span className="text-white font-bold">
-                        // 3. Purge Android system logcat buffers
+                        {"// 3. Purge Android system logcat buffers"}
                       </span>
                       <code className="block bg-[#070B14] border border-[#22314D] p-2 rounded mt-1 text-purple-400">
                         adb logcat -c
@@ -4542,7 +4544,7 @@ export default function RootMasterLab() {
 
                     <div>
                       <span className="text-white font-bold">
-                        // 4. Clean user application temporary spaces
+                        {"// 4. Clean user application temporary spaces"}
                       </span>
                       <code className="block bg-[#070B14] border border-[#22314D] p-2 rounded mt-1 text-purple-400">
                         adb shell rm -rf /data/local/tmp/*
@@ -4945,7 +4947,7 @@ export default function RootMasterLab() {
 
               <div className="bg-[#020617] p-5 rounded-2xl border border-[#22314D] font-mono text-[11px] leading-relaxed text-slate-300">
                 <span className="text-slate-500 font-sans block mb-2 font-bold">
-                  // Compressed hybrid ISO image structure:
+                  {"// Compressed hybrid ISO image structure:"}
                 </span>
                 RootMasterOS.iso
                 <br />
@@ -5070,7 +5072,7 @@ export default function RootMasterLab() {
                     </button>
                   </div>
                   <span className="text-[10px] text-slate-500 font-sans block">
-                    // Injected into rootfs/usr/bin/start-os:
+                    {"// Injected into rootfs/usr/bin/start-os:"}
                   </span>
                   <code className="text-purple-400 block whitespace-pre">
                     {`#!/bin/bash
@@ -5079,7 +5081,7 @@ node backend/server.js &
 npm --prefix frontend start`}
                   </code>
                   <span className="text-[10px] text-slate-500 font-sans block">
-                    // Grant executions permission:
+                    {"// Grant execution permission:"}
                   </span>
                   <code className="text-purple-400 block">
                     sudo chmod +x rootfs/usr/bin/start-os
@@ -5127,8 +5129,9 @@ npm --prefix frontend start`}
                 <span>set timeout=5</span>
                 <br />
                 <span>
-                  menuentry "RootMasterOS Bootable Distro (Micki Hart Admin
-                  System)" {"{"}
+                  {
+                    'menuentry "RootMasterOS Bootable Distro (Micki Hart Admin System)" {'
+                  }
                 </span>
                 <br />
                 <span className="pl-4">
@@ -5178,27 +5181,31 @@ npm --prefix frontend start`}
             <div className="bg-[#0B0F19] border border-[#22314D] rounded-xl p-4 max-h-[380px] overflow-y-auto font-mono text-[10px] text-purple-400 space-y-5 scrollbar-thin selection:bg-[#2F58CD]/30 selection:text-white">
               <div>
                 <span className="text-white font-bold">
-                  //
-                  =========================================================================
+  {
+    "// ========================================================================="
+  }
+</span>
+                <br />
+                <span className="text-white font-bold">
+                  {"// ROOTMASTER LAB PROJECT SPECIFICATION & BACKLOG BLUEPRINT"}
                 </span>
                 <br />
                 <span className="text-white font-bold">
-                  // ROOTMASTER LAB PROJECT SPECIFICATION & BACKLOG BLUEPRINT
+                  {
+                    "// Target Platform: Samsung Galaxy S25 Ultra (SM-S938U Verizon Baseline)"
+                  }
                 </span>
                 <br />
                 <span className="text-white font-bold">
-                  // Target Platform: Samsung Galaxy S25 Ultra (SM-S938U Verizon
-                  Baseline)
+                  {
+                    "// Bootable OS Base: Ubuntu Minimal ISO (debootstrap Linux Kernel v6.8)"
+                  }
                 </span>
                 <br />
                 <span className="text-white font-bold">
-                  // Bootable OS Base: Ubuntu Minimal ISO (debootstrap Linux
-                  Kernel v6.8)
-                </span>
-                <br />
-                <span className="text-white font-bold">
-                  //
-                  =========================================================================
+                  {
+                    "// ========================================================================="
+                  }
                 </span>
                 <br />
               </div>
@@ -5211,8 +5218,7 @@ npm --prefix frontend start`}
                 <span>ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ISO NAME: RootMasterOS.iso</span>
                 <br />
                 <span>
-                  ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ GRUB MENU ENTRY: "RootMasterOS Bootable
-                  Distro"
+                  {'• GRUB MENU ENTRY: "RootMasterOS Bootable Distro"'}
                 </span>
                 <br />
                 <span>
@@ -5236,8 +5242,9 @@ npm --prefix frontend start`}
                 </span>
                 <br />
                 <span className="text-slate-500 font-sans">
-                  // Entities represent PostgreSQL relationships backed by Redis
-                  caching:
+                  {
+                    "// Entities represent PostgreSQL relationships backed by Redis caching:"
+                  }
                 </span>
                 <br />
                 <span>
