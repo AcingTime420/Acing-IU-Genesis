@@ -1,0 +1,91 @@
+name: CI — Clean-Clone Baseline
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Job 1: Enforce no tracked generated artifacts ─────────────────────
+  repo-integrity:
+    name: Repository Integrity (no tracked artifacts)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for tracked generated artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          FAIL=0
+          PATTERNS=("bin" "obj" "out" "dist" "TestResults" "coverage" "node_modules" ".next")
+          for pattern in "${PATTERNS[@]}"; do
+            matches=$(git ls-files -- "$pattern" 2>/dev/null || true)
+            if [[ -n "$matches" ]]; then
+              echo "::error::Tracked generated files under '${pattern}/':${matches}"
+              FAIL=1
+            fi
+          done
+          if [[ "$FAIL" -eq 1 ]]; then
+            echo ""
+            echo "One or more generated artifact directories are tracked in git."
+            echo "Remove them with: git rm -r --cached <path>"
+            echo "Then add the paths to .gitignore."
+            exit 1
+          fi
+          echo "No tracked generated artifacts found."
+
+  # ── Job 2: Full validate-premerge (build + conditional compose) ────────
+  validate-baseline:
+    name: Validate Pre-merge Baseline
+    runs-on: ubuntu-latest
+    needs: repo-integrity
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env from example (when present)
+        shell: bash
+        run: |
+          if [[ -f ".env.example" ]]; then
+            cp .env.example .env
+            echo ".env created from .env.example"
+          else
+            echo "No .env.example found — skipping"
+          fi
+
+      - name: Set up Java (for Kotlin/JAR toolchain)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Kotlin compiler
+        shell: bash
+        run: |
+          # Install Kotlin via SDKMAN or direct download
+          KOTLIN_VERSION="2.0.0"
+          curl -fsSL "https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip" \
+            -o /tmp/kotlin.zip
+          unzip -q /tmp/kotlin.zip -d /tmp/kotlin
+          echo "/tmp/kotlin/kotlinc/bin" >> "$GITHUB_PATH"
+
+      - name: Run validate-premerge.sh
+        shell: bash
+        run: bash scripts/validate-premerge.sh --skip-compose
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validate-premerge-logs
+          path: |
+            **/out/
+            **/*.log
+          if-no-files-found: ignore
+          retention-days: 7

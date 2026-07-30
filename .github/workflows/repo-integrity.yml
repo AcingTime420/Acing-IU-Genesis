@@ -1,0 +1,74 @@
+name: Repository Integrity
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  no-generated-artifacts:
+    name: No Tracked Generated Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enforce clean repository (no bin/obj/out/dist/…)
+        shell: bash
+        run: |
+          set -euo pipefail
+          FAIL=0
+
+          # Directories that must never be tracked
+          PATTERNS=(
+            "bin"
+            "obj"
+            "out"
+            "dist"
+            "TestResults"
+            "coverage"
+            "node_modules"
+            ".next"
+            ".nuxt"
+          )
+
+          for pattern in "${PATTERNS[@]}"; do
+            matches=$(git ls-files -- "$pattern" 2>/dev/null || true)
+            if [[ -n "$matches" ]]; then
+              echo "::error title=Tracked generated artifact::Files under '${pattern}/' are tracked in git:"
+              echo "$matches" | while IFS= read -r line; do
+                echo "  • $line"
+              done
+              FAIL=1
+            fi
+          done
+
+          # Also check for .pdb, .suo, .user files anywhere
+          EXTENSIONS=("*.pdb" "*.suo" "*.user")
+          for ext in "${EXTENSIONS[@]}"; do
+            matches=$(git ls-files -- "$ext" 2>/dev/null || true)
+            if [[ -n "$matches" ]]; then
+              echo "::error title=Tracked IDE/debug file::Files matching '${ext}' are tracked in git:"
+              echo "$matches" | while IFS= read -r line; do
+                echo "  • $line"
+              done
+              FAIL=1
+            fi
+          done
+
+          if [[ "$FAIL" -eq 1 ]]; then
+            echo ""
+            echo "──────────────────────────────────────────────────────────────"
+            echo " Repository Integrity FAILED"
+            echo " Remove tracked artifacts with:"
+            echo "   git rm -r --cached <path>"
+            echo " Then add the path to .gitignore and commit."
+            echo "──────────────────────────────────────────────────────────────"
+            exit 1
+          fi
+
+          echo "Repository integrity check PASSED — no generated artifacts tracked."

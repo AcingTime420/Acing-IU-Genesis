@@ -2,8 +2,9 @@ package com.acing.guardian
 
 import com.acing.guardian.AcingVaultEmulator
 
-// Stubs for external dependencies to allow GuardianService to compile
-// In a real implementation, these would be separate modules or interfaces
+// Local stubs for Android-framework types that are not available in the
+// desktop/CI build environment.  In a real ROM build these are provided
+// by the Android framework and must NOT be declared here.
 
 abstract class SystemService {
     abstract fun onStart()
@@ -32,26 +33,9 @@ object IntegrityChecker {
     }
 }
 
-object MalwareScanner {
-    fun start() {
-        println("[MalwareScanner] Starting malware scanner...")
-        // Logic to start real-time malware scanning
-    }
-}
-
-object AnomalyDetector {
-    fun start() {
-        println("[AnomalyDetector] Starting anomaly detector...")
-        // Logic to start behavioral anomaly detection
-    }
-}
-
-object NetworkThreatMonitor {
-    fun start() {
-        println("[NetworkThreatMonitor] Starting network threat monitor...")
-        // Logic to start network threat monitoring
-    }
-}
+// MalwareScanner, AnomalyDetector, and NetworkThreatMonitor are defined in
+// the threat/ package — see threat/MalwareScanner.kt, AnomalyDetector.kt,
+// and NetworkThreatMonitor.kt.
 
 class GuardianService : SystemService() {
 

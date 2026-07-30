@@ -1,0 +1,57 @@
+# ============================================================
+# Acing IU: Genesis — root .gitignore
+# Keep generated artifacts, credentials, and IDE state out of
+# version control.  Update this file when new toolchains are
+# added rather than adding ad-hoc ignores elsewhere.
+# ============================================================
+
+# ── Build outputs ───────────────────────────────────────────
+**/bin/
+**/obj/
+**/out/
+**/dist/
+**/build/out/
+
+# ── Test and coverage results ────────────────────────────────
+**/TestResults/
+**/coverage/
+**/test-results/
+**/reports/
+
+# ── Frontend / Node ──────────────────────────────────────────
+**/node_modules/
+**/.next/
+**/.nuxt/
+**/.output/
+
+# ── Debug symbols and user files ────────────────────────────
+*.pdb
+*.user
+*.suo
+*.DS_Store
+Thumbs.db
+
+# ── Environment / secrets ────────────────────────────────────
+.env
+.env.*
+!.env.example
+local.properties
+
+# ── IDE state (IntelliJ / Android Studio) ───────────────────
+# We commit .idea/ project-level config selectively below;
+# volatile IDE caches and workspace state are excluded.
+.idea/caches/
+.idea/workspace.xml
+.idea/shelf/
+.idea/httpRequests/
+.idea/dataSources/
+.idea/dataSources.local.xml
+*.iml
+
+# ── OS artefacts ─────────────────────────────────────────────
+.DS_Store
+ehthumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
