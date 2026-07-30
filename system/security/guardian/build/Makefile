@@ -14,8 +14,7 @@ OUT_DIR = ./out
 # Kotlin source files
 KOTLIN_SRCS = $(wildcard $(SRC_DIR)/*.kt) \
                $(wildcard $(THREAT_SRC_DIR)/*.kt) \
-               $(wildcard $(DASHBOARD_SRC_DIR)/*.kt) \
-               $(SRC_DIR)/AcingVaultEmulator.kt
+               $(wildcard $(DASHBOARD_SRC_DIR)/*.kt)
 
 # Class files will be generated here
 CLASSES_DIR = $(OUT_DIR)/classes
