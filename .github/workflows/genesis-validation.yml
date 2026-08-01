@@ -1,0 +1,26 @@
+name: Genesis Validation
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m compileall genesis
+      - name: Documentation check
+        run: test -f genesis/core/README.md
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependency audit placeholder
+        run: echo "Security scanning stage ready for tool integration"
