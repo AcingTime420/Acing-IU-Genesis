@@ -49,6 +49,26 @@
         "roles": ["ADMIN"],
         "sensitive_operations": ["AI_CHAT", "NOTES", "FIRMWARE_UPLOAD"]
       }
+    },
+    {
+      "id": "device_trust_thresholds",
+      "description": "Apply trust-based access thresholds for Interface User capabilities.",
+      "enabled": true,
+      "action_on_failure": "RESTRICTED_MODE",
+      "parameters": {
+        "minimal_access_threshold": 40,
+        "restricted_mode_threshold": 70
+      }
+    },
+    {
+      "id": "device_trust_minimal_iu_enforcement",
+      "description": "Restrict users to minimal IU when trust score is below threshold.",
+      "enabled": true,
+      "action_on_failure": "MINIMAL_IU_ONLY",
+      "parameters": {
+        "trust_score_operator": "<",
+        "trust_score_value": 40
+      }
     }
   ]
 }
