@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Acing IU Setup Wizard Strings
+   Target: com.sec.android.app.SecSetupWizard (res/values/strings.xml)
+   Baseline: Samsung One UI 8.0 (Android 16)
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+   <!-- Platform Sync Application Name -->
+   <string name="app_name">Acing IU</string>
+
+   <!-- Welcome Screen Greetings -->
+   <string name="welcome_title">Welcome to Acing IU</string>
+   <string name="welcome_subtitle">Powered by the Acing Matrix Foundation</string>
+   <string name="welcome_start_button">Start</string>
+   
+   <string name="matrix_sync_title">Matrix Identity</string>
+   <string name="matrix_sync_desc">Your Acing Matrix Identity establishes a decentralized trust chain. Connect your wallet to begin.</string>
+   <string name="matrix_sync_button_connect">Connect Matrix Wallet</string>
+   <string name="matrix_sync_button_skip">Skip for now</string>
+
+   <!-- Advanced Protection (Android 16 Security) -->
+   <string name="security_advanced_title">Advanced Security</string>
+   <string name="security_advanced_desc">Acing IU includes decentralized security features like Acing Lockdown and Biometric Triggers.</string>
+   <string name="security_advanced_toggle_label">Enable Acing Matrix Protections</string>
+
+   <!-- Fresh Start / FRP Capability Notice -->
+   <string name="fresh_start_title">Fresh Start Capability</string>
+   <string name="fresh_start_desc">This firmware includes owner-authorized FRP erasure. Use your designated biometric trigger to start fresh at any time.</string>
+
+   <!-- Finishing the Setup -->
+   <string name="setup_complete_title">You\'re all set!</string>
+   <string name="setup_complete_desc">Your Acing IU experience is ready. Welcome to a decentralized foundation.</string>
+   <string name="setup_complete_button_finish">Finish</string>
+
+   <!-- Branding Overrides -->
+   <string name="device_name_label">Acing Ultra S25</string>
+   <string name="powered_by_label">Secured by Acing Matrix</string>
+</resources>

@@ -1,0 +1,9 @@
+# Replace @ORG/TEAM with real GitHub teams or usernames before enforcing review rules.
+# Do not invent personal accounts.
+
+* @ORG/acing-iu-maintainers
+
+/backend/ @ORG/acing-iu-backend
+/infrastructure/ @ORG/acing-iu-platform
+/.github/ @ORG/acing-iu-platform
+/docs/irp/10-security/ @ORG/acing-iu-security

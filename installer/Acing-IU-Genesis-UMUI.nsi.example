@@ -1,0 +1,67 @@
+; EXAMPLE — Genesis + Ultra-Modern UI patterns (official Basic.nsi / Confirm.nsi)
+; Requires NSIS 3 x86 + UMUI 2.x installed. Production default: Acing-IU-Genesis.nsi (MUI2).
+; Docs: installer/docs/UMUI-IMPLEMENTATION.md
+
+!define PRODUCT_NAME "Acing IU: Genesis"
+!define PRODUCT_VERSION "0.1.0"
+!define APP_EXE "Launch-Acing-IU-Genesis.cmd"
+
+Unicode True
+SetCompressor /SOLID lzma
+RequestExecutionLevel admin
+Name "${PRODUCT_NAME}"
+OutFile "output\Acing-IU-Genesis-Setup-UMUI-v${PRODUCT_VERSION}.exe"
+InstallDir "$PROGRAMFILES64\Acing IU\Genesis"
+ShowInstDetails show
+
+!include "UMUI.nsh"
+!include "LogicLib.nsh"
+!include "x64.nsh"
+
+; !define UMUI_SKIN "blue"
+!define MUI_ABORTWARNING
+!define MUI_UNABORTWARNING
+!define UMUI_PAGEBGIMAGE
+!define UMUI_UNPAGEBGIMAGE
+
+!define MUI_FINISHPAGE_RUN "$INSTDIR\application\${APP_EXE}"
+!define MUI_FINISHPAGE_RUN_TEXT "Open Control Center"
+
+!insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_LICENSE "payload\documentation\INSTALL-NOTES.txt"
+!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_DIRECTORY
+; !define UMUI_CONFIRMPAGE_TEXTBOX confirm_function
+; !insertmacro UMUI_PAGE_CONFIRM
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_LANGUAGE "English"
+
+Section "Core Application (required)" SecCore
+  SectionIn RO
+  SetOutPath "$INSTDIR\application"
+  File /r "payload\application\*.*"
+  SetOutPath "$INSTDIR\documentation"
+  File /r "payload\documentation\*.*"
+  SetOutPath "$INSTDIR\services"
+  File /r "payload\services\*.*"
+  WriteUninstaller "$INSTDIR\uninst.exe"
+SectionEnd
+
+Section "Docker Platform Stack" SecDocker
+  SetOutPath "$INSTDIR\platform"
+  File /r "payload\platform\*.*"
+SectionEnd
+
+Section Uninstall
+  RMDir /r "$INSTDIR"
+SectionEnd
+
+Function .onInit
+  ${IfNot} ${RunningX64}
+    MessageBox MB_ICONSTOP "64-bit Windows required."
+    Abort
+  ${EndIf}
+FunctionEnd
