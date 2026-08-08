@@ -2,10 +2,14 @@ package com.acing.guardian.identity
 
 import com.acing.guardian.AcingVaultEmulator
 import java.security.MessageDigest
+import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
+import java.util.Base64
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.PBEKeySpec
 
 enum class UserRole {
     VIEWER,
@@ -22,7 +26,7 @@ data class User(
     val id: String,
     val username: String,
     val roles: Set<UserRole>,
-    val activeCredentialIds: MutableSet<String> = mutableSetOf(),
+    val activeCredentialIds: MutableSet<String> = ConcurrentHashMap.newKeySet(),
     val createdAt: Instant = Instant.now()
 )
 
@@ -52,6 +56,7 @@ data class AuthSession(
 class IdentityService(
     private val sessionTtl: Duration = Duration.ofMinutes(30)
 ) {
+    private val secureRandom = SecureRandom()
     private val usersById = ConcurrentHashMap<String, User>()
     private val usersByUsername = ConcurrentHashMap<String, String>()
     private val credentialsById = ConcurrentHashMap<String, Credential>()
@@ -61,18 +66,17 @@ class IdentityService(
         val normalized = username.trim().lowercase()
         require(normalized.isNotBlank()) { "Username cannot be blank." }
 
-        usersByUsername[normalized]?.let { existingUserId ->
-            return usersById.getValue(existingUserId)
+        val userId = usersByUsername.computeIfAbsent(normalized) {
+            val user = User(
+                id = UUID.randomUUID().toString(),
+                username = normalized,
+                roles = roles
+            )
+            usersById[user.id] = user
+            user.id
         }
 
-        val user = User(
-            id = UUID.randomUUID().toString(),
-            username = normalized,
-            roles = roles
-        )
-        usersById[user.id] = user
-        usersByUsername[normalized] = user.id
-        return user
+        return usersById.getValue(userId)
     }
 
     fun createCredential(userId: String, rawSecret: String, type: CredentialType = CredentialType.PASSWORD): Credential {
@@ -87,12 +91,13 @@ class IdentityService(
         )
         credentialsById[credential.id] = credential
         user.activeCredentialIds.add(credential.id)
-        storeCredentialInVault(credential.id, rawSecret)
+        storeCredentialInVault(credential.id, credential.secretHash)
         return credential
     }
 
     fun rotateCredential(credentialId: String, newRawSecret: String): Credential {
         val current = credentialsById.getValue(credentialId)
+        require(current.isActive()) { "Cannot rotate a revoked credential." }
         require(newRawSecret.isNotBlank()) { "Credential secret cannot be blank." }
 
         val updated = current.copy(
@@ -100,7 +105,7 @@ class IdentityService(
             rotatedAt = Instant.now()
         )
         credentialsById[credentialId] = updated
-        storeCredentialInVault(credentialId, newRawSecret)
+        storeCredentialInVault(credentialId, updated.secretHash)
         return updated
     }
 
@@ -108,6 +113,7 @@ class IdentityService(
         val current = credentialsById.getValue(credentialId)
         val revoked = current.copy(revokedAt = Instant.now())
         credentialsById[credentialId] = revoked
+        usersById[current.userId]?.activeCredentialIds?.remove(credentialId)
         return revoked
     }
 
@@ -118,7 +124,7 @@ class IdentityService(
         val matchingCredential = user.activeCredentialIds
             .asSequence()
             .mapNotNull(credentialsById::get)
-            .firstOrNull { it.isActive() && it.secretHash == hashSecret(rawSecret) }
+            .firstOrNull { it.isActive() && verifySecret(rawSecret, it.secretHash) }
             ?: return null
 
         val session = AuthSession(
@@ -143,15 +149,44 @@ class IdentityService(
     }
 
     private fun hashSecret(secret: String): String {
-        val digest = MessageDigest.getInstance("SHA-256").digest(secret.toByteArray())
-        return digest.joinToString("") { "%02x".format(it) }
+        val salt = ByteArray(16).also { secureRandom.nextBytes(it) }
+        val derived = pbkdf2(secret, salt)
+        return "${encode(salt)}:${encode(derived)}"
     }
 
-    private fun storeCredentialInVault(credentialId: String, secret: String) {
+    private fun verifySecret(secret: String, storedValue: String): Boolean {
+        val parts = storedValue.split(":", limit = 2)
+        if (parts.size != 2) {
+            return false
+        }
+
+        val salt = decode(parts[0])
+        val expectedHash = decode(parts[1])
+        val candidateHash = pbkdf2(secret, salt)
+        return MessageDigest.isEqual(expectedHash, candidateHash)
+    }
+
+    private fun pbkdf2(secret: String, salt: ByteArray): ByteArray {
+        val spec = PBEKeySpec(secret.toCharArray(), salt, 120_000, 256)
+        return try {
+            SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
+        } finally {
+            spec.clearPassword()
+        }
+    }
+
+    private fun encode(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
+
+    private fun decode(value: String): ByteArray = Base64.getDecoder().decode(value)
+
+    private fun storeCredentialInVault(credentialId: String, credentialReference: String) {
         // Integration hook into Acing Vault for key/secret storage.
         // TODO(PROD): Replace raw secret storage with wrapped key material from hardware-backed keystore.
         // TODO(PROD): Integrate biometric and MFA-bound credential unlock policies.
         // TODO(PROD): Emit immutable audit log events for credential create/rotate/revoke actions.
-        AcingVaultEmulator.storeSecret("identity:credential:$credentialId", secret.toByteArray())
+        AcingVaultEmulator.storeSecret(
+            "identity:credential:$credentialId",
+            credentialReference.toByteArray()
+        )
     }
 }

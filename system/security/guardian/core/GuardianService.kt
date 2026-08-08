@@ -6,7 +6,9 @@ import com.acing.guardian.identity.UserRole
 import com.acing.guardian.trust.DeviceTrustEngine
 import com.acing.guardian.trust.EnforcementAction
 import com.acing.guardian.trust.TrustSignal
+import java.util.Base64
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 
 // Stubs for external dependencies to allow GuardianService to compile
 // In a real implementation, these would be separate modules or interfaces
@@ -45,11 +47,17 @@ object IntegrityChecker {
 }
 
 class GuardianService : SystemService() {
+    private companion object {
+        private const val DEFAULT_DEVICE_ID = "guardian-default-device"
+        private const val INTERFACE_USER_PACKAGE_PATH = "/system/app/com.acing.iu"
+        private const val INTERFACE_USER_RUNTIME_ID = "com.acing.iu.runtime"
+    }
+
     private val identityService = IdentityService()
     private val deviceTrustEngine = DeviceTrustEngine()
-    private var authAvailable = false
-    private var vaultAvailable = true
-    private var adminAccessBlocked = false
+    private val authAvailable = AtomicBoolean(false)
+    private val vaultAvailable = AtomicBoolean(true)
+    private val adminAccessBlocked = AtomicBoolean(false)
 
     override fun onStart() {
         println("[GuardianService] Starting Acing Guardian Service...")
@@ -84,7 +92,10 @@ class GuardianService : SystemService() {
 
     private fun setupInterfaceUserProtection() {
         println("[GuardianService] Setting up Interface User protection...")
-        enforceDeviceTrustForInterfaceUser()
+        if (!enforceDeviceTrustForInterfaceUser()) {
+            println("[GuardianService] Access restricted by device trust policy.")
+            return
+        }
 
         // Protect Admin Dashboard access, potentially backed by Acing Vault
         if (!requireBiometricOrStrongAuth()) {
@@ -103,7 +114,7 @@ class GuardianService : SystemService() {
         if (AcingVaultEmulator.storeSecret("admin_session_key", sensitiveData)) {
             println("[GuardianService] Admin session key securely stored in Acing Vault.")
         } else {
-            vaultAvailable = false
+            vaultAvailable.set(false)
             handleCriticalFailure(
                 "VAULT_STORE_FAILURE",
                 "Failed to store admin session key in Acing Vault. Blocking additional admin access attempts."
@@ -126,21 +137,21 @@ class GuardianService : SystemService() {
 
     // Placeholder for biometric/strong authentication requirement
     private fun requireBiometricOrStrongAuth(): Boolean {
-        if (adminAccessBlocked) {
+        if (adminAccessBlocked.get()) {
             println("[GuardianService] Admin access denied: service is in fail-closed mode.")
             SecurityRepository.publishEvent("AUTH_DENIED_FAIL_CLOSED")
             return false
         }
 
-        if (!authAvailable) {
-            adminAccessBlocked = true
+        if (!authAvailable.get()) {
+            adminAccessBlocked.set(true)
             println("[GuardianService] Auth service unavailable. Denying admin access (fail-closed).")
             SecurityRepository.publishEvent("AUTH_UNAVAILABLE_FAIL_CLOSED")
             return false
         }
 
-        if (!vaultAvailable) {
-            adminAccessBlocked = true
+        if (!vaultAvailable.get()) {
+            adminAccessBlocked.set(true)
             println("[GuardianService] Acing Vault unavailable. Denying admin access (fail-closed).")
             SecurityRepository.publishEvent("VAULT_UNAVAILABLE_FAIL_CLOSED")
             return false
@@ -154,7 +165,7 @@ class GuardianService : SystemService() {
 
     // Placeholder for secure workspace enablement
     private fun enableSecureWorkspaceForRole(role: String) {
-        if (!vaultAvailable) {
+        if (!vaultAvailable.get()) {
             println("[GuardianService] Secure workspace blocked: Acing Vault is unavailable.")
             SecurityRepository.publishEvent("WORKSPACE_BLOCKED_VAULT_UNAVAILABLE")
             return
@@ -171,25 +182,38 @@ class GuardianService : SystemService() {
                 username = "guardian_admin",
                 roles = setOf(UserRole.ADMIN)
             )
-            identityService.createCredential(adminUser.id, "DEV_ONLY_ADMIN_CREDENTIAL")
-            authAvailable = true
+            val bootstrapProbeCredential = Base64.getEncoder()
+                .encodeToString(AcingVaultEmulator.getSecureRandomBytes(24))
+            // Non-interactive bootstrap credential used only to verify credential lifecycle and vault integration wiring.
+            // TODO(PROD): Replace with real administrator enrollment flow and secure out-of-band credential delivery.
+            val bootstrapCredential = identityService.createCredential(adminUser.id, bootstrapProbeCredential)
+            identityService.revokeCredential(bootstrapCredential.id)
+            authAvailable.set(true)
             SecurityRepository.publishEvent("IDENTITY_SERVICE_READY")
             println("[GuardianService] Identity service initialized and admin user provisioned.")
         } catch (ex: Exception) {
-            authAvailable = false
-            adminAccessBlocked = true
+            authAvailable.set(false)
+            adminAccessBlocked.set(true)
             handleCriticalFailure("AUTH_SERVICE_FAILURE", "Identity service initialization failed", ex)
         }
     }
 
-    private fun enforceDeviceTrustForInterfaceUser() {
+    private fun enforceDeviceTrustForInterfaceUser(): Boolean {
+        val malwareDetected = !MalwareScanner.scanFile(INTERFACE_USER_PACKAGE_PATH)
+        val anomalyDetected = AnomalyDetector.detectAnomaly(INTERFACE_USER_RUNTIME_ID)
+        val networkThreatDetected = NetworkThreatMonitor.analyzeConnection(INTERFACE_USER_RUNTIME_ID)
+        val attestationPassed = deviceTrustEngine.attestDevice(
+            deviceId = DEFAULT_DEVICE_ID,
+            challenge = AcingVaultEmulator.getSecureRandomBytes(16)
+        )
+
         val trustDecision = deviceTrustEngine.evaluateTrust(
-            deviceId = "guardian-default-device",
+            deviceId = DEFAULT_DEVICE_ID,
             signal = TrustSignal(
-                malwareRisk = 10,
-                anomalyScore = 15,
-                networkRisk = 10,
-                attestationPassed = true
+                malwareRisk = if (malwareDetected) 90 else 10,
+                anomalyScore = if (anomalyDetected) 80 else 15,
+                networkRisk = if (networkThreatDetected) 75 else 10,
+                attestationPassed = attestationPassed
             )
         )
 
@@ -197,14 +221,17 @@ class GuardianService : SystemService() {
         SecurityRepository.publishEvent("DEVICE_TRUST_${trustDecision.enforcementAction}")
 
         if (trustDecision.enforcementAction == EnforcementAction.DENY_ACCESS) {
-            adminAccessBlocked = true
+            adminAccessBlocked.set(true)
+            return false
         }
+
+        return true
     }
 
     private fun handleCriticalFailure(eventCode: String, message: String, ex: Exception? = null) {
         println("[GuardianService] CRITICAL: $message")
         ex?.let { println("[GuardianService] ERROR: ${it.message}") }
         SecurityRepository.publishEvent(eventCode)
-        adminAccessBlocked = true
+        adminAccessBlocked.set(true)
     }
 }

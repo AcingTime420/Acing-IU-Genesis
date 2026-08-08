@@ -64,7 +64,7 @@
       "id": "device_trust_minimal_iu_enforcement",
       "description": "Restrict users to minimal IU when trust score is below threshold.",
       "enabled": true,
-      "action_on_failure": "MINIMAL_IU_ONLY",
+      "action_on_failure": "MINIMAL_IU",
       "parameters": {
         "trust_score_operator": "<",
         "trust_score_value": 40
