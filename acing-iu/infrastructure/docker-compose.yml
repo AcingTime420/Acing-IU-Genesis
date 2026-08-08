@@ -6,7 +6,7 @@ services:
     container_name: acing-iu-postgres
     environment:
       POSTGRES_USER: acing_admin
-      POSTGRES_PASSWORD: SecureAcingPassword2026!
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: acing_iu_db
     ports:
       - "5432:5432"
