@@ -1,85 +1,57 @@
-*.iml
-.gradle
-.kotlin
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-.env
-debug.keystore
+# ============================================================
+# Acing IU: Genesis — root .gitignore
+# Keep generated artifacts, credentials, and IDE state out of
+# version control.  Update this file when new toolchains are
+# added rather than adding ad-hoc ignores elsewhere.
+# ============================================================
 
-.gemini/
-gha-creds-*.json
-
-# Node dependencies
-node_modules/
-**/node_modules/
-
-# Next.js generated output
-.next/
-**/.next/
-out/
-**/out/
-
-# .NET generated output
-bin/
-obj/
+# ── Build outputs ───────────────────────────────────────────
 **/bin/
 **/obj/
+**/out/
+**/dist/
+**/build/out/
+
+# ── Test and coverage results ────────────────────────────────
 **/TestResults/
-
-# Local logs and reports
-*.log
-coverage/
-artifacts/
-
-# Local environment and secrets
-.env
-.env.*
-**/.env
-**/.env.*
-!**/.env.example
-
-# Local editor and AI runtime state
-.vs/
-.vscode/
-.idea/
-.refact/buddy/runtime_queue.jsonl
-.refact/buddy/state.json
-
-# Refact/Buddy local runtime records
-.refact/buddy/state.json
-.refact/buddy/runtime_queue.jsonl
-.refact/buddy/chats/workflows/*.json
-
-# Generated build and dependency artifacts
 **/coverage/
+**/test-results/
+**/reports/
+
+# ── Frontend / Node ──────────────────────────────────────────
+**/node_modules/
+**/.next/
+**/.nuxt/
+**/.output/
+
+# ── Debug symbols and user files ────────────────────────────
+*.pdb
 *.user
 *.suo
-*.cache
-# Local configuration and secrets
-!.env.example
-# Temporary editor and backup files
-*.bak
-*.tmp
-*.swp
-*~
-# Local Refact runtime state
-.refact/buddy/briefings/
-.refact/buddy/memory_ops.jsonl
+*.DS_Store
+Thumbs.db
 
-# Local IDE, runtime, and backup artifacts
-**/*.bak
-**/*.backup
-**/*.encoding-backup
-**/*.before-*
-backend_structure.txt
+# ── Environment / secrets ────────────────────────────────────
+.env
+.env.*
+!.env.example
+local.properties
+
+# ── IDE state (IntelliJ / Android Studio) ───────────────────
+# We commit .idea/ project-level config selectively below;
+# volatile IDE caches and workspace state are excluded.
+.idea/caches/
+.idea/workspace.xml
+.idea/shelf/
+.idea/httpRequests/
+.idea/dataSources/
+.idea/dataSources.local.xml
+*.iml
+
+# ── OS artefacts ─────────────────────────────────────────────
+.DS_Store
+ehthumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
