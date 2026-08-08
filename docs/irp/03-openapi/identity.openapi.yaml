@@ -1,0 +1,419 @@
+openapi: 3.1.0
+
+info:
+  title: Acing IU Identity API
+  version: 1.0.0
+  description: |
+    Genesis S2 identity service supporting registration, login, token
+    refresh, logout, TOTP multi-factor authentication, and user profiles.
+
+    Errors use RFC 9457 problem details with the
+    application/problem+json media type.
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+    
+servers:
+  - url: /
+    description: Current gateway host
+
+tags:
+  - name: Auth
+    description: User registration, authentication, tokens, and profiles
+  - name: MFA
+    description: Multi-factor authentication enrollment and verification
+  - name: Health
+    description: Service health and readiness checks
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      operationId: register
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+
+  /api/auth/login:
+    post:
+      summary: Authenticate a user
+      operationId: login
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+
+  /api/auth/refresh:
+    post:
+      summary: Refresh an access token
+      operationId: refresh
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Access and refresh tokens rotated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+
+  /api/auth/logout:
+    post:
+      summary: Log out the current user
+      operationId: logout
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '204':
+          description: User logged out successfully
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+
+  /api/auth/me:
+    get:
+      summary: Retrieve the current user profile
+      operationId: me
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/Problem'
+
+  /api/auth/mfa/enroll:
+    get:
+      summary: Begin MFA enrollment
+      operationId: mfaEnroll
+      tags:
+        - MFA
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: MFA secret and authenticator enrollment URI
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaEnrollResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+
+  /api/auth/mfa/verify:
+    post:
+      summary: Verify MFA enrollment
+      operationId: mfaVerify
+      tags:
+        - MFA
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaVerifyRequest'
+      responses:
+        '200':
+          description: MFA enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaVerifyResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+
+  /health/live:
+    get:
+      summary: Check service liveness
+      operationId: identityLive
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: Service process is alive
+        '429':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+
+  /health/ready:
+    get:
+      summary: Check service readiness
+      operationId: identityReady
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: Service is ready to receive traffic
+        '429':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token supplied in the Authorization header
+
+  responses:
+    Problem:
+      description: RFC 9457 problem details response
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+
+  schemas:
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+          format: password
+          writeOnly: true
+
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          writeOnly: true
+
+    RefreshRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+          writeOnly: true
+          description: Optional when the HttpOnly acing_refresh cookie is present
+
+    LogoutRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+          writeOnly: true
+          description: Refresh token to revoke
+
+    AuthResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - accessToken
+        - refreshToken
+        - accessTokenExpiresAt
+        - userId
+        - email
+        - roles
+      properties:
+        accessToken:
+          type: string
+          readOnly: true
+        refreshToken:
+          type: string
+          readOnly: true
+        accessTokenExpiresAt:
+          type: string
+          format: date-time
+          readOnly: true
+        userId:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        roles:
+          type: array
+          readOnly: true
+          items:
+            type: string
+
+    UserProfile:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - email
+        - mfaEnabled
+        - roles
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        mfaEnabled:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    MfaEnrollResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - secret
+        - manualEntryKey
+        - otpAuthUri
+      properties:
+        secret:
+          type: string
+          readOnly: true
+        manualEntryKey:
+          type: string
+          readOnly: true
+        otpAuthUri:
+          type: string
+          format: uri
+          readOnly: true
+
+    MfaVerifyRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: '^[0-9]{6}$'
+
+    MfaVerifyResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - mfaEnabled
+        - message
+      properties:
+        mfaEnabled:
+          type: boolean
+        message:
+          type: string
+
+    ProblemDetails:
+      type: object
+      additionalProperties: true
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          default: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        detail:
+          type:
+            - string
+            - 'null'
+        traceId:
+          type:
+            - string
+            - 'null'
