@@ -1,0 +1,41 @@
+Acing IU: Genesis — Installation Notes
+======================================
+
+What this installer provides
+----------------------------
+• Control Center launcher (Start Menu / optional desktop icon)
+• Local security token generator for MCP / tooling
+• Optional Docker Compose platform stack (Identity + Device Trust + Gateway)
+• Folders for logs, backups, knowledge-base, research, decisions, timeline
+
+Requirements for the platform stack
+-----------------------------------
+• Windows 10/11 x64
+• Docker Desktop for Windows (with Linux containers)
+• Optional: Git Bash or WSL to run the smoke-auth.sh test script
+
+After install
+-------------
+1. Open "Acing IU: Genesis" from the Start Menu.
+2. Choose [1] Start platform stack (if you installed the Docker component).
+3. Wait for containers to become healthy.
+4. Run [4] smoke test, or call:
+     POST http://localhost:8080/api/auth/register
+5. Edit platform\.env for production secrets (JWT, DB, Redis passwords).
+
+Default gateway
+---------------
+  http://localhost:8080
+
+Security
+--------
+• The installer generates a machine-local token under services\mcp-server\.local-token
+• Change all passwords in platform\.env before exposing any port beyond localhost
+• Refresh tokens are HttpOnly cookies when using browser clients against /api/auth
+
+Uninstall
+---------
+Use "Uninstall Acing IU: Genesis" from the Start Menu group.
+Docker volumes (Postgres/Redis data) are NOT removed automatically;
+run:  docker compose -f <install>\platform\docker-compose.yml down -v
+if you need a full wipe.

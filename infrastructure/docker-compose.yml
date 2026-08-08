@@ -1,0 +1,210 @@
+﻿# Acing IU - Platform Foundation Stack (S1-S3)
+# Required secrets (fail closed - no insecure defaults):
+#   POSTGRES_PASSWORD, MIGRATOR_DB_PASSWORD, IDENTITY_DB_PASSWORD,
+#   DEVICE_TRUST_DB_PASSWORD, REDIS_PASSWORD, JWT_SIGNING_KEY
+#
+# Dev host ports bind to 127.0.0.1 only. Production: do not publish 5432/6379.
+
+name: acing-iu
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: acing-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-acing_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-acing_iu}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?MIGRATOR_DB_PASSWORD must be set}
+      IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?IDENTITY_DB_PASSWORD must be set}
+      DEVICE_TRUST_DB_PASSWORD: ${DEVICE_TRUST_DB_PASSWORD:?DEVICE_TRUST_DB_PASSWORD must be set}
+    ports:
+      # Development only - localhost. Production: omit ports or use internal network only.
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Bootstrap only (empty volume). Upgrades: use db-migrate + migrate.sh
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    networks:
+      - acing-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}"
+
+  redis:
+    image: redis:7-alpine
+    container_name: acing-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - /usr/local/etc/redis/redis.conf
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"${REDIS_PASSWORD:?REDIS_PASSWORD must be set}\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    networks:
+      - acing-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}"
+
+  gateway:
+    image: nginx:1.27-alpine
+    container_name: acing-gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:-8080}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      identity:
+        condition: service_healthy
+      device-trust:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health/live"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - acing-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}"
+
+  identity:
+    build:
+      context: ..
+      dockerfile: backend/Identity/src/AcingIU.Identity.Api/Dockerfile
+    container_name: acing-identity
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-acing_iu};Username=${IDENTITY_DB_USER:-acing_identity};Password=${IDENTITY_DB_PASSWORD:?IDENTITY_DB_PASSWORD must be set}"
+      Redis__Connection: "redis:6379,password=${REDIS_PASSWORD:?REDIS_PASSWORD must be set}"
+      Jwt__Issuer: ${JWT_ISSUER:-acing-iu}
+      Jwt__Audience: ${JWT_AUDIENCE:-acing-iu-api}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set and at least 32 characters}
+      Jwt__AccessTokenMinutes: "15"
+      Jwt__RefreshTokenDays: "14"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health/live"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 25s
+    networks:
+      - acing-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}"
+
+  device-trust:
+    build:
+      context: ..
+      dockerfile: backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Dockerfile
+    container_name: acing-device-trust
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8081
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-acing_iu};Username=${DEVICE_TRUST_DB_USER:-acing_device_trust};Password=${DEVICE_TRUST_DB_PASSWORD:?DEVICE_TRUST_DB_PASSWORD must be set}"
+      Jwt__Issuer: ${JWT_ISSUER:-acing-iu}
+      Jwt__Audience: ${JWT_AUDIENCE:-acing-iu-api}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set and at least 32 characters}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/health/live"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 25s
+    networks:
+      - acing-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        tag: "{{.Name}}"
+
+  # Upgrade path for existing volumes (not a substitute for empty-volume init)
+  db-migrate:
+    image: postgres:16-alpine
+    container_name: acing-db-migrate
+    restart: "no"
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-acing_iu}
+      MIGRATOR_DB_USER: ${MIGRATOR_DB_USER:-acing_migrator}
+      MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?MIGRATOR_DB_PASSWORD must be set}
+      MIGRATIONS_DIR: /migrations
+    volumes:
+      - ./scripts/migrate.sh:/migrate.sh:ro
+      - ./postgres/init:/migrations:ro
+    entrypoint: ["/bin/sh", "/migrate.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - acing-net
+
+networks:
+  acing-net:
+    driver: bridge
+    name: acing-iu-net
+
+volumes:
+  postgres_data:
+    name: acing-postgres-data
+  redis_data:
+    name: acing-redis-data
+
