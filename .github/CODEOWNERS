@@ -1,9 +1,13 @@
-# Replace @ORG/TEAM with real GitHub teams or usernames before enforcing review rules.
-# Do not invent personal accounts.
+# Default ownership for the Acing IU: Genesis repository.
+# Replace individual ownership with GitHub teams when a dedicated organization
+# and maintainer teams are established.
 
-* @ORG/acing-iu-maintainers
+* @AcingTime420
 
-/backend/ @ORG/acing-iu-backend
-/infrastructure/ @ORG/acing-iu-platform
-/.github/ @ORG/acing-iu-platform
-/docs/irp/10-security/ @ORG/acing-iu-security
+/backend/ @AcingTime420
+/frontend/ @AcingTime420
+/infrastructure/ @AcingTime420
+/installer/ @AcingTime420
+/.github/ @AcingTime420
+/docs/ @AcingTime420
+/system/security/ @AcingTime420
