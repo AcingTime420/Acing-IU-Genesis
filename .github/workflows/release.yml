@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-release:
+    name: Validate, Package, and Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Kotlin compiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          KOTLIN_VERSION="2.0.0"
+          curl -fsSL "https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip" -o /tmp/kotlin.zip
+          unzip -q /tmp/kotlin.zip -d /tmp/kotlin
+          echo "/tmp/kotlin/kotlinc/bin" >> "$GITHUB_PATH"
+
+      - name: Validate repository
+        run: bash scripts/validate-premerge.sh --skip-compose
+
+      - name: Publish .NET services
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release/backend
+          dotnet publish backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Api.csproj -c Release -o release/backend/identity
+          dotnet publish backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/AcingIU.DeviceTrust.Api.csproj -c Release -o release/backend/device-trust
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Stage release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release/frontend release/docs
+          cp -R frontend/.next release/frontend/.next
+          cp frontend/package.json frontend/package-lock.json release/frontend/
+          if [[ -d frontend/public ]]; then cp -R frontend/public release/frontend/public; fi
+          cp -R docs/irp release/docs/irp
+          cp README.md SECURITY.md RELEASE_PROCESS.md release/
+          if [[ -f out/guardian.jar ]]; then cp out/guardian.jar release/; fi
+          tar -czf "acing-iu-genesis-${GITHUB_REF_NAME}.tar.gz" -C release .
+          sha256sum "acing-iu-genesis-${GITHUB_REF_NAME}.tar.gz" > "acing-iu-genesis-${GITHUB_REF_NAME}.sha256"
+
+      - name: Generate release SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: release
+          format: spdx-json
+          output-file: acing-iu-genesis.spdx.json
+          upload-artifact: false
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            acing-iu-genesis-${{ github.ref_name }}.tar.gz
+            acing-iu-genesis-${{ github.ref_name }}.sha256
+            acing-iu-genesis.spdx.json
