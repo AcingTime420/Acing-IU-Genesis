@@ -1,0 +1,126 @@
+# Genesis — PostgreSQL bootstrap, constraint tests, privilege probes
+name: Database
+
+on:
+  push:
+    branches: [main, develop, "release/**"]
+    paths:
+      - "infrastructure/postgres/**"
+      - "irp/02-database/**"
+      - "tests/database/**"
+      - ".github/workflows/database.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "infrastructure/postgres/**"
+      - "irp/02-database/**"
+      - "tests/database/**"
+      - ".github/workflows/database.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: database-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-constraints:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: acing_admin
+          POSTGRES_PASSWORD: ci_admin_password_only
+          POSTGRES_DB: acing_iu
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U acing_admin -d acing_iu"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: acing_admin
+      PGPASSWORD: ci_admin_password_only
+      PGDATABASE: acing_iu
+      MIGRATOR_DB_PASSWORD: ci_migrator_password_only
+      IDENTITY_DB_PASSWORD: ci_identity_password_only
+      DEVICE_TRUST_DB_PASSWORD: ci_device_trust_password_only
+
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Apply migrations in order
+        run: |
+          set -euo pipefail
+          for f in \
+            irp/02-database/migrations/000_security_core.sql \
+            irp/02-database/migrations/001_init_identity_schema.sql \
+            irp/02-database/migrations/002_roles_and_grants.sql
+          do
+            echo "Applying $f"
+            psql -v ON_ERROR_STOP=1 -f "$f"
+          done
+          # Set role passwords (mirrors 003_set_role_passwords.sh)
+          psql -v ON_ERROR_STOP=1 <<EOSQL
+          ALTER ROLE acing_migrator WITH LOGIN PASSWORD '${MIGRATOR_DB_PASSWORD}';
+          ALTER ROLE acing_identity WITH LOGIN PASSWORD '${IDENTITY_DB_PASSWORD}';
+          ALTER ROLE acing_device_trust WITH LOGIN PASSWORD '${DEVICE_TRUST_DB_PASSWORD}';
+          GRANT CONNECT ON DATABASE acing_iu TO acing_migrator, acing_identity, acing_device_trust;
+          EOSQL
+
+      - name: Constraint tests
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -f tests/database/constraint_tests.sql
+
+      - name: Privilege probes — runtime roles cannot mutate audit
+        run: |
+          set -euo pipefail
+          # Seed one audit row as admin
+          psql -v ON_ERROR_STOP=1 -c \
+            "INSERT INTO security_audit_logs (event_type, severity, actor) VALUES ('ci.probe', 'INFO', 'ci');"
+
+          probe_fail_update() {
+            role="$1"
+            pass="$2"
+            if PGPASSWORD="$pass" psql -v ON_ERROR_STOP=1 -U "$role" -d acing_iu -c \
+              "UPDATE security_audit_logs SET actor = 'pwned' WHERE event_type = 'ci.probe';" 2>/tmp/probe.err; then
+              echo "FAIL: $role was allowed to UPDATE security_audit_logs"
+              exit 1
+            fi
+            echo "PASS: $role cannot UPDATE audit"
+          }
+
+          probe_fail_delete() {
+            role="$1"
+            pass="$2"
+            if PGPASSWORD="$pass" psql -v ON_ERROR_STOP=1 -U "$role" -d acing_iu -c \
+              "DELETE FROM security_audit_logs WHERE event_type = 'ci.probe';" 2>/tmp/probe.err; then
+              echo "FAIL: $role was allowed to DELETE security_audit_logs"
+              exit 1
+            fi
+            echo "PASS: $role cannot DELETE audit"
+          }
+
+          probe_fail_update acing_identity "$IDENTITY_DB_PASSWORD"
+          probe_fail_delete acing_identity "$IDENTITY_DB_PASSWORD"
+          probe_fail_update acing_device_trust "$DEVICE_TRUST_DB_PASSWORD"
+          probe_fail_delete acing_device_trust "$DEVICE_TRUST_DB_PASSWORD"
+
+          # Positive: INSERT allowed for identity
+          PGPASSWORD="$IDENTITY_DB_PASSWORD" psql -v ON_ERROR_STOP=1 -U acing_identity -d acing_iu -c \
+            "INSERT INTO security_audit_logs (event_type, severity, actor) VALUES ('ci.identity.insert', 'INFO', 'acing_identity');"
+          echo "PASS: acing_identity can INSERT audit"
+
+      - name: Migration ledger present
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "SELECT version, description FROM schema_migrations ORDER BY version;"
+          count=$(psql -Atc "SELECT count(*) FROM schema_migrations")
+          test "$count" -ge 3

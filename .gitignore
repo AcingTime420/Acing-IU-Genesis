@@ -11,6 +11,11 @@
 **/out/
 **/dist/
 **/build/out/
+/build
+/captures
+.externalNativeBuild
+.cxx
+artifacts/
 
 # ── Test and coverage results ────────────────────────────────
 **/TestResults/
@@ -35,7 +40,12 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+**/.env
+**/.env.*
+!**/.env.example
 local.properties
+debug.keystore
+gha-creds-*.json
 
 # ── IDE state (IntelliJ / Android Studio) ───────────────────
 # We commit .idea/ project-level config selectively below;
@@ -47,6 +57,9 @@ local.properties
 .idea/dataSources/
 .idea/dataSources.local.xml
 *.iml
+.gradle
+.kotlin
+.gemini/
 
 # ── OS artefacts ─────────────────────────────────────────────
 .DS_Store
