@@ -8,13 +8,17 @@ DASHBOARD_SRC_DIR = ../dashboard
 BOOT_DIR = ../boot
 IU_SECURITY_DIR = ../iu_security
 AUTH_DIR = ../auth
+IDENTITY_SRC_DIR = ../identity
+TRUST_SRC_DIR = ../trust
 
 OUT_DIR = ./out
 
 # Kotlin source files
 KOTLIN_SRCS = $(wildcard $(SRC_DIR)/*.kt) \
                $(wildcard $(THREAT_SRC_DIR)/*.kt) \
-               $(wildcard $(DASHBOARD_SRC_DIR)/*.kt)
+               $(wildcard $(DASHBOARD_SRC_DIR)/*.kt) \
+               $(wildcard $(IDENTITY_SRC_DIR)/*.kt) \
+               $(wildcard $(TRUST_SRC_DIR)/*.kt)
 
 # Class files will be generated here
 CLASSES_DIR = $(OUT_DIR)/classes
