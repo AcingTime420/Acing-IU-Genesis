@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # Acing IU - Identity API
 # Repository-root Docker build context
 # =============================================================================
@@ -20,7 +20,7 @@ RUN dotnet publish backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Ap
     -o /app/publish \
     --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 
 WORKDIR /app
 
