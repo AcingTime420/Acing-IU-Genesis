@@ -1,91 +1,60 @@
 # Release Process — Acing IU: Genesis
 
-> **Feature-status legend**
-> ✅ Implemented · 🧪 Experimental · 📋 Planned
+## Status
 
----
-
-## Overview
-
-This document describes how releases of Acing IU: Genesis are prepared, validated, and published.  
-The current release process is **📋 Planned** — no formal release pipeline exists yet.  
-This document establishes the target process for Phase 4 (Engineering Maturity).
-
----
+The automated GitHub release pipeline, security audits, and SPDX SBOM generation are implemented. Release candidates remain pre-production validation builds and do not represent a stable or LTS product.
 
 ## Versioning
 
-The project uses [Semantic Versioning 2.0.0](https://semver.org/):
+The project follows Semantic Versioning 2.0.0:
 
-```
+```text
 MAJOR.MINOR.PATCH[-prerelease][+buildmetadata]
 ```
 
-| Segment | Changed when |
-|---|---|
-| MAJOR | Incompatible API or boot-contract changes |
-| MINOR | New features added in a backward-compatible manner |
-| PATCH | Backward-compatible bug fixes |
-| Pre-release | `-alpha.N`, `-beta.N`, `-rc.N` |
+IRP package numbers and product versions are separate identifiers.
 
-**Note:** The IRP package number and product version must not be used interchangeably.
+## Release stages
 
----
-
-## Release stages 📋 Planned
-
-| Stage | Description |
+| Stage | Purpose |
 |---|---|
 | `alpha` | Internal development; no stability guarantees |
-| `beta` | Feature-complete for the milestone; limited external testing |
-| `rc` (release candidate) | Freeze; only critical bug fixes permitted |
-| `stable` | Publicly tagged and documented release |
+| `beta` | Feature-complete milestone testing |
+| `rc` | Release freeze; critical fixes only |
+| stable | Public supported release described by its release notes |
 
----
+## Automated artifacts
 
-## Release artefacts 📋 Planned
+Every version tag matching `v*.*.*` triggers `.github/workflows/release.yml` and produces:
 
-Each stable release should produce:
+- compiled `guardian.jar`;
+- published Identity and Device Trust .NET services;
+- compiled Next.js frontend files;
+- IRP documentation;
+- SPDX JSON SBOM;
+- SHA-256 checksum;
+- compressed release archive;
+- GitHub Release with generated notes.
 
-- `guardian.jar` — compiled Guardian platform
-- Boot scripts archive (`guardian_init.sh`, `iu_security_init`, etc.)
-- SBOM (Software Bill of Materials) in SPDX format
-- Container images (when containerisation is implemented) with digest pins
-- Release notes (`CHANGELOG.md` entry)
-- Signed tag (`git tag -s vX.Y.Z`)
+Tags containing a prerelease suffix, such as `-rc.1`, are published as GitHub prereleases.
 
----
+## Release-candidate checklist
 
-## Release checklist 📋 Planned
+1. Confirm `master` is current and has no unintended local changes.
+2. Confirm Repository Integrity, Clean-Clone Baseline, Security and Dependency Review, and SBOM workflows pass.
+3. Confirm no unresolved release-blocking issues or pull requests remain.
+4. Update `CHANGELOG.md`.
+5. Create and push an annotated release-candidate tag.
+6. Confirm the Release workflow passes.
+7. Download all artifacts and verify the SHA-256 checksum.
+8. Smoke-test the Guardian JAR, .NET services, and frontend from the release archive.
+9. Record defects; create `-rc.2` if corrections are required.
+10. Promote to a stable tag only after release-candidate acceptance.
 
-1. All CI checks pass on `main`.
-2. `bash scripts/validate-premerge.sh` exits 0 on a clean clone.
-3. CHANGELOG.md entry written and reviewed.
-4. Version bumped in build files.
-5. Release branch created (`release/vX.Y.Z`).
-6. Release candidate tagged (`vX.Y.Z-rc.1`) and validated.
-7. Final tag signed and pushed (`vX.Y.Z`).
-8. GitHub Release created with artefacts attached.
-9. Security advisory review completed (no outstanding critical issues).
+## Stable release
 
----
+Stable releases require a signed final tag, completed release-candidate evidence, no open critical security findings, and explicit maintainer approval.
 
-## Hotfix process 📋 Planned
+## Hotfixes
 
-For critical security fixes:
-
-1. Branch from the affected tag: `git checkout -b hotfix/vX.Y.Z+1 vX.Y.Z`
-2. Apply minimal fix.
-3. Fast-track CI + security review.
-4. Tag as `vX.Y.Z+1` and backport to `main`.
-
----
-
-## Current gaps
-
-- No automated release pipeline (GitHub Actions release workflow).
-- No CHANGELOG.md yet.
-- No SBOM generation tooling configured.
-- No container images to sign.
-
-These gaps are tracked in `docs/evidence/repository-integrity-baseline.md`.
+Create a minimal branch from the affected stable tag, run the complete CI and security gate set, publish a new semantic patch version, and merge the correction back into `master`.

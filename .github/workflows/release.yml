@@ -48,6 +48,12 @@ jobs:
       - name: Validate repository
         run: bash scripts/validate-premerge.sh --skip-compose
 
+      - name: Verify required Guardian artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f system/security/guardian/build/out/guardian.jar
+
       - name: Publish .NET services
         shell: bash
         run: |
@@ -71,8 +77,8 @@ jobs:
           cp frontend/package.json frontend/package-lock.json release/frontend/
           if [[ -d frontend/public ]]; then cp -R frontend/public release/frontend/public; fi
           cp -R docs/irp release/docs/irp
-          cp README.md SECURITY.md RELEASE_PROCESS.md release/
-          if [[ -f out/guardian.jar ]]; then cp out/guardian.jar release/; fi
+          cp README.md SECURITY.md RELEASE_PROCESS.md CHANGELOG.md release/
+          cp system/security/guardian/build/out/guardian.jar release/guardian.jar
           tar -czf "acing-iu-genesis-${GITHUB_REF_NAME}.tar.gz" -C release .
           sha256sum "acing-iu-genesis-${GITHUB_REF_NAME}.tar.gz" > "acing-iu-genesis-${GITHUB_REF_NAME}.sha256"
 
@@ -88,6 +94,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
           fail_on_unmatched_files: true
           files: |
             acing-iu-genesis-${{ github.ref_name }}.tar.gz
