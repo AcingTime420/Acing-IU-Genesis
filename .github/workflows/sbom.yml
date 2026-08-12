@@ -31,7 +31,7 @@ jobs:
           output-file: acing-iu-genesis.spdx.json
           upload-artifact: false
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: acing-iu-genesis-sbom
           path: acing-iu-genesis.spdx.json
