@@ -90,9 +90,10 @@ jobs:
           output-file: acing-iu-genesis.spdx.json
           upload-artifact: false
 
-      - name: Publish GitHub release
+      - name: Create draft release and upload assets
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-') }}
           fail_on_unmatched_files: true
@@ -100,3 +101,15 @@ jobs:
             acing-iu-genesis-${{ github.ref_name }}.tar.gz
             acing-iu-genesis-${{ github.ref_name }}.sha256
             acing-iu-genesis.spdx.json
+
+      - name: Publish immutable release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            gh release edit "$GITHUB_REF_NAME" --draft=false --prerelease
+          else
+            gh release edit "$GITHUB_REF_NAME" --draft=false --latest
+          fi
