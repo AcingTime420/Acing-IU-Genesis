@@ -1,156 +1,545 @@
-#Requires -Version 5.1
 <#
 .SYNOPSIS
-    Clean-clone reproducibility baseline for Acing IU: Genesis (PowerShell wrapper).
+  Acing IU Genesis pre-merge validation pipeline.
 
 .DESCRIPTION
-    Cross-platform PowerShell companion to scripts/validate-premerge.sh.
-    On Linux/macOS the shell script is preferred; this wrapper is provided for
-    Windows contributors and environments where PowerShell 7+ is the primary
-    shell.
+  Runs the local fail-closed validation sequence for Acing IU Genesis:
 
-    Exit codes:
-        0 – all enabled checks passed
-        1 – one or more checks failed
+  0. Loads required environment variables.
+  1. Verifies required development tools.
+  2. Restores .NET dependencies.
+  3. Builds the .NET solution.
+  4. Runs unit tests.
+  5. Lints OpenAPI specifications.
+  6. Validates the Docker Compose configuration.
+  7. Starts PostgreSQL and waits for readiness.
+  8. Applies database migrations.
+  9. Runs database constraint tests.
+  10. Verifies least-privilege audit-log protections.
+  11. Starts the full stack and runs smoke tests.
+  12. Runs an optional Trivy image scan.
 
-.PARAMETER SkipBuild
-    Skip the Kotlin/Make build step.
+.NOTES
+  Status: Implementation baseline pending full local validation.
 
-.PARAMETER SkipCompose
-    Skip the Docker Compose step.
+  The script is fail-closed. It does not report success unless every
+  required validation step exits successfully on the current machine.
 
-.EXAMPLE
-    pwsh scripts/validate-premerge.ps1
-    pwsh scripts/validate-premerge.ps1 -SkipBuild
+  Named Docker volumes are preserved during cleanup.
 #>
-[CmdletBinding()]
-param(
-    [switch]$SkipBuild,
-    [switch]$SkipCompose
-)
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = "Stop"
 
-# ── Helpers ───────────────────────────────────────────────────────────────
-$Failures = 0
+$Root = Resolve-Path (Join-Path $PSScriptRoot "..")
+Set-Location $Root
 
-function Write-Step  { param([string]$Msg) Write-Host "`n==> $Msg" -ForegroundColor Cyan }
-function Write-Ok    { param([string]$Msg) Write-Host "    v $Msg" -ForegroundColor Green }
-function Write-Skip  { param([string]$Msg) Write-Host "    ~ SKIP: $Msg" -ForegroundColor Yellow }
-function Write-Fail  {
-    param([string]$Msg)
-    Write-Host "    X FAIL: $Msg" -ForegroundColor Red
-    $script:Failures++
-}
+$ComposeDir = Join-Path $Root "infrastructure"
+$EnvFile = Join-Path $ComposeDir ".env"
 
-# ── Repository root ───────────────────────────────────────────────────────
-$RepoRoot = Split-Path -Parent $PSScriptRoot
-Set-Location $RepoRoot
-Write-Step "Repository root: $RepoRoot"
+$script:CleanedUp = $false
 
-# ── 1. No tracked generated artifacts ─────────────────────────────────────
-Write-Step "1/5  Checking for tracked generated artifacts"
 
-$ArtifactPrefixes = @('bin', 'obj', 'out', 'dist', 'TestResults', 'coverage', 'node_modules', '.next')
-$ArtifactFound = $false
+function Invoke-Cleanup {
+  if ($script:CleanedUp) {
+    return
+  }
 
-foreach ($prefix in $ArtifactPrefixes) {
-    $tracked = & git ls-files -- $prefix 2>$null
-    if ($tracked) {
-        Write-Host "    Tracked generated files under '${prefix}/':" -ForegroundColor Red
-        $tracked | ForEach-Object { Write-Host "      $_" -ForegroundColor Red }
-        $ArtifactFound = $true
+  $script:CleanedUp = $true
+
+  if (Test-Path $EnvFile) {
+    Write-Host "`n=== Cleanup (preserving named volumes) ==="
+
+    try {
+      Push-Location $ComposeDir
+
+      docker compose down --remove-orphans 2>$null | Out-Null
     }
-}
-
-if ($ArtifactFound) {
-    Write-Fail "Generated artifacts found in version control. Remove them and update .gitignore."
-} else {
-    Write-Ok "No tracked generated artifacts detected."
-}
-
-# ── 2. .env baseline ───────────────────────────────────────────────────────
-Write-Step "2/5  Environment file baseline"
-
-if (Test-Path '.env.example') {
-    if (-not (Test-Path '.env')) {
-        Copy-Item '.env.example' '.env'
-        Write-Ok "Created .env from .env.example"
-    } else {
-        Write-Ok ".env already present"
+    catch {
+      # Cleanup is best-effort and must not hide the original failure.
     }
-} else {
-    Write-Skip ".env.example not found — skipping env setup"
-}
-
-# ── 3. Build (Kotlin / Make) ───────────────────────────────────────────────
-Write-Step "3/5  Build"
-
-if ($SkipBuild) {
-    Write-Skip "Build skipped via -SkipBuild"
-} elseif ($IsLinux -or $IsMacOS) {
-    if (Get-Command 'bash' -ErrorAction SilentlyContinue) {
-        & bash scripts/validate-premerge.sh --skip-compose
-        if ($LASTEXITCODE -ne 0) { Write-Fail "Shell validate-premerge.sh build step failed" }
-        else { Write-Ok "Build via shell script succeeded" }
-    } else {
-        Write-Skip "bash not found — cannot run shell build wrapper"
+    finally {
+      Pop-Location
     }
-} else {
-    if (Get-Command 'kotlinc' -ErrorAction SilentlyContinue) {
-        Push-Location 'system\security\guardian\build'
-        try {
-            & make
-            if ($LASTEXITCODE -ne 0) { Write-Fail "Guardian platform build failed" }
-            else { Write-Ok "Guardian platform built successfully" }
-        } finally { Pop-Location }
-    } else {
-        Write-Skip "kotlinc not found — skipping Kotlin compilation (install Kotlin to enable)"
+  }
+}
+
+
+Register-EngineEvent `
+  -SourceIdentifier PowerShell.Exiting `
+  -Action { Invoke-Cleanup } |
+  Out-Null
+
+
+trap {
+  Write-Host "FAIL: $($_.Exception.Message)" -ForegroundColor Red
+  Invoke-Cleanup
+  exit 1
+}
+
+
+function Step {
+  param(
+    [Parameter(Mandatory)]
+    [string]$Name,
+
+    [Parameter(Mandatory)]
+    [scriptblock]$Action
+  )
+
+  Write-Host "`n=== $Name ===" -ForegroundColor Cyan
+
+  & $Action
+
+  Write-Host "PASS: $Name" -ForegroundColor Green
+}
+
+
+function Import-DotEnv {
+  param(
+    [Parameter(Mandatory)]
+    [string]$Path
+  )
+
+  if (-not (Test-Path $Path)) {
+    throw "Missing $Path. Copy infrastructure/.env.example to infrastructure/.env and configure its secrets."
+  }
+
+  $required = @(
+    "POSTGRES_USER",
+    "POSTGRES_DB",
+    "POSTGRES_PASSWORD",
+    "IDENTITY_DB_PASSWORD",
+    "DEVICE_TRUST_DB_PASSWORD",
+    "JWT_SIGNING_KEY",
+    "REDIS_PASSWORD"
+  )
+
+  $seen = @{}
+
+  $lines = Get-Content -Path $Path -Encoding UTF8
+
+  foreach ($raw in $lines) {
+    $line = $raw -replace "`r", ""
+
+    if ([string]::IsNullOrWhiteSpace($line)) {
+      continue
     }
-}
 
-# ── 4. Docker Compose (conditional) ───────────────────────────────────────
-Write-Step "4/5  Docker Compose"
+    $trimmed = $line.TrimStart()
 
-if ($SkipCompose) {
-    Write-Skip "Compose skipped via -SkipCompose"
-} elseif ((Test-Path 'docker-compose.yml') -or (Test-Path 'compose.yaml')) {
-    if (Get-Command 'docker' -ErrorAction SilentlyContinue) {
-        & docker compose build
-        if ($LASTEXITCODE -ne 0) { Write-Fail "Compose build failed" }
-        else { Write-Ok "Compose build succeeded" }
-
-        & docker compose up -d
-        if ($LASTEXITCODE -ne 0) { Write-Fail "Compose up failed" }
-        else { Write-Ok "Compose services started" }
-
-        Start-Sleep 5
-
-        & docker compose down
-        if ($LASTEXITCODE -ne 0) { Write-Fail "Compose down failed" }
-        else { Write-Ok "Compose services stopped cleanly" }
-    } else {
-        Write-Skip "docker not available — skipping Compose checks"
+    if ($trimmed.StartsWith("#")) {
+      continue
     }
-} else {
-    Write-Skip "No docker-compose.yml / compose.yaml found — container baseline is planned (see ARCHITECTURE.md)"
+
+    $equalsIndex = $line.IndexOf("=")
+
+    if ($equalsIndex -lt 0) {
+      $previewLength = [Math]::Min(40, $line.Length)
+      $preview = $line.Substring(0, $previewLength)
+
+      throw "Invalid .env line without '=': $preview"
+    }
+
+    $key = $line.Substring(0, $equalsIndex).Trim()
+    $value = $line.Substring($equalsIndex + 1)
+
+    if ([string]::IsNullOrWhiteSpace($key)) {
+      throw "Invalid .env entry with an empty key."
+    }
+
+    if ($seen.ContainsKey($key)) {
+      throw "Duplicate key in .env: $key"
+    }
+
+    $seen[$key] = $true
+
+    Set-Item -Path "Env:$key" -Value $value
+  }
+
+  foreach ($key in $required) {
+    if (-not (Test-Path "Env:$key")) {
+      throw "Required variable missing from .env: $key"
+    }
+
+    $value = (Get-Item "Env:$key").Value
+
+    if ([string]::IsNullOrWhiteSpace($value)) {
+      throw "Required variable is blank in .env: $key"
+    }
+  }
+
+  Write-Host "Loaded required variables from infrastructure/.env (values not shown)"
 }
 
-# ── 5. Readiness / health checks ──────────────────────────────────────────
-Write-Step "5/5  Readiness / health checks"
-Write-Skip "No HTTP endpoints configured yet — health checks are planned (see docs/adr/ADR-001)"
 
-# ── Summary ───────────────────────────────────────────────────────────────
-Write-Host ""
-if ($Failures -eq 0) {
-    Write-Host "==============================================" -ForegroundColor Green
-    Write-Host "  All enabled checks PASSED."                  -ForegroundColor Green
-    Write-Host "==============================================" -ForegroundColor Green
-    exit 0
-} else {
-    Write-Host "==============================================" -ForegroundColor Red
-    Write-Host "  $Failures check(s) FAILED. Review output above." -ForegroundColor Red
-    Write-Host "==============================================" -ForegroundColor Red
-    exit 1
+function Wait-PostgresReady {
+  $maximumAttempts = 30
+
+  for ($attempt = 1; $attempt -le $maximumAttempts; $attempt++) {
+    Push-Location $ComposeDir
+
+    try {
+      docker compose exec -T postgres `
+        pg_isready `
+        -U $env:POSTGRES_USER `
+        -d $env:POSTGRES_DB `
+        2>$null |
+        Out-Null
+
+      if ($LASTEXITCODE -eq 0) {
+        Write-Host "PostgreSQL is ready"
+        return
+      }
+    }
+    finally {
+      Pop-Location
+    }
+
+    Start-Sleep -Seconds 2
+  }
+
+  throw "PostgreSQL did not become ready within $($maximumAttempts * 2) seconds."
 }
+
+
+function Assert-ExitZero {
+  param(
+    [Parameter(Mandatory)]
+    [string]$Context
+  )
+
+  if ($LASTEXITCODE -ne 0) {
+    throw "$Context failed with exit code $LASTEXITCODE"
+  }
+}
+
+
+Step "0. Load environment" {
+  Import-DotEnv -Path $EnvFile
+}
+
+
+Step "1. Tool versions" {
+  dotnet --version | Out-Host
+  Assert-ExitZero "dotnet --version"
+
+  docker --version | Out-Host
+  Assert-ExitZero "docker --version"
+
+  docker compose version | Out-Host
+  Assert-ExitZero "docker compose version"
+}
+
+
+Step "2. dotnet restore" {
+  dotnet restore backend/AcingIU.sln
+
+  Assert-ExitZero "dotnet restore"
+}
+
+
+Step "3. dotnet build" {
+  dotnet build `
+    backend/AcingIU.sln `
+    -c Release `
+    --no-restore
+
+  Assert-ExitZero "dotnet build"
+}
+
+
+Step "4. dotnet test" {
+  $testProjects = Get-ChildItem `
+    -Path tests `
+    -Filter *.csproj `
+    -Recurse `
+    -ErrorAction SilentlyContinue
+
+  if (-not $testProjects) {
+    throw "No test projects were found under tests/."
+  }
+
+  dotnet test `
+    backend/AcingIU.sln `
+    -c Release `
+    --no-build `
+    --verbosity normal
+
+  Assert-ExitZero "dotnet test"
+}
+
+
+Step "5. OpenAPI lint" {
+  $candidateSpecifications = @(
+    "docs/irp/03-openapi/identity.openapi.yaml",
+    "docs/irp/03-openapi/device-trust.openapi.yaml",
+    "irp/03-openapi/identity.openapi.yaml",
+    "irp/03-openapi/device-trust.openapi.yaml"
+  )
+
+  $specifications = $candidateSpecifications |
+    Where-Object { Test-Path $_ }
+
+  if (-not $specifications) {
+    throw "No OpenAPI specifications were found."
+  }
+
+  foreach ($specification in $specifications) {
+    npx --yes @redocly/cli@1.25.15 lint $specification
+
+    Assert-ExitZero "OpenAPI lint $specification"
+  }
+}
+
+
+Step "6. Docker Compose config" {
+  Push-Location $ComposeDir
+
+  try {
+    docker compose config -q
+
+    Assert-ExitZero "docker compose config"
+  }
+  finally {
+    Pop-Location
+  }
+}
+
+
+Step "7. PostgreSQL up + readiness" {
+  Push-Location $ComposeDir
+
+  try {
+    docker compose up -d postgres
+
+    Assert-ExitZero "docker compose up postgres"
+  }
+  finally {
+    Pop-Location
+  }
+
+  Wait-PostgresReady
+}
+
+
+Step "8. Migrations (fail-closed)" {
+  Push-Location $ComposeDir
+
+  try {
+    docker compose run --rm db-migrate
+
+    Assert-ExitZero "db-migrate"
+  }
+  finally {
+    Pop-Location
+  }
+}
+
+
+Step "9. Constraint tests" {
+  $constraintTestFile = Join-Path `
+    $Root `
+    "tests/database/constraint_tests.sql"
+
+  if (-not (Test-Path $constraintTestFile)) {
+    throw "Constraint test file was not found: $constraintTestFile"
+  }
+
+  Push-Location $ComposeDir
+
+  try {
+    Get-Content `
+      -Path $constraintTestFile `
+      -Raw |
+      docker compose exec -T postgres `
+        psql `
+        -U $env:POSTGRES_USER `
+        -d $env:POSTGRES_DB `
+        -v ON_ERROR_STOP=1
+
+    Assert-ExitZero "constraint_tests"
+  }
+  finally {
+    Pop-Location
+  }
+}
+
+
+Step "10. Privilege probes" {
+  $identityErrorFile = [System.IO.Path]::GetTempFileName()
+  $deviceTrustErrorFile = [System.IO.Path]::GetTempFileName()
+
+  Push-Location $ComposeDir
+
+  try {
+    # These two PostgreSQL commands are intentionally expected to fail.
+    # Temporarily prevent Windows PowerShell from treating native stderr
+    # as a terminating PowerShell exception.
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+
+    try {
+      # Identity may INSERT audit events but must never UPDATE history.
+      docker compose exec -T `
+        -e "PGPASSWORD=$($env:IDENTITY_DB_PASSWORD)" `
+        postgres `
+        psql `
+        -v ON_ERROR_STOP=1 `
+        -U acing_identity `
+        -d $env:POSTGRES_DB `
+        -c "UPDATE security_audit_logs SET actor='x';" `
+        1>$null `
+        2>$identityErrorFile
+
+      $identityExitCode = $LASTEXITCODE
+
+      $identityError = Get-Content `
+        -Path $identityErrorFile `
+        -Raw `
+        -ErrorAction SilentlyContinue
+
+      if ($identityExitCode -eq 0) {
+        throw "acing_identity was allowed to UPDATE security_audit_logs."
+      }
+
+      if ($identityError -notmatch "permission denied.*security_audit_logs") {
+        throw "acing_identity privilege probe failed for an unexpected reason: $identityError"
+      }
+
+      Write-Host `
+        "PASS: acing_identity cannot UPDATE security_audit_logs" `
+        -ForegroundColor Green
+
+      # Device Trust may INSERT audit events but must never DELETE history.
+      docker compose exec -T `
+        -e "PGPASSWORD=$($env:DEVICE_TRUST_DB_PASSWORD)" `
+        postgres `
+        psql `
+        -v ON_ERROR_STOP=1 `
+        -U acing_device_trust `
+        -d $env:POSTGRES_DB `
+        -c "DELETE FROM security_audit_logs;" `
+        1>$null `
+        2>$deviceTrustErrorFile
+
+      $deviceTrustExitCode = $LASTEXITCODE
+
+      $deviceTrustError = Get-Content `
+        -Path $deviceTrustErrorFile `
+        -Raw `
+        -ErrorAction SilentlyContinue
+
+      if ($deviceTrustExitCode -eq 0) {
+        throw "acing_device_trust was allowed to DELETE security_audit_logs."
+      }
+
+      if ($deviceTrustError -notmatch "permission denied.*security_audit_logs") {
+        throw "acing_device_trust privilege probe failed for an unexpected reason: $deviceTrustError"
+      }
+
+      Write-Host `
+        "PASS: acing_device_trust cannot DELETE security_audit_logs" `
+        -ForegroundColor Green
+
+      Write-Host `
+        "Runtime roles cannot mutate audit records" `
+        -ForegroundColor Green
+    }
+    finally {
+      $ErrorActionPreference = $previousErrorActionPreference
+    }
+  }
+  finally {
+    Pop-Location
+
+    Remove-Item `
+      -Path $identityErrorFile `
+      -Force `
+      -ErrorAction SilentlyContinue
+
+    Remove-Item `
+      -Path $deviceTrustErrorFile `
+      -Force `
+      -ErrorAction SilentlyContinue
+  }
+}
+
+
+Step "11. Full stack + smoke" {
+  Push-Location $ComposeDir
+
+  try {
+    docker compose up -d --build --force-recreate --remove-orphans
+
+    Assert-ExitZero "docker compose up --build"
+  }
+  finally {
+    Pop-Location
+  }
+
+  Wait-PostgresReady
+
+  Start-Sleep -Seconds 10
+
+  Push-Location $ComposeDir
+
+  try {
+    $bashCandidates = @(
+      "C:\Program Files\Git\bin\bash.exe",
+      "C:\Program Files\Git\usr\bin\bash.exe"
+    )
+
+    $bashExecutable = $bashCandidates |
+      Where-Object { Test-Path $_ } |
+      Select-Object -First 1
+
+    if (-not $bashExecutable) {
+      $bashCommand = Get-Command bash -ErrorAction SilentlyContinue
+
+      if ($bashCommand) {
+        $bashExecutable = $bashCommand.Source
+      }
+    }
+
+    if (-not $bashExecutable) {
+      throw "bash was not found. Install Git Bash or WSL to run smoke-auth.sh."
+    }
+
+    & $bashExecutable ./scripts/smoke-auth.sh
+
+    Assert-ExitZero "smoke-auth.sh"
+  }
+  finally {
+    Pop-Location
+  }
+}
+
+
+Step "12. Trivy optional" {
+  if (Get-Command trivy -ErrorAction SilentlyContinue) {
+    docker build `
+      -t acing-identity:local `
+      backend/Identity/src/AcingIU.Identity.Api
+
+    Assert-ExitZero "docker build identity"
+
+    trivy image `
+      --severity CRITICAL,HIGH `
+      --exit-code 1 `
+      acing-identity:local
+
+    Assert-ExitZero "trivy"
+  }
+  else {
+    Write-Host "Trivy is not installed; skipping local scan because the CI container workflow covers it."
+  }
+}
+
+
+Write-Host `
+  "`n=== SUMMARY: ALL EXECUTED STEPS PASSED ON THIS MACHINE ===" `
+  -ForegroundColor Green
+
+Invoke-Cleanup
+
+exit 0
