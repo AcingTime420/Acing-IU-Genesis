@@ -144,12 +144,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'frontend/package*.json'
 
-      - name: Install dependencies
+      - name: Install lockfile-pinned dependencies
         run: |
-          if [ -f frontend/package.json ]; then
-            cd frontend && npm install
+          if [ -f frontend/package.json ] && [ -f frontend/package-lock.json ]; then
+            cd frontend && npm ci
           else
-            echo "No frontend package.json found — skipping"
+            echo "frontend/package.json and frontend/package-lock.json are required for deterministic validation"
+            exit 1
           fi
 
       - name: Lint and Test Frontend
