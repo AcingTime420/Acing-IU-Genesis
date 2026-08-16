@@ -17,21 +17,21 @@ jobs:
   build-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.7.1
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
       - name: Build Identity
         run: docker build -t acing-identity:ci backend/Identity/src/AcingIU.Identity.Api
       - name: Build Device Trust
         run: docker build -t acing-device-trust:ci backend/DeviceTrust/src/AcingIU.DeviceTrust.Api
       - name: Trivy Identity
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
           image-ref: acing-identity:ci
           severity: CRITICAL,HIGH
           exit-code: "1"
       - name: Trivy Device Trust
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
           image-ref: acing-device-trust:ci
           severity: CRITICAL,HIGH

@@ -54,7 +54,7 @@ jobs:
       DEVICE_TRUST_DB_PASSWORD: ci_device_trust_password_only
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
       - name: Apply migrations in order
         run: |
