@@ -1,7 +1,8 @@
 ﻿# Acing IU - Platform Foundation Stack (S1-S3)
 # Required secrets (fail closed - no insecure defaults):
 #   POSTGRES_PASSWORD, MIGRATOR_DB_PASSWORD, IDENTITY_DB_PASSWORD,
-#   DEVICE_TRUST_DB_PASSWORD, REDIS_PASSWORD, JWT_SIGNING_KEY
+#   DEVICE_TRUST_DB_PASSWORD, REDIS_PASSWORD, JWT_SIGNING_KEY,
+#   MFA_SECRET_PROTECTION_ACTIVE_KEY_ID, MFA_SECRET_PROTECTION_KEY_MFA_V1
 #
 # Dev host ports bind to 127.0.0.1 only. Production: do not publish 5432/6379.
 
@@ -120,6 +121,8 @@ services:
       Jwt__Issuer: ${JWT_ISSUER:-acing-iu}
       Jwt__Audience: ${JWT_AUDIENCE:-acing-iu-api}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set and at least 32 characters}
+      Mfa__SecretProtection__ActiveKeyId: ${MFA_SECRET_PROTECTION_ACTIVE_KEY_ID:?MFA_SECRET_PROTECTION_ACTIVE_KEY_ID must be set}
+      Mfa__SecretProtection__Keys__mfa-v1: ${MFA_SECRET_PROTECTION_KEY_MFA_V1:?MFA_SECRET_PROTECTION_KEY_MFA_V1 must be a base64-encoded 32-byte key}
       Jwt__AccessTokenMinutes: "15"
       Jwt__RefreshTokenDays: "14"
     depends_on:
