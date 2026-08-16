@@ -127,8 +127,10 @@ jobs:
 
   review:
     needs: 'dispatch'
+    # External AI review is opt-in. This avoids blocking pull requests when its
+    # credentials or provider configuration have not been intentionally enabled.
     if: |-
-      ${{ needs.dispatch.outputs.command == 'review' }}
+      ${{ needs.dispatch.outputs.command == 'review' && vars.GEMINI_REVIEW_ENABLED == 'true' }}
     uses: './.github/workflows/gemini-review.yml'
     permissions:
       contents: 'read'
