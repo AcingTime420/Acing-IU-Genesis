@@ -1,0 +1,12 @@
+{
+  "vault": {
+    "anti_rollback": true,
+    "max_auth_failures": 5,
+    "lockdown_on_tamper": true
+  },
+  "iu_security": {
+    "require_vault_binding": true,
+    "protected_components": ["AdminDashboard", "Workspace", "FirmwareTools"],
+    "auth_timeout": 300
+  }
+}
