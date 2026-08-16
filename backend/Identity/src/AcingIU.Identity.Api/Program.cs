@@ -13,6 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Configuration
 // ---------------------------------------------------------------------------
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services
+    .AddOptions<MfaSecretProtectionOptions>()
+    .Bind(builder.Configuration.GetSection(MfaSecretProtectionOptions.SectionName))
+    .Validate(MfaSecretProtectionOptions.IsValid, "MFA secret protection requires a valid active key identifier and base64-encoded 32-byte key material.")
+    .ValidateOnStart();
 
 // ---------------------------------------------------------------------------
 // Data & infrastructure
@@ -32,6 +37,7 @@ builder.Services.AddSingleton<ITokenRevocationStore, RedisTokenRevocationStore>(
 builder.Services.AddSingleton<IPasswordHasher, Argon2idPasswordHasher>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddSingleton<IMfaService, TotpMfaService>();
+builder.Services.AddSingleton<IMfaSecretProtector, AesGcmMfaSecretProtector>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // ---------------------------------------------------------------------------
