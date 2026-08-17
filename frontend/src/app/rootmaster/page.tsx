@@ -1734,6 +1734,26 @@ function FirmwarePartitions() {
 }
 
 export default function RootMasterLab() {
+  return (
+    <main className="min-h-screen bg-slate-950 px-6 py-16 text-slate-100" aria-labelledby="rootmaster-unavailable-title">
+      <section className="mx-auto max-w-3xl rounded-xl border border-amber-500/40 bg-slate-900 p-8 shadow-xl">
+        <p className="text-sm font-semibold uppercase tracking-widest text-amber-300">Safety boundary</p>
+        <h1 id="rootmaster-unavailable-title" className="mt-3 text-3xl font-bold">RootMaster laboratory workflows are unavailable</h1>
+        <p className="mt-5 text-lg leading-8 text-slate-300">
+          This interface is not an operational Android, firmware, bootloader, root, warranty, or hardware-attestation tool.
+          It is disabled until Genesis has supported-device evidence, ownership authorization, read-only inventory, firmware verification,
+          backup-before-change enforcement, command allowlists, and recovery validation.
+        </p>
+        <p className="mt-4 leading-7 text-slate-400">
+          No Samsung Knox integration, carrier certification, hardware-register mapping, firmware safety guarantee, or device attestation
+          is currently verified by this route. See the supported-device matrix and security evidence before enabling any future workflow.
+        </p>
+      </section>
+    </main>
+  );
+}
+
+function RootMasterLabExperimental() {
   // Master 100+ task backlog items structured from past sessions, S25 Ultra firmware parameters, and dynamic debugging.
   const defaultTasks: Task[] = useMemo(
     () => [
