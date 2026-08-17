@@ -1,0 +1,51 @@
+﻿services:
+  postgres:
+    image: postgres:16-alpine@sha256:075f7ba66bc9b3ce7d6b8b635208ff61cd7cf1a67d71ec530eec5d7ae0cbe571
+    environment:
+      POSTGRES_USER: ${VALIDATION_POSTGRES_USER:-acing_validation}
+      POSTGRES_PASSWORD: ${VALIDATION_POSTGRES_PASSWORD:?VALIDATION_POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${VALIDATION_POSTGRES_DB:-acing_validation}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - validation-net
+    labels:
+      acing.genesis.lifecycle: "validation"
+      acing.genesis.run-id: "${VALIDATION_RUN_ID:?VALIDATION_RUN_ID must be set}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine@sha256:9702d01c1f10c3ea9f48211b4362e44f154ff02d063e6f7f1c811d2f669f96dc2ac8
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - validation-net
+    labels:
+      acing.genesis.lifecycle: "validation"
+      acing.genesis.run-id: "${VALIDATION_RUN_ID:?VALIDATION_RUN_ID must be set}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  postgres_data:
+    labels:
+      acing.genesis.lifecycle: "validation"
+      acing.genesis.run-id: "${VALIDATION_RUN_ID:?VALIDATION_RUN_ID must be set}"
+  redis_data:
+    labels:
+      acing.genesis.lifecycle: "validation"
+      acing.genesis.run-id: "${VALIDATION_RUN_ID:?VALIDATION_RUN_ID must be set}"
+
+networks:
+  validation-net:
+    labels:
+      acing.genesis.lifecycle: "validation"
+      acing.genesis.run-id: "${VALIDATION_RUN_ID:?VALIDATION_RUN_ID must be set}"
