@@ -12,7 +12,7 @@ export default function UsersPage() {
       mfaEnabled: true, 
       status: "Active", 
       clearance: "L4 Global Security",
-      keySignature: "SIG-KNOX-8501-A2"
+      keySignature: "FIXTURE-NONPROD-8501-A2"
     },
     { 
       id: "usr-8821-ff56", 
@@ -21,7 +21,7 @@ export default function UsersPage() {
       mfaEnabled: true, 
       status: "Active", 
       clearance: "L3 Hardware Attestation",
-      keySignature: "SIG-KNOX-3942-F1"
+      keySignature: "FIXTURE-NONPROD-3942-F1"
     },
     { 
       id: "usr-1102-cc90", 
@@ -30,7 +30,7 @@ export default function UsersPage() {
       mfaEnabled: false, 
       status: "Active", 
       clearance: "L1 Telemetry Read",
-      keySignature: "SIG-KNOX-0041-C0"
+      keySignature: "FIXTURE-NONPROD-0041-C0"
     }
   ];
 
