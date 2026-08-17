@@ -1,4 +1,4 @@
-﻿# Acing IU - Platform Foundation Stack (S1-S3)
+# Acing IU - Platform Foundation Stack (S1-S3)
 # Required secrets (fail closed - no insecure defaults):
 #   POSTGRES_PASSWORD, MIGRATOR_DB_PASSWORD, IDENTITY_DB_PASSWORD,
 #   DEVICE_TRUST_DB_PASSWORD, REDIS_PASSWORD, JWT_SIGNING_KEY,
@@ -207,7 +207,7 @@ networks:
 
 volumes:
   postgres_data:
-    name: acing-postgres-data
+    name: ${POSTGRES_VOLUME_NAME:-acing-postgres-data}
   redis_data:
-    name: acing-redis-data
+    name: ${REDIS_VOLUME_NAME:-acing-redis-data}
 
