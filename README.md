@@ -144,3 +144,7 @@ Security issues: see [SECURITY.md](SECURITY.md) — **do not open a public issue
 ## License
 
 *License to be determined — see project maintainer.*
+
+## Repository Governance
+
+The canonical source repository is AcingTime420/Acing-IU-Genesis, with routine implementation performed from D:\Acing-IU\Genesis. Repository controls, authorized recovery paths, and the archive-only legacy remote policy are defined in [docs/governance/REPOSITORY_GOVERNANCE.md](docs/governance/REPOSITORY_GOVERNANCE.md).
