@@ -29,6 +29,7 @@ public interface IDeviceRepository
 {
     Task<TrustScoreResponse> UpsertTelemetryAsync(TelemetrySubmitRequest req, int score, Guid? ownerUserId, CancellationToken ct = default);
     Task<TrustScoreResponse?> GetByHwIdAsync(string hwId, CancellationToken ct = default);
+    Task<Guid?> GetOwnerUserIdAsync(string hwId, CancellationToken ct = default);
     Task<IReadOnlyList<DeviceListItem>> ListAsync(int limit = 50, CancellationToken ct = default);
     Task WriteAuditAsync(string eventType, string severity, string actor, string? resource, object? payload, string? traceId, CancellationToken ct = default);
     Task<int> GetTrustThresholdAsync(CancellationToken ct = default);
@@ -76,6 +77,16 @@ public sealed class DeviceRepository : IDeviceRepository
         };
     }
 
+    public async Task<Guid?> GetOwnerUserIdAsync(string hwId, CancellationToken ct = default)
+    {
+        await using var conn = await _db.CreateOpenConnectionAsync(ct);
+        await using var cmd = new NpgsqlCommand(
+            "SELECT owner_user_id FROM registered_devices WHERE hw_identifier = @hw",
+            conn);
+        cmd.Parameters.AddWithValue("hw", hwId);
+        var value = await cmd.ExecuteScalarAsync(ct);
+        return value is Guid ownerUserId ? ownerUserId : null;
+    }
     public async Task<TrustScoreResponse?> GetByHwIdAsync(string hwId, CancellationToken ct = default)
     {
         await using var conn = await _db.CreateOpenConnectionAsync(ct);

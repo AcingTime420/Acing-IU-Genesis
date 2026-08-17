@@ -15,7 +15,7 @@ public sealed class TrustController : ControllerBase
 
     public TrustController(ITrustService trust) => _trust = trust;
 
-    /// <summary>Submit device telemetry and receive computed trust score.</summary>
+    /// <summary>Submit authenticated device telemetry and receive a computed trust score.</summary>
     [HttpPost("telemetry/submit")]
     [Authorize]
     [ProducesResponseType(typeof(TrustScoreResponse), StatusCodes.Status200OK)]
@@ -24,20 +24,33 @@ public sealed class TrustController : ControllerBase
         if (!ModelState.IsValid)
             return ProblemResult(400, "Validation failed", "Invalid telemetry payload.");
 
-        Guid? owner = null;
-        var sub = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-        if (Guid.TryParse(sub, out var uid)) owner = uid;
+        var callerId = GetCallerId();
+        if (!callerId.HasValue)
+            return ProblemResult(401, "Unauthorized", "A valid subject identifier is required.");
 
-        var result = await _trust.SubmitTelemetryAsync(request, owner, HttpContext.TraceIdentifier, ct);
+        var existingOwnerId = await _trust.GetOwnerUserIdAsync(request.HwIdentifier, ct);
+        if (existingOwnerId.HasValue && !CanAccess(existingOwnerId.Value, callerId.Value))
+            return ProblemResult(404, "Not Found", "Device not registered.");
+
+        var effectiveOwnerId = existingOwnerId ?? callerId;
+        var result = await _trust.SubmitTelemetryAsync(request, effectiveOwnerId, HttpContext.TraceIdentifier, ct);
         return Ok(result);
     }
 
-    /// <summary>Get trust score for a hardware identifier.</summary>
+    /// <summary>Get a trust score for an authorized device owner or privileged operator.</summary>
     [HttpGet("devices/{hwId}")]
     [Authorize]
     [ProducesResponseType(typeof(TrustScoreResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDevice(string hwId, CancellationToken ct)
     {
+        var callerId = GetCallerId();
+        if (!callerId.HasValue)
+            return ProblemResult(401, "Unauthorized", "A valid subject identifier is required.");
+
+        var ownerId = await _trust.GetOwnerUserIdAsync(hwId, ct);
+        if (!ownerId.HasValue || !CanAccess(ownerId.Value, callerId.Value))
+            return ProblemResult(404, "Not Found", "Device not registered.");
+
         var device = await _trust.GetDeviceAsync(hwId, ct);
         if (device is null)
             return ProblemResult(404, "Not Found", "Device not registered.");
@@ -48,7 +61,7 @@ public sealed class TrustController : ControllerBase
         return Ok(device);
     }
 
-    /// <summary>List recently seen devices.</summary>
+    /// <summary>List recently seen devices for privileged operational roles.</summary>
     [HttpGet("devices")]
     [Authorize(Roles = "Admin,Operator")]
     [ProducesResponseType(typeof(IReadOnlyList<DeviceListItem>), StatusCodes.Status200OK)]
@@ -57,6 +70,15 @@ public sealed class TrustController : ControllerBase
         var list = await _trust.ListDevicesAsync(ct);
         return Ok(list);
     }
+
+    private Guid? GetCallerId()
+    {
+        var subject = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        return Guid.TryParse(subject, out var userId) ? userId : null;
+    }
+
+    private bool CanAccess(Guid ownerId, Guid callerId) =>
+        ownerId == callerId || User.IsInRole("Admin") || User.IsInRole("Operator");
 
     private ObjectResult ProblemResult(int status, string title, string detail) =>
         StatusCode(status, new ProblemBody

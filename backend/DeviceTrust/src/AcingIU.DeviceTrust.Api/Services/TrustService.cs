@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using AcingIU.DeviceTrust.Api.Data;
 using AcingIU.DeviceTrust.Api.Models;
 
@@ -8,6 +7,7 @@ public interface ITrustService
 {
     Task<TrustScoreResponse> SubmitTelemetryAsync(TelemetrySubmitRequest req, Guid? ownerUserId, string? traceId, CancellationToken ct = default);
     Task<TrustScoreResponse?> GetDeviceAsync(string hwId, CancellationToken ct = default);
+    Task<Guid?> GetOwnerUserIdAsync(string hwId, CancellationToken ct = default);
     Task<IReadOnlyList<DeviceListItem>> ListDevicesAsync(CancellationToken ct = default);
 }
 
@@ -46,6 +46,9 @@ public sealed class TrustService : ITrustService
 
     public Task<TrustScoreResponse?> GetDeviceAsync(string hwId, CancellationToken ct = default) =>
         _repo.GetByHwIdAsync(hwId, ct);
+
+    public Task<Guid?> GetOwnerUserIdAsync(string hwId, CancellationToken ct = default) =>
+        _repo.GetOwnerUserIdAsync(hwId, ct);
 
     public Task<IReadOnlyList<DeviceListItem>> ListDevicesAsync(CancellationToken ct = default) =>
         _repo.ListAsync(50, ct);
