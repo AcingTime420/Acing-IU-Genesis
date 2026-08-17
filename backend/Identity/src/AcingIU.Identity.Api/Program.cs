@@ -131,8 +131,11 @@ var app = builder.Build();
 // ---------------------------------------------------------------------------
 // Pipeline
 // ---------------------------------------------------------------------------
-app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acing IU Identity v1"));
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acing IU Identity v1"));
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
