@@ -1,2 +1,340 @@
-﻿{"schemaVersion":"1.0","issue":63,"title":"Security claims and device-operation capability evidence register","classificationRule":"Only traceable repository or hosted validation evidence may be Verified; otherwise use the more conservative status.","claims":[{"claim":"Knox certification or Knox hardware integration","surface":"frontend/src/app/rootmaster/page.tsx; app/","status":"Prohibited or removed","evidence":"Issue #63 records no Samsung certification or Knox integration evidence; public RootMaster surface disabled.","automatedTest":"scripts/test-security-claims.ps1::RootMasterRouteIsSafe","owner":"Security Architecture","supportedDeviceScope":"None","limitation":"No supported-device matrix or vendor attestation evidence."},{"claim":"Hardware-backed attestation","surface":"frontend/src/app/rootmaster/page.tsx; system/","status":"Planned","evidence":"No device-attestation implementation or approved device evidence in this repository.","automatedTest":"scripts/test-security-claims.ps1::UnsupportedClaimsAreNotPresented","owner":"Device Trust","supportedDeviceScope":"None","limitation":"A software emulator is not hardware-backed evidence."},{"claim":"Certificate, compliance, or production certification","surface":"frontend/src/app/rootmaster/page.tsx; docs/","status":"Implemented but unverified","evidence":"No independent certification record is present in the repository.","automatedTest":"scripts/test-security-claims.ps1::QualifiedWordingPasses","owner":"Security Architecture","supportedDeviceScope":"None","limitation":"Documentation must not present certification as a fact."},{"claim":"Firmware flashing, bootloader unlock, rooting, bypass, fuse, register modification, or recovery operation","surface":"frontend/src/app/rootmaster/page.tsx; app/; system/","status":"Prohibited or removed","evidence":"The public/operator RootMaster route is replaced with a non-operational unavailable screen.","automatedTest":"scripts/test-security-claims.ps1::DisabledOperationsCannotBeInvoked","owner":"Platform Safety","supportedDeviceScope":"None","limitation":"Educational references may remain only outside executable operator controls and must be qualified."},{"claim":"Carrier or register modification","surface":"frontend/src/app/rootmaster/page.tsx; system/","status":"Prohibited or removed","evidence":"No callable control remains in the public RootMaster route.","automatedTest":"scripts/test-security-claims.ps1::DisabledOperationsCannotBeInvoked","owner":"Platform Safety","supportedDeviceScope":"None","limitation":"No implementation or authorization evidence exists."},{"claim":"Acing Vault hardware-backed key store","surface":"ARCHITECTURE.md; system/security/guardian/","status":"Simulator","evidence":"Repository documentation identifies AcingVaultEmulator.kt as software emulation for development.","automatedTest":"scripts/test-security-claims.ps1::SimulatorClaimsAreQualified","owner":"Security Architecture","supportedDeviceScope":"Development emulator only","limitation":"Not evidence of TrustZone, Secure Enclave, Knox Vault, or production hardware."},{"claim":"Production readiness","surface":"README.md; docs/status/CURRENT_PROJECT_STATUS.md; frontend/src/app/","status":"Planned","evidence":"Issue #63 and the Phase 6 audit identify unresolved claim mapping and release gates.","automatedTest":"scripts/test-security-claims.ps1::ProductionClaimsAreQualified","owner":"Technical Program Management","supportedDeviceScope":"None","limitation":"Build and tests do not establish deployment or release readiness."}]}
-
+﻿{
+    "schemaVersion":  "1.1",
+    "issue":  63,
+    "title":  "Security claims and device-operation capability evidence register",
+    "classificationRule":  "Only traceable human-reviewed evidence may be Verified; all other occurrences require conservative disposition.",
+    "capabilities":  [
+                         {
+                             "id":  "CAP-001",
+                             "claim":  "Knox certification or Knox hardware integration",
+                             "surface":  "frontend/src/app/rootmaster/page.tsx; app/",
+                             "status":  "Prohibited or removed",
+                             "evidence":  "Issue #63 records no Samsung certification or Knox integration evidence; public RootMaster surface disabled.",
+                             "automatedTest":  "scripts/test-security-claims.ps1::RootMasterRouteIsSafe",
+                             "owner":  "Security Architecture",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "No supported-device matrix or vendor attestation evidence."
+                         },
+                         {
+                             "id":  "CAP-003",
+                             "claim":  "Hardware-backed attestation",
+                             "surface":  "frontend/src/app/rootmaster/page.tsx; system/",
+                             "status":  "Planned",
+                             "evidence":  "No device-attestation implementation or approved device evidence in this repository.",
+                             "automatedTest":  "scripts/test-security-claims.ps1::UnsupportedClaimsAreNotPresented",
+                             "owner":  "Device Trust",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "A software emulator is not hardware-backed evidence."
+                         },
+                         {
+                             "id":  "CAP-002",
+                             "claim":  "Certificate, compliance, or production certification",
+                             "surface":  "frontend/src/app/rootmaster/page.tsx; docs/",
+                             "status":  "Implemented but unverified",
+                             "evidence":  "No independent certification record is present in the repository.",
+                             "automatedTest":  "scripts/test-security-claims.ps1::QualifiedWordingPasses",
+                             "owner":  "Security Architecture",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "Documentation must not present certification as a fact."
+                         },
+                         {
+                             "id":  "CAP-012",
+                             "claim":  "Firmware flashing, bootloader unlock, rooting, bypass, fuse, register modification, or recovery operation",
+                             "surface":  "frontend/src/app/rootmaster/page.tsx; app/; system/",
+                             "status":  "Prohibited or removed",
+                             "evidence":  "The public/operator RootMaster route is replaced with a non-operational unavailable screen.",
+                             "automatedTest":  "scripts/test-security-claims.ps1::DisabledOperationsCannotBeInvoked",
+                             "owner":  "Platform Safety",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "Educational references may remain only outside executable operator controls and must be qualified."
+                         },
+                         {
+                             "id":  "CAP-005",
+                             "claim":  "Carrier or register modification",
+                             "surface":  "frontend/src/app/rootmaster/page.tsx; system/",
+                             "status":  "Prohibited or removed",
+                             "evidence":  "No callable control remains in the public RootMaster route.",
+                             "automatedTest":  "scripts/test-security-claims.ps1::DisabledOperationsCannotBeInvoked",
+                             "owner":  "Platform Safety",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "No implementation or authorization evidence exists."
+                         },
+                         {
+                             "id":  "CAP-006",
+                             "claim":  "Acing Vault hardware-backed key store",
+                             "surface":  "ARCHITECTURE.md; system/security/guardian/",
+                             "status":  "Simulator",
+                             "evidence":  "Repository documentation identifies AcingVaultEmulator.kt as software emulation for development.",
+                             "automatedTest":  "scripts/test-security-claims.ps1::SimulatorClaimsAreQualified",
+                             "owner":  "Security Architecture",
+                             "supportedDeviceScope":  "Development emulator only",
+                             "limitation":  "Not evidence of TrustZone, Secure Enclave, Knox Vault, or production hardware."
+                         },
+                         {
+                             "id":  "CAP-004",
+                             "claim":  "Production readiness",
+                             "surface":  "README.md; docs/status/CURRENT_PROJECT_STATUS.md; frontend/src/app/",
+                             "status":  "Planned",
+                             "evidence":  "Issue #63 and the Phase 6 audit identify unresolved claim mapping and release gates.",
+                             "automatedTest":  "scripts/test-security-claims.ps1::ProductionClaimsAreQualified",
+                             "owner":  "Technical Program Management",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "Build and tests do not establish deployment or release readiness."
+                         },
+                         {
+                             "id":  "CAP-007",
+                             "claim":  "FIPS CTIA or compliance-level API assertion",
+                             "surface":  "docs CTIA_Compliance.md docs API.md API schemas",
+                             "status":  "Implemented but unverified",
+                             "evidence":  "Documentation and API field occurrences only",
+                             "automatedTest":  "scripts/test-security-claims.ps1",
+                             "owner":  "Compliance",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "No independent assessment or compliance boundary is established."
+                         },
+                         {
+                             "id":  "CAP-008",
+                             "claim":  "FIPS or compliance framework assertion",
+                             "surface":  "docs backend database",
+                             "status":  "Implemented but unverified",
+                             "evidence":  "Repository text and policy references",
+                             "automatedTest":  "scripts/test-security-claims.ps1",
+                             "owner":  "Compliance",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "Claims require human evidence review."
+                         },
+                         {
+                             "id":  "CAP-009",
+                             "claim":  "Quantum resistance Kyber or Dilithium",
+                             "surface":  "docs backend scripts",
+                             "status":  "Planned",
+                             "evidence":  "No approved cryptographic deployment evidence",
+                             "automatedTest":  "scripts/test-security-claims.ps1",
+                             "owner":  "Cryptography",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "Terminology does not prove algorithm use or security level."
+                         },
+                         {
+                             "id":  "CAP-010",
+                             "claim":  "TriDAR security capability",
+                             "surface":  "docs frontend system",
+                             "status":  "External dependency",
+                             "evidence":  "No local implementation or evidence record",
+                             "automatedTest":  "scripts/test-security-claims.ps1",
+                             "owner":  "Security Architecture",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "Vendor or product dependency is unresolved."
+                         },
+                         {
+                             "id":  "CAP-011",
+                             "claim":  "Sentinel Mesh security capability",
+                             "surface":  "docs frontend system",
+                             "status":  "External dependency",
+                             "evidence":  "No local implementation or evidence record",
+                             "automatedTest":  "scripts/test-security-claims.ps1",
+                             "owner":  "Security Architecture",
+                             "supportedDeviceScope":  "None",
+                             "limitation":  "Vendor or product dependency is unresolved."
+                         },
+                         {
+                             "id":  "CAP-013",
+                             "claim":  "Firmware validation or firmware security evidence",
+                             "surface":  "scripts acing-iu scripts docs",
+                             "status":  "Implemented but unverified",
+                             "evidence":  "Metadata validators and documentation only",
+                             "automatedTest":  "scripts/test-security-claims.ps1",
+                             "owner":  "Firmware Security",
+                             "supportedDeviceScope":  "Metadata and test fixtures only",
+                             "limitation":  "Validator output is not device attestation."
+                         },
+                         {
+                             "id":  "CAP-014",
+                             "claim":  "Android or operator security capability",
+                             "surface":  "app frontend devices frontend audit",
+                             "status":  "Implemented but unverified",
+                             "evidence":  "Application and policy code requires human review",
+                             "automatedTest":  "scripts/test-security-claims.ps1",
+                             "owner":  "Device Trust",
+                             "supportedDeviceScope":  "Development and test surfaces",
+                             "limitation":  "No production operator capability is established."
+                         },
+                         {
+                             "id":  "CAP-015",
+                             "claim":  "Fabricated identifiers device results or security fixtures",
+                             "surface":  "tests fixtures docs frontend",
+                             "status":  "Test fixture",
+                             "evidence":  "Fixture and test context must be explicit",
+                             "automatedTest":  "scripts/test-security-claims.ps1",
+                             "owner":  "Quality Engineering",
+                             "supportedDeviceScope":  "Test fixtures only",
+                             "limitation":  "Fixture values must never be production evidence."
+                         }
+                     ],
+    "claims":  [
+                   {
+                       "id":  "CAP-001",
+                       "claim":  "Knox certification or Knox hardware integration",
+                       "surface":  "frontend/src/app/rootmaster/page.tsx; app/",
+                       "status":  "Prohibited or removed",
+                       "evidence":  "Issue #63 records no Samsung certification or Knox integration evidence; public RootMaster surface disabled.",
+                       "automatedTest":  "scripts/test-security-claims.ps1::RootMasterRouteIsSafe",
+                       "owner":  "Security Architecture",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "No supported-device matrix or vendor attestation evidence."
+                   },
+                   {
+                       "id":  "CAP-003",
+                       "claim":  "Hardware-backed attestation",
+                       "surface":  "frontend/src/app/rootmaster/page.tsx; system/",
+                       "status":  "Planned",
+                       "evidence":  "No device-attestation implementation or approved device evidence in this repository.",
+                       "automatedTest":  "scripts/test-security-claims.ps1::UnsupportedClaimsAreNotPresented",
+                       "owner":  "Device Trust",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "A software emulator is not hardware-backed evidence."
+                   },
+                   {
+                       "id":  "CAP-002",
+                       "claim":  "Certificate, compliance, or production certification",
+                       "surface":  "frontend/src/app/rootmaster/page.tsx; docs/",
+                       "status":  "Implemented but unverified",
+                       "evidence":  "No independent certification record is present in the repository.",
+                       "automatedTest":  "scripts/test-security-claims.ps1::QualifiedWordingPasses",
+                       "owner":  "Security Architecture",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "Documentation must not present certification as a fact."
+                   },
+                   {
+                       "id":  "CAP-012",
+                       "claim":  "Firmware flashing, bootloader unlock, rooting, bypass, fuse, register modification, or recovery operation",
+                       "surface":  "frontend/src/app/rootmaster/page.tsx; app/; system/",
+                       "status":  "Prohibited or removed",
+                       "evidence":  "The public/operator RootMaster route is replaced with a non-operational unavailable screen.",
+                       "automatedTest":  "scripts/test-security-claims.ps1::DisabledOperationsCannotBeInvoked",
+                       "owner":  "Platform Safety",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "Educational references may remain only outside executable operator controls and must be qualified."
+                   },
+                   {
+                       "id":  "CAP-005",
+                       "claim":  "Carrier or register modification",
+                       "surface":  "frontend/src/app/rootmaster/page.tsx; system/",
+                       "status":  "Prohibited or removed",
+                       "evidence":  "No callable control remains in the public RootMaster route.",
+                       "automatedTest":  "scripts/test-security-claims.ps1::DisabledOperationsCannotBeInvoked",
+                       "owner":  "Platform Safety",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "No implementation or authorization evidence exists."
+                   },
+                   {
+                       "id":  "CAP-006",
+                       "claim":  "Acing Vault hardware-backed key store",
+                       "surface":  "ARCHITECTURE.md; system/security/guardian/",
+                       "status":  "Simulator",
+                       "evidence":  "Repository documentation identifies AcingVaultEmulator.kt as software emulation for development.",
+                       "automatedTest":  "scripts/test-security-claims.ps1::SimulatorClaimsAreQualified",
+                       "owner":  "Security Architecture",
+                       "supportedDeviceScope":  "Development emulator only",
+                       "limitation":  "Not evidence of TrustZone, Secure Enclave, Knox Vault, or production hardware."
+                   },
+                   {
+                       "id":  "CAP-004",
+                       "claim":  "Production readiness",
+                       "surface":  "README.md; docs/status/CURRENT_PROJECT_STATUS.md; frontend/src/app/",
+                       "status":  "Planned",
+                       "evidence":  "Issue #63 and the Phase 6 audit identify unresolved claim mapping and release gates.",
+                       "automatedTest":  "scripts/test-security-claims.ps1::ProductionClaimsAreQualified",
+                       "owner":  "Technical Program Management",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "Build and tests do not establish deployment or release readiness."
+                   },
+                   {
+                       "id":  "CAP-007",
+                       "claim":  "FIPS CTIA or compliance-level API assertion",
+                       "surface":  "docs CTIA_Compliance.md docs API.md API schemas",
+                       "status":  "Implemented but unverified",
+                       "evidence":  "Documentation and API field occurrences only",
+                       "automatedTest":  "scripts/test-security-claims.ps1",
+                       "owner":  "Compliance",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "No independent assessment or compliance boundary is established."
+                   },
+                   {
+                       "id":  "CAP-008",
+                       "claim":  "FIPS or compliance framework assertion",
+                       "surface":  "docs backend database",
+                       "status":  "Implemented but unverified",
+                       "evidence":  "Repository text and policy references",
+                       "automatedTest":  "scripts/test-security-claims.ps1",
+                       "owner":  "Compliance",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "Claims require human evidence review."
+                   },
+                   {
+                       "id":  "CAP-009",
+                       "claim":  "Quantum resistance Kyber or Dilithium",
+                       "surface":  "docs backend scripts",
+                       "status":  "Planned",
+                       "evidence":  "No approved cryptographic deployment evidence",
+                       "automatedTest":  "scripts/test-security-claims.ps1",
+                       "owner":  "Cryptography",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "Terminology does not prove algorithm use or security level."
+                   },
+                   {
+                       "id":  "CAP-010",
+                       "claim":  "TriDAR security capability",
+                       "surface":  "docs frontend system",
+                       "status":  "External dependency",
+                       "evidence":  "No local implementation or evidence record",
+                       "automatedTest":  "scripts/test-security-claims.ps1",
+                       "owner":  "Security Architecture",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "Vendor or product dependency is unresolved."
+                   },
+                   {
+                       "id":  "CAP-011",
+                       "claim":  "Sentinel Mesh security capability",
+                       "surface":  "docs frontend system",
+                       "status":  "External dependency",
+                       "evidence":  "No local implementation or evidence record",
+                       "automatedTest":  "scripts/test-security-claims.ps1",
+                       "owner":  "Security Architecture",
+                       "supportedDeviceScope":  "None",
+                       "limitation":  "Vendor or product dependency is unresolved."
+                   },
+                   {
+                       "id":  "CAP-013",
+                       "claim":  "Firmware validation or firmware security evidence",
+                       "surface":  "scripts acing-iu scripts docs",
+                       "status":  "Implemented but unverified",
+                       "evidence":  "Metadata validators and documentation only",
+                       "automatedTest":  "scripts/test-security-claims.ps1",
+                       "owner":  "Firmware Security",
+                       "supportedDeviceScope":  "Metadata and test fixtures only",
+                       "limitation":  "Validator output is not device attestation."
+                   },
+                   {
+                       "id":  "CAP-014",
+                       "claim":  "Android or operator security capability",
+                       "surface":  "app frontend devices frontend audit",
+                       "status":  "Implemented but unverified",
+                       "evidence":  "Application and policy code requires human review",
+                       "automatedTest":  "scripts/test-security-claims.ps1",
+                       "owner":  "Device Trust",
+                       "supportedDeviceScope":  "Development and test surfaces",
+                       "limitation":  "No production operator capability is established."
+                   },
+                   {
+                       "id":  "CAP-015",
+                       "claim":  "Fabricated identifiers device results or security fixtures",
+                       "surface":  "tests fixtures docs frontend",
+                       "status":  "Test fixture",
+                       "evidence":  "Fixture and test context must be explicit",
+                       "automatedTest":  "scripts/test-security-claims.ps1",
+                       "owner":  "Quality Engineering",
+                       "supportedDeviceScope":  "Test fixtures only",
+                       "limitation":  "Fixture values must never be production evidence."
+                   }
+               ]
+}
