@@ -10,7 +10,7 @@ name: acing-iu
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:075f7ba66bc9b3ce7d6b8b635208ff61cd7cf1a67d71ec530eec5d7ae0cbe571
     container_name: acing-postgres
     restart: unless-stopped
     environment:
@@ -44,7 +44,7 @@ services:
         tag: "{{.Name}}"
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:9702d01c1f10c3ea9f48211b4362e44f154ff02d063e6f7268eba804059f53bf
     container_name: acing-redis
     restart: unless-stopped
     command:
@@ -75,7 +75,7 @@ services:
         tag: "{{.Name}}"
 
   gateway:
-    image: nginx:1.27-alpine
+    image: nginx:1.27-alpine@sha256:62223d644fa234c3a1cc785ee14242ec47a77364226f1c811d2f669f96dc2ac8
     container_name: acing-gateway
     restart: unless-stopped
     ports:
@@ -180,7 +180,7 @@ services:
 
   # Upgrade path for existing volumes (not a substitute for empty-volume init)
   db-migrate:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:075f7ba66bc9b3ce7d6b8b635208ff61cd7cf1a67d71ec530eec5d7ae0cbe571
     container_name: acing-db-migrate
     restart: "no"
     environment:

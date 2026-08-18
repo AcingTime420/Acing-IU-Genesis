@@ -1,36 +1,35 @@
+﻿using AcingIU.Audit.Data;
+using AcingIU.Audit.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using AcingIU.Shared.Models;
 
-namespace AcingIU.Audit.Controllers
+namespace AcingIU.Audit.Controllers;
+
+[ApiController]
+[Route("api/audit")]
+[Authorize(Roles = "Admin,Operator")]
+public sealed class AuditController(IAuditLogRepository auditLogRepository) : ControllerBase
 {
-    [ApiController]
-    [Route("api/audit")]
-    public class AuditController : ControllerBase
+    [HttpGet]
+    [ProducesResponseType<IReadOnlyList<AuditLogRecord>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<AuditLogRecord>>> GetAuditLogs(
+        [FromQuery] string? eventType,
+        [FromQuery] string? severity,
+        [FromQuery] long? beforeId,
+        [FromQuery] int limit = 100,
+        CancellationToken cancellationToken = default)
     {
-        [HttpGet]
-        public IActionResult GetAuditLogs()
+        if (limit is < 1 or > 500)
         {
-            return Ok(new[] {
-                new AuditLogEntry {
-                    UserId = Guid.NewGuid(),
-                    DeviceId = Guid.NewGuid(),
-                    Action = "DEVICE_POLICY_EVALUATION",
-                    Status = "SUCCESS",
-                    DetailsJson = "{\"DeviceName\":\"Mick's S25 Ultra\",\"TrustScore\":100}",
-                    IpAddress = "192.168.1.150"
-                }
-            });
+            return ValidationProblem("limit must be between 1 and 500.");
         }
-
-        [HttpPost]
-        public IActionResult CommitAuditLog([FromBody] AuditLogEntry entry)
+        if (beforeId is <= 0)
         {
-            return CreatedAtAction(nameof(GetAuditLogs), new {
-                LogId = entry.Id,
-                Committed = true,
-                Message = "Audit log persisted securely to PostgreSQL."
-            });
+            return ValidationProblem("beforeId must be a positive audit record identifier.");
         }
+        var records = await auditLogRepository.GetRecentAsync(eventType, severity, beforeId, limit, cancellationToken);
+        return Ok(records);
     }
 }

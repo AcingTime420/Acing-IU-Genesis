@@ -1,0 +1,22 @@
+name: Container Base Integrity
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-pinned-container-bases:
+    name: Validate Pinned Container Bases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Reject mutable external base-image references
+        shell: bash
+        run: bash scripts/validate-container-image-digests.sh

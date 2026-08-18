@@ -140,7 +140,7 @@ export default function AuditPage() {
       device: "Compromised S25 Target",
       ip: "172.16.89.12",
       details:
-        '{"Reason":"Knox Warranty Void blown 0x1","Selinux":"Permissive"}',
+        '{"FixtureOnly":"Unverified device-security status; not collected from hardware"}',
     },
     {
       id: "log-93810-bc56",
@@ -150,17 +150,17 @@ export default function AuditPage() {
       status: "SUCCESS",
       device: "Mick's S25 Ultra",
       ip: "192.168.1.150",
-      details: '{"CertSerial":"CERT-4CC8B9A09","Algorithm":"TIMA-RKP-256"}',
+      details: '{"FixtureOnly":"Unverified certificate and attestation metadata"}',
     },
     {
       id: "log-55091-ca18",
       timestamp: "2026-06-26 15:30:10 UTC",
       user: "operator.s938u@aistudio.build",
-      action: "FIRMWARE_FLASH",
+      action: "SIMULATED_FIRMWARE_OPERATION",
       status: "SUCCESS",
       device: "Mick's S25 Ultra",
       ip: "192.168.1.150",
-      details: '{"BaselineVersion":"S938UVRU3CXH2","AP_Block":"Verified"}',
+      details: '{"FixtureOnly":"No firmware package or device compatibility verification has occurred"}',
     },
     {
       id: "log-11928-dd43",
