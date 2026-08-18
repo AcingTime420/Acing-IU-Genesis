@@ -1,8 +1,8 @@
 # Repository Inspection Reconciliation
 
-**Canonical repository:** `D:\Acing-IU\Genesis`  
-**Origin:** `https://github.com/AcingTime420/Acing-IU-Genesis.git`  
-**Default branch reference:** `origin/master`  
+**Canonical repository:** `D:\Acing-IU\Genesis`
+**Origin:** `https://github.com/AcingTime420/Acing-IU-Genesis.git`
+**Default branch reference:** `origin/master`
 **Inspection set:** 2026-08-17 reports from 13:08:53 through 13:31:44 PDT
 
 ## Decision

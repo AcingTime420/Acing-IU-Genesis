@@ -1,8 +1,8 @@
 # Acing IU Genesis — Current Project Status
 
-**Review branch:** `audit/archive-evidence-reconciliation`  
-**Reviewed base:** `origin/phase6/security-operations`  
-**Base commit:** `10a5a72bd0334fddceb8df852f9e56faebe6a7b5`  
+**Review branch:** `audit/archive-evidence-reconciliation`
+**Reviewed base:** `origin/phase6/security-operations`
+**Base commit:** `10a5a72bd0334fddceb8df852f9e56faebe6a7b5`
 **Canonical default branch:** `origin/master`
 
 ## Status
