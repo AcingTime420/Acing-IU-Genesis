@@ -1,5 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
 using System;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using AcingIU.Shared.Models;
 using AcingOS.Security;
 
@@ -19,33 +21,34 @@ namespace AcingIU.Security.Controllers
         [HttpGet]
         public IActionResult GetPolicies()
         {
-            return Ok(new[] {
-                new SecurityPolicy {
-                    Id = Guid.NewGuid(),
-                    Name = "SM-S938U Verizon Baseline Protection",
-                    Description = "Knox Integrity, Locked Bootloader & CTIA 3.8.2 Signal thresholds.",
-                    MinTrustScore = 85,
-                    RequireMfa = true,
-                    AllowedRoles = "Admin,Operator",
-                    IsActive = true
-                }
+            return StatusCode(StatusCodes.Status501NotImplemented, new
+            {
+                Status = "DISABLED_PENDING_VALIDATION",
+                Message = "Policy simulation and device-changing controls are unavailable until Authorized Device Lab requirements are independently verified."
             });
         }
 
+        [Authorize(Roles = "Admin,Operator")]
         [HttpPost("evaluate")]
         public IActionResult EvaluatePolicy([FromBody] EvaluationRequest request)
         {
-            var result = _policyEngine.Evaluate(request);
-            return Ok(result);
+            return StatusCode(StatusCodes.Status501NotImplemented, new
+            {
+                Status = "DISABLED_PENDING_VALIDATION",
+                Message = "The current policy evaluator is non-operational and cannot authorize device-changing actions.",
+                Result = _policyEngine.Evaluate(request)
+            });
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public IActionResult UpdatePolicy(Guid id, [FromBody] SecurityPolicy updated)
         {
-            return Ok(new {
+            return StatusCode(StatusCodes.Status501NotImplemented, new
+            {
                 PolicyId = id,
-                Status = "UPDATED",
-                Message = "Security Policy parameters updated successfully."
+                Status = "DISABLED_PENDING_VALIDATION",
+                Message = "Policy updates are disabled until authenticated server-side governance is implemented and validated."
             });
         }
     }

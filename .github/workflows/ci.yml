@@ -198,3 +198,13 @@ jobs:
           else
             echo "Frontend Dockerfile not ready — skipping"
           fi
+
+  security-claims-gate:
+    name: Security Claims Gate (Issue #63)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Validate security claims and capability evidence
+        shell: pwsh
+        run: ./scripts/test-security-claims.ps1 -Root $PWD
