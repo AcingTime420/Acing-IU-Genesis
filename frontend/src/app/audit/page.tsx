@@ -32,6 +32,7 @@ import {
 export default function AuditPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const fixtureNotice = "TEST FIXTURE — simulated analytics only; no device operation, certification, compliance, or hardware result is represented.";
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -46,10 +47,10 @@ export default function AuditPage() {
   // Recent searches state
   const [recentSearches, setRecentSearches] = useState<string[]>([
     "DEVICE_POLICY_EVALUATION",
-    "FRP_PARTITION_WIPE",
+    "TEST_FIXTURE_DISABLED_DEVICE_OPERATION",
     "operator.s938u@aistudio.build",
     "DENIED",
-    "Mick's S25 Ultra",
+    "TEST FIXTURE — simulated device",
   ]);
 
   // CSV Preview modal state
@@ -113,9 +114,9 @@ export default function AuditPage() {
       id: "log-1940a-ee28",
       timestamp: "2026-06-26 19:35:12 UTC",
       user: "mick.hart@verizon.com",
-      action: "DEVICE_POLICY_EVALUATION",
-      status: "SUCCESS",
-      device: "Mick's S25 Ultra",
+      action: "TEST_FIXTURE_POLICY_SIMULATION",
+      status: "TEST_FIXTURE",
+      device: "TEST FIXTURE — simulated device",
       ip: "192.168.1.150",
       details:
         '{"DeviceName":"S25 Ultra Mock","TrustScore":100,"PartitionVerification":"PASSED"}',
@@ -124,9 +125,9 @@ export default function AuditPage() {
       id: "log-38491-ff12",
       timestamp: "2026-06-26 19:28:44 UTC",
       user: "operator.s938u@aistudio.build",
-      action: "FRP_PARTITION_WIPE",
-      status: "SUCCESS",
-      device: "Standard S24 Dev Node",
+      action: "TEST_FIXTURE_DISABLED_DEVICE_OPERATION",
+      status: "TEST_FIXTURE",
+      device: "TEST FIXTURE — simulated development node",
       ip: "10.0.12.80",
       details:
         '{"WipedBlock":"/persistent","ConsensusVerified":true,"PolicyApproved":true}',
@@ -135,7 +136,7 @@ export default function AuditPage() {
       id: "log-02849-aa92",
       timestamp: "2026-06-26 18:44:02 UTC",
       user: "ROOT_SYSTEM_WATCHDOG",
-      action: "DEVICE_QUARANTINE_TRIGGERED",
+      action: "TEST_FIXTURE_QUARANTINE_DEMO",
       status: "DENIED",
       device: "Compromised S25 Target",
       ip: "172.16.89.12",
@@ -146,9 +147,9 @@ export default function AuditPage() {
       id: "log-93810-bc56",
       timestamp: "2026-06-26 18:12:30 UTC",
       user: "mick.hart@verizon.com",
-      action: "KEY_ROTATION",
-      status: "SUCCESS",
-      device: "Mick's S25 Ultra",
+      action: "TEST_FIXTURE_KEY_METADATA",
+      status: "TEST_FIXTURE",
+      device: "TEST FIXTURE — simulated device",
       ip: "192.168.1.150",
       details: '{"FixtureOnly":"Unverified certificate and attestation metadata"}',
     },
@@ -156,9 +157,9 @@ export default function AuditPage() {
       id: "log-55091-ca18",
       timestamp: "2026-06-26 15:30:10 UTC",
       user: "operator.s938u@aistudio.build",
-      action: "SIMULATED_FIRMWARE_OPERATION",
-      status: "SUCCESS",
-      device: "Mick's S25 Ultra",
+      action: "TEST_FIXTURE_DISABLED_FIRMWARE_DEMO",
+      status: "TEST_FIXTURE",
+      device: "TEST FIXTURE — simulated device",
       ip: "192.168.1.150",
       details: '{"FixtureOnly":"No firmware package or device compatibility verification has occurred"}',
     },
@@ -166,9 +167,9 @@ export default function AuditPage() {
       id: "log-11928-dd43",
       timestamp: "2026-06-26 14:15:00 UTC",
       user: "operator.s938u@aistudio.build",
-      action: "PARTITION_WIPE",
+      action: "TEST_FIXTURE_DISABLED_DEVICE_OPERATION",
       status: "DENIED",
-      device: "Standard S24 Dev Node",
+      device: "TEST FIXTURE — simulated development node",
       ip: "10.0.12.80",
       details:
         '{"Reason":"Unauthorized user role. Action requires Admin-level credentials."}',
@@ -324,7 +325,7 @@ export default function AuditPage() {
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `acing_iu_compliance_audit_${new Date().toISOString().split("T")[0]}.csv`,
+      `acing_iu_test_fixture_audit_${new Date().toISOString().split("T")[0]}.csv`,
     );
     link.style.visibility = "hidden";
     document.body.appendChild(link);
@@ -340,6 +341,7 @@ export default function AuditPage() {
 
   return (
     <div className="space-y-8 animate-fadeIn">
+      <p className="text-xs text-amber-300 border border-amber-500/30 bg-amber-950/20 rounded-lg px-3 py-2">{fixtureNotice}</p>
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[#22314D] pb-6">
         <div>
@@ -348,14 +350,13 @@ export default function AuditPage() {
             Immutable PostgreSQL Audit Logging Pipeline
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Secure write-once-read-many (WORM) audit ledger tracking Knox
-            transitions and system operations.
+            TEST FIXTURE — simulated audit analytics only. Not an immutable ledger, Knox integration, carrier approval, compliance record, or device-operation evidence.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs bg-[#2F58CD]/20 text-[#2F58CD] font-bold px-3 py-1.5 rounded-full border border-[#2F58CD]/30 flex items-center gap-1.5">
             <Database className="h-3.5 w-3.5" />
-            PostgreSQL Sync Live
+            Simulator data only
           </span>
         </div>
       </div>
@@ -370,11 +371,10 @@ export default function AuditPage() {
               <span>Compliance Period</span>
             </div>
             <h3 className="text-lg font-bold text-white">
-              CTIA 3.8.2 RF & Knox Security Status
+              Test Fixture Audit Analytics
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed font-medium">
-              Real-time audit telemetry tracking verified Knox 0x0 warranty,
-              SELinux parameters, and Verizon hardware RF compliance thresholds.
+              TEST FIXTURE — simulated audit data; no CTIA, Knox, carrier, warranty, hardware, or compliance verification occurred.
             </p>
           </div>
 
@@ -403,7 +403,7 @@ export default function AuditPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-slate-400 font-bold uppercase tracking-wider">
                 <TrendingUp className="h-4 w-4 text-[#10B981]" />
-                <span>24-Hour Security Event frequency</span>
+                <span>Simulated 24-Hour Event Frequency</span>
               </div>
               <div className="flex gap-4 text-[10px] font-bold">
                 <span className="flex items-center gap-1.5 text-[#10B981]">
@@ -489,7 +489,7 @@ export default function AuditPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#22314D] pb-3">
               <div className="flex items-center gap-2 text-xs text-slate-300 font-bold uppercase tracking-wider">
                 <Calendar className="h-4 w-4 text-[#2F58CD]" />
-                <span>30-Day Security Event Frequency Heatmap</span>
+                <span>Simulated 30-Day Event Frequency Heatmap</span>
               </div>
               <div className="flex flex-wrap items-center gap-2.5 text-[10px] text-slate-400 font-bold">
                 <div className="flex items-center gap-1">
@@ -578,7 +578,7 @@ export default function AuditPage() {
                           {hoveredDay.day}, 2026
                         </span>
                         <span className="text-xs font-bold text-white block mt-0.5">
-                          Total Event Audits:{" "}
+                          Simulated Fixture Events:{" "}
                           <strong className="text-blue-400">
                             {hoveredDay.total}
                           </strong>

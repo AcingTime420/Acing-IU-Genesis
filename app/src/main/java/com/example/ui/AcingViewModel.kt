@@ -112,10 +112,10 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
             }
             
             // Add a few boot logs if empty
-            insertSystemLog("BOOT", "Initializing Acing IU Kernel Baseline SM-S938U...", "INFO")
-            insertSystemLog("CHIPSET", "Snapdragon 8 Elite detected (8 Cores @ up to 4.47 GHz)", "INFO")
-            insertSystemLog("SECURITY", "Knox Matrix Security Architecture loading...", "INFO")
-            insertSystemLog("MATRIX", "Connecting to Acing Matrix Private Trust Chain node...", "WARN")
+            insertSystemLog("BOOT", "TEST FIXTURE — simulated baseline startup; no device state verified.", "INFO")
+            insertSystemLog("CHIPSET", "TEST FIXTURE — simulated chipset metadata; no hardware query performed.", "INFO")
+            insertSystemLog("SECURITY", "SIMULATOR — non-operational security demonstration; no Knox integration.", "INFO")
+            insertSystemLog("MATRIX", "SIMULATOR — no external trust-chain connection is performed.", "WARN")
             if (existing.isWalletConnected) {
                 insertSystemLog("MATRIX", "Acing ID Verified: ${existing.walletAddress.take(8)}...[Success]", "SUCCESS")
                 insertSystemLog("SYSTEM", "Acing IU One UI 8.0 baseline active.", "SUCCESS")
@@ -123,47 +123,19 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                 insertSystemLog("SYSTEM", "Acing Setup Wizard required for first run.", "WARN")
             }
 
-            // Seed default sandbox scripts if none exist
+            // Seed a clearly non-operational demonstration only when no scripts exist.
             val scripts = repository.sandboxScriptsFlow.first()
             if (scripts.isEmpty()) {
                 repository.saveSandboxScript(
                     SandboxScript(
-                        name = "Network Vulnerability Scanner",
-                        description = "Simulates polling several trusted servers and security APIs to fetch active threats.",
-                        code = "CONNECT https://node1.acing.matrix/reputation\nCONNECT https://threat-intel.net/v2/live-exploits\nDELAY 1200\nCONNECT https://google.com/dns-query\nSYSTEM_ALERT Port scan lookup finalized by Network Scanner Daemon.",
-                        permissions = "NETWORK_ACCESS",
+                        name = "TEST FIXTURE — Non-operational Sandbox Demonstration",
+                        description = "SIMULATOR — simulated output only. No device connection, ADB, Fastboot, firmware download, unpack, write, install, flash, rooting, or compliance validation is performed.",
+                        code = "SYSTEM_ALERT TEST FIXTURE — simulated non-operational sandbox demonstration.
+DELAY 250
+SYSTEM_ALERT No device connection or device-changing operation was performed.",
+                        permissions = "",
                         isDefault = true,
-                        author = "MatrixSec"
-                    )
-                )
-                repository.saveSandboxScript(
-                    SandboxScript(
-                        name = "Acing Policy Auditing Agent",
-                        description = "Automated baseline check of the hardware & radio port controls. Compares against Knox specs.",
-                        code = "GET_MATRIX_STATE\nDELAY 1500\nSYSTEM_ALERT Policy and encryption state audit successfully logged.",
-                        permissions = "MATRIX_READ",
-                        isDefault = true,
-                        author = "KnoxGuard"
-                    )
-                )
-                repository.saveSandboxScript(
-                    SandboxScript(
-                        name = "Intrusion Panic Daemon",
-                        description = "Active network watchdog. Automatically locks down physical USB-C ports on detection of anomalies.",
-                        code = "CONNECT https://external.watchdog/health\nDELAY 800\nGET_MATRIX_STATE\nDELAY 500\nSYSTEM_ALERT [CRITICAL] Anomaly detected in remote telemetry. Launching hardware lockdown!\nTRIGGER_LOCKDOWN\nSYSTEM_ALERT Active lockdown executed.",
-                        permissions = "NETWORK_ACCESS,MATRIX_READ,MATRIX_WRITE",
-                        isDefault = true,
-                        author = "CoreGuard"
-                    )
-                )
-                repository.saveSandboxScript(
-                    SandboxScript(
-                        name = "RootMaster Lab Dissect Suite",
-                        description = "Automated firmware dissection pipeline. Unpacks super.img, converts sparse raw, and validates S25 Ultra baseline hashes.",
-                        code = "SYSTEM_ALERT Initializing RootMaster Lab Dissection Suite...\nDELAY 500\nSYSTEM_ALERT STEP 1: Unpacking S25_Ultra_Stock2026_05_04.rar archive...\nDELAY 1000\nSYSTEM_ALERT STEP 2: Sparse image conversion: simg2img super.img super.raw.img\nDELAY 1200\nSYSTEM_ALERT STEP 3: Dynamic partition unpacking: lpunpack super.raw.img output/\nDELAY 1000\nCONNECT https://firmware-database.acing.org/s938u-baseline-hashes\nDELAY 800\nSYSTEM_ALERT STEP 4: SHA-256 Checksum Verification: MATCHED system.img (VRU3CXH2)\nDELAY 600\nSYSTEM_ALERT STEP 5: Optimizing device internal storage caches via ADB pm trim-caches...\nDELAY 1000\nSYSTEM_ALERT Finalizing RootMaster OS pipeline: SUCCESS. Device fully compliant.",
-                        permissions = "NETWORK_ACCESS,MATRIX_READ",
-                        isDefault = true,
-                        author = "RootMasterLab"
+                        author = "Acing IU Quality Engineering"
                     )
                 )
             }
@@ -274,36 +246,10 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
     // Biometric scanner trigger
     fun simulateFingerprint(fingerName: String) {
         viewModelScope.launch {
-            _activeFingerprintResult.value = "Scanning $fingerName..."
-            insertSystemLog("BIOMETRICS", "Analyzing biometric sensor reading on Snapdragon 8 Elite...", "INFO")
-            delay(800)
-
-            when (fingerName) {
-                "Right Thumb" -> {
-                    _activeFingerprintResult.value = "Right Thumb: Default Unlock Active"
-                    insertSystemLog("BIOMETRICS", "Right Thumb Match! Action: Launching default One UI Launcher.", "SUCCESS")
-                }
-                "Right Index" -> {
-                    _activeFingerprintResult.value = "Right Index: Launching Wallet"
-                    insertSystemLog("BIOMETRICS", "Right Index Match! Action: Opening Acing Matrix Security Wallet.", "SUCCESS")
-                }
-                "Left Ring" -> {
-                    _activeFingerprintResult.value = "Left Ring: Lockdown Triggered!"
-                    insertSystemLog("BIOMETRICS", "Left Ring Match! Action: Emergency Acing Lockdown Activated.", "WARN")
-                    // Automatically turn on security toggles as part of the lockdown!
-                    val current = settingsState.value
-                    repository.saveSettings(current.copy(
-                        isUsbCControlEnabled = true,
-                        isCellularLockdownEnabled = true
-                    ))
-                    insertSystemLog("HARDWARE", "USB-C Port Control auto-locked.", "SUCCESS")
-                    insertSystemLog("RADIO", "2G/3G Lockdown auto-activated.", "SUCCESS")
-                }
-                "Left Pinky" -> {
-                    _activeFingerprintResult.value = "Left Pinky: FRP Wipe Initiated!"
-                    insertSystemLog("BIOMETRICS", "Left Pinky Match! Action: Authorized FRP Persistent Wipe Sequence started.", "ERROR")
-                    runPersistentWipeSequence()
-                }
+            _activeFingerprintResult.value = "TEST FIXTURE — simulated biometric input: $fingerName"
+            insertSystemLog("SIMULATOR", "TEST FIXTURE — biometric demonstration only; no device security action was performed.", "INFO")
+            if (fingerName == "Left Pinky") {
+                insertSystemLog("SIMULATOR", "TEST FIXTURE — FRP, wipe, reboot, rooting, and device-changing operations are disabled pending Authorized Device Lab validation.", "WARN")
             }
         }
     }
@@ -314,64 +260,11 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
 
     // Persistent FRP data block wipe sequence (simulation)
     fun runPersistentWipeSequence() {
-        if (_isWiping.value) return
-        _isWiping.value = true
+        _isWiping.value = false
         _wipeProgress.value = 0f
-        _blockchainConsensusState.value = "Requesting"
-
+        _blockchainConsensusState.value = "Disabled"
         viewModelScope.launch {
-            insertSystemLog("FRP_AUDIT", "Fingerprint trigger verified: Left Pinky (Authorized Owner PIN equivalent)", "WARN")
-            delay(1000)
-
-            // Step 1: Blockchain consensus check
-            insertSystemLog("MATRIX", "Querying trust chain consensus. Need 3 of 5 nodes authorized.", "INFO")
-            delay(1200)
-
-            val isConnected = settingsState.value.isWalletConnected
-            if (!isConnected) {
-                insertSystemLog("MATRIX", "Consensus: Network wallet disconnected. Attempting Local Offline Cryptographic Fallback...", "WARN")
-                delay(1200)
-                _blockchainConsensusState.value = "Fallback Approved"
-                insertSystemLog("MATRIX", "Local Fallback SUCCESS: 3/5 offline trust shares matched via Secure Enclave keys.", "SUCCESS")
-                delay(1000)
-            } else {
-                _blockchainConsensusState.value = "Approved"
-                insertSystemLog("MATRIX", "Consensus Approved: 4/5 peers validated Acing Matrix Identity.", "SUCCESS")
-                delay(800)
-            }
-
-            // Step 2: Access partition
-            insertSystemLog("FRP_AUDIT", "Target partition resolved: persistent (Persistent Data Block)", "INFO")
-            insertSystemLog("FRP_AUDIT", "FRP lock status: ACTIVE", "WARN")
-            delay(1000)
-
-            // Step 3: Wiping process
-            insertSystemLog("FRP_AUDIT", "Sending clear() command to PersistentDataBlockManager...", "WARN")
-            for (i in 1..5) {
-                _wipeProgress.value = i * 0.2f
-                delay(800)
-                insertSystemLog("FRP_AUDIT", "Overwriting blocks: ${(i * 20)}% zero-filled.", "INFO")
-            }
-
-            // Step 4: Verification
-            insertSystemLog("FRP_AUDIT", "FRP lock partition successfully erased! Flag EXTRA_WIPE_PERSISTENT_DATA = true", "SUCCESS")
-            insertSystemLog("SYSTEM", "MasterClear intent sent. Device is prepared for a clean, unlocked start.", "SUCCESS")
-            delay(1500)
-
-            // Reset states
-            _isWiping.value = false
-            _wipeProgress.value = 0f
-            _blockchainConsensusState.value = "Idle"
-
-            // Reboot simulator to the setup wizard
-            _setupStep.value = 0
-            val current = settingsState.value
-            // Reset connection to simulate completely fresh start
-            repository.saveSettings(current.copy(isWalletConnected = false, walletAddress = ""))
-            insertSystemLog("SYSTEM", "Simulating system reboot...", "WARN")
-            delay(800)
-            insertSystemLog("BOOT", "Initializing Acing IU Kernel Baseline SM-S938U...", "INFO")
-            insertSystemLog("BOOT", "Fresh boot detected. Setup wizard starting...", "SUCCESS")
+            insertSystemLog("SIMULATOR", "TEST FIXTURE — persistent wipe demonstration is disabled; no device partition, FRP, or recovery operation was performed.", "WARN")
         }
     }
 
@@ -423,8 +316,8 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
     fun updateSandboxPartitionSize(newSize: Int) {
         _sandboxPartitionSize.value = newSize
         viewModelScope.launch {
-            insertSystemLog("DEVELOPER", "Dynamic partition resized: Secure Sandbox container resized to ${newSize}MB.", "INFO")
-            addSandboxConsoleLog("SYSTEM: Dynamic partition resized: Secure Sandbox container resized to ${newSize}MB.")
+            insertSystemLog("SIMULATOR", "TEST FIXTURE — simulated sandbox container size set to ${newSize}MB; no device partition changed.", "INFO")
+            addSandboxConsoleLog("TEST FIXTURE — simulated sandbox container size changed; no device partition changed.")
         }
     }
 
@@ -480,7 +373,16 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                     continue
                 }
 
-                // Simulate base processing load
+                // The sandbox is a simulator. Device, bridge, and network-like commands are disabled.
+                if (line.startsWith("CONNECT ") || line.startsWith("TRIGGER_LOCKDOWN") ||
+                    line.contains("ADB", ignoreCase = true) || line.contains("FASTBOOT", ignoreCase = true) ||
+                    line.contains("FLASH", ignoreCase = true) || line.contains("ROOT", ignoreCase = true) ||
+                    line.contains("WIPE", ignoreCase = true)) {
+                    addSandboxConsoleLog("TEST FIXTURE — command disabled; no network, device bridge, firmware, rooting, wipe, or device-changing operation was performed.")
+                    continue
+                }
+
+                // Simulate base processing load only.
                 _sandboxCpuUsage.value = Random.nextInt(12, 35)
                 _sandboxMemoryUsage.value = Random.nextInt(14, 28)
 
@@ -543,8 +445,8 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                     addSandboxConsoleLog("VM_SYS: Direct log operation -> $line")
                     delay(300)
                     if (hasMatrixWrite) {
-                        insertSystemLog("SANDBOX", "[${script.name}] $msg", "WARN")
-                        addSandboxConsoleLog("SYSTEM: Custom event log written to Knox Firmware audit trail.")
+                        insertSystemLog("SIMULATOR", "TEST FIXTURE — [${script.name}] $msg", "INFO")
+                        addSandboxConsoleLog("TEST FIXTURE — simulated sandbox event recorded; no device audit trail was modified.")
                     } else {
                         addSandboxConsoleLog("SECURITY_ERR: Write operation blocked. MATRIX_WRITE permission is DENIED.")
                     }
