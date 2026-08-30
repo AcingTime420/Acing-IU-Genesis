@@ -16,6 +16,31 @@
 
 All engineering changes, validation evidence, release tags, and security decisions for Genesis must be traceable to the canonical repository and a reviewed branch. The normal Windows worktree above is the only location authorized for routine implementation during the stabilization gate.
 
+The Windows worktree and preservation details in this record are owner-supplied local evidence. They cannot be independently established from the GitHub repository tree and must be revalidated by the operator before recovery or cleanup work relies on them.
+
+## Backend Path Authority
+
+| Path | Classification | Control |
+|---|---|---|
+| `backend/` | Canonical backend implementation root | Backend source development, builds, tests, dependency monitoring, containers, and release publication must use this path. |
+| `acing-iu/backend/` | Legacy duplicate | Frozen against new development. Preserve until Git history and downstream consumers are verified; remove only through a dedicated reviewed pull request. |
+| `installer/payload/platform/backend/` | Generated installer payload | Derived from `backend/`; must not be independently edited or treated as authoritative. Release validation must prove correspondence to reviewed source. |
+
+The current classification is supported by `docs/evidence/backend-root-reconciliation.md`. Historical explanation belongs under `docs/`; compilable duplicate source must not be retained as documentation.
+
+Canonical-root status does not by itself certify every project below `backend/` as active or release-ready. The canonical solution and the applicable build, test, container, and release evidence determine active project ownership.
+
+## Accountability
+
+| Responsibility | Current accountable owner | Status |
+|---|---|---|
+| Repository administration and architecture decisions | `@AcingTime420` | Active project owner |
+| Risk-exception approval | `@AcingTime420` | Must record scope, rationale, and expiration |
+| Release authorization | `@AcingTime420` | Independent release verification and approved automation remain pending |
+| AI and data governance | `@AcingTime420` | External-provider processing remains unapproved unless separately recorded |
+| Authorized Device Lab governance | `@AcingTime420` | Planned/non-operational; device-changing controls remain disabled pending verified execution and safety evidence |
+| Independent human review | Unassigned | Required before this baseline is treated as independently reviewed |
+
 ## Worktree and Remote Controls
 
 Additional worktrees are inventory subjects, not implicit deployment or release sources. They may be used only for their recorded branches and purposes. No worktree may be deleted, force-reset, or repointed until its preservation status is recorded in the Phase 0 inventory.
@@ -37,4 +62,4 @@ A single authoritative origin limits the risk that unreviewed local history, sta
 
 ## Change Control
 
-Any change to the canonical repository, working path, remote policy, or synchronization paths requires a superseding ADR in `docs/adr/` and an accompanying update to this governance record.
+Any change to the canonical repository, backend path authority, working path, remote policy, or synchronization paths requires a superseding ADR in `docs/adr/` and an accompanying update to this governance record.

@@ -9,6 +9,8 @@
 
 This record was created before cleanup or repair work. It lists all Genesis-related directories discovered under `D:\Acing-IU`, the worktrees registered by Git, their recorded branch and commit where available, and the preservation status of known tracked changes. The `F:` drive was unavailable during this inventory. No discovered worktree or directory was deleted.
 
+This inventory is owner-supplied Windows-local evidence. The GitHub repository tree does not independently verify that the listed paths, stashes, patches, hashes, or worktree states remain current. Re-run the inventory commands on the owning Windows system before relying on this record for recovery, deletion, or cleanup.
+
 | Location | Git classification | Branch / state | Commit | Recorded purpose | Preservation status |
 |---|---|---|---|---|---|
 | `D:\Acing-IU\Genesis` | Canonical registered worktree | `fix/repository-integrity-baseline` | `f8445161de3794e6261486af7bcb6488d6f14fd4` | Authorized stabilization worktree | Clean after governance commit; earlier local changes exported and stashed. |

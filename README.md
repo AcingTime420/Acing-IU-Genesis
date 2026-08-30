@@ -1,7 +1,7 @@
 # Acing IU: Genesis
 
-> **A custom Android OS security platform with hardware-backed protection,
-> boot integrity, and a hardened administrative interface for Acing OS devices.**
+> **An Android-oriented security research and engineering platform for device
+> trust, boot-integrity experimentation, and governed administrative workflows.**
 
 ---
 
