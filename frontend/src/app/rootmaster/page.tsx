@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 55999)
-Total output lines: 5225
-
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
@@ -2139,7 +2136,1480 @@ export default function RootMasterLab() {
     { partition: "/system", filepath: "system/etc/init.rc", status: "pending" },
     {
       partition: "/system",
-      filepath: "system/bin/app_process64"…15999 tokens truncated…fy-center gap-2 transition-all"
+      filepath: "system/bin/app_process64",
+      status: "pending",
+    },
+    {
+      partition: "/system",
+      filepath: "system/framework/framework-res.apk",
+      status: "pending",
+    },
+    {
+      partition: "/system",
+      filepath: "system/priv-app/SystemUI/SystemUI.apk",
+      status: "pending",
+    },
+    {
+      partition: "/system",
+      filepath: "system/lib64/libc.so",
+      status: "pending",
+    },
+    {
+      partition: "/system",
+      filepath: "system/etc/permissions/platform.xml",
+      status: "pending",
+    },
+    {
+      partition: "/vendor",
+      filepath: "vendor/bin/hw/camera.service",
+      status: "pending",
+    },
+    {
+      partition: "/vendor",
+      filepath: "vendor/lib/libunwind.so",
+      status: "pending",
+    },
+    {
+      partition: "/vendor",
+      filepath: "vendor/etc/selinux/nonplat_sepolicy.cil",
+      status: "pending",
+    },
+    {
+      partition: "/vendor",
+      filepath: "vendor/bin/hw/android.hardware.graphics.allocator@4.0-service",
+      status: "pending",
+    },
+    {
+      partition: "/vendor",
+      filepath: "vendor/etc/init/hw/init.target.rc",
+      status: "pending",
+    },
+    {
+      partition: "/vendor",
+      filepath: "vendor/firmware/keymaster.b01",
+      status: "pending",
+    },
+    {
+      partition: "/vendor",
+      filepath: "vendor/manifest.xml",
+      status: "pending",
+    },
+    {
+      partition: "/product",
+      filepath: "product/app/PrebuiltGmail.apk",
+      status: "pending",
+    },
+    {
+      partition: "/product",
+      filepath: "product/overlay/NoOverlays.apk",
+      status: "pending",
+    },
+    {
+      partition: "/product",
+      filepath: "product/etc/sysconfig/com.android.hotspot2.xml",
+      status: "pending",
+    },
+    {
+      partition: "/product",
+      filepath: "product/media/bootanimation.zip",
+      status: "pending",
+    },
+    {
+      partition: "/product",
+      filepath: "product/framework/product-framework.jar",
+      status: "pending",
+    },
+    {
+      partition: "/product",
+      filepath: "product/priv-app/CarrierConfig/CarrierConfig.apk",
+      status: "pending",
+    },
+    {
+      partition: "/odm",
+      filepath: "odm/etc/wifi/nvram.txt",
+      status: "pending",
+    },
+    {
+      partition: "/odm",
+      filepath: "odm/lib64/libodm_hardware.so",
+      status: "pending",
+    },
+    {
+      partition: "/odm",
+      filepath: "odm/etc/permissions/sku_vendor.xml",
+      status: "pending",
+    },
+    { partition: "/odm", filepath: "odm/firmware/adsp.mdt", status: "pending" },
+    {
+      partition: "/odm",
+      filepath: "odm/bin/hw/vendor.samsung.hardware.security.vault@1.0-service",
+      status: "pending",
+    },
+  ]);
+
+  const startIntegrityScan = () => {
+    if (integrityScanActive) return;
+    setIntegrityScanActive(true);
+    setIntegrityScanProgress(0);
+    setScannedFiles((prev) => prev.map((f) => ({ ...f, status: "pending" })));
+
+    let currentIdx = 0;
+    const fileCount = 28; // scannedFiles.length
+
+    const interval = setInterval(() => {
+      if (currentIdx < fileCount) {
+        setScannedFiles((prev) => {
+          const updated = [...prev];
+          const file = updated[currentIdx];
+          const finalStatus =
+            file.filepath === "system/framework/services.jar" ||
+            file.filepath === "vendor/etc/selinux/nonplat_sepolicy.cil"
+              ? "fixture_mismatch"
+              : "fixture_match";
+          updated[currentIdx] = { ...file, status: finalStatus };
+          setCurrentScanningFile(`${file.partition} -> ${file.filepath}`);
+          return updated;
+        });
+        currentIdx++;
+        setIntegrityScanProgress(Math.round((currentIdx / fileCount) * 100));
+      } else {
+        clearInterval(interval);
+        setIntegrityScanActive(false);
+        setCurrentScanningFile("Fixture Simulation Completed!");
+        triggerNotification(
+          "Partition fixture simulation complete. Example mismatches were generated; no payloads were inspected.",
+        );
+      }
+    }, 180);
+  };
+
+  const handleSandboxResize = (val: number) => {
+    setSandboxSize(val);
+    setIsResizingSandbox(true);
+  };
+
+  useEffect(() => {
+    if (isResizingSandbox) {
+      const timer = setTimeout(() => {
+        setIsResizingSandbox(false);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [isResizingSandbox]);
+
+  // Initialize Tasks
+  useEffect(() => {
+    const saved = localStorage.getItem("rootmaster_backlog");
+    if (saved) {
+      try {
+        setTasks(JSON.parse(saved));
+      } catch (e) {
+        setTasks(defaultTasks);
+      }
+    } else {
+      setTasks(defaultTasks);
+    }
+  }, [defaultTasks]);
+
+  // Save on state change
+  const saveTasks = (updated: Task[]) => {
+    setTasks(updated);
+    localStorage.setItem("rootmaster_backlog", JSON.stringify(updated));
+  };
+
+  // Toggle task status
+  const toggleTaskStatus = (id: string) => {
+    const updated = tasks.map((t) => {
+      if (t.id === id) {
+        const nextStatus: "Pending" | "In Progress" | "Completed" =
+          t.status === "Pending"
+            ? "In Progress"
+            : t.status === "In Progress"
+              ? "Completed"
+              : "Pending";
+
+        triggerNotification(`Task ${t.id} set to ${nextStatus}`);
+        return { ...t, status: nextStatus };
+      }
+      return t;
+    });
+    saveTasks(updated);
+  };
+
+  const triggerNotification = (msg: string) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(null), 3500);
+  };
+
+  const handleCopyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(label);
+    triggerNotification(`${label} copied to clipboard!`);
+    setTimeout(() => setCopiedText(null), 2000);
+  };
+
+  // Delete task
+  const deleteTask = (id: string) => {
+    const updated = tasks.filter((t) => t.id !== id);
+    saveTasks(updated);
+    triggerNotification(`Task ${id} deleted.`);
+  };
+
+  // Reset to default
+  const resetToDefault = () => {
+    if (
+      confirm(
+        "Are you sure you want to restore the master task backlog? This will overwrite your current progress.",
+      )
+    ) {
+      saveTasks(defaultTasks);
+      triggerNotification("Master Backlog Restored");
+    }
+  };
+
+  // Add custom task
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    const newTask: Task = {
+      id: `RM-CUST-${Math.floor(1000 + Math.random() * 9000)}`,
+      module: newModule,
+      title: newTitle,
+      desc: newDesc || "No description provided.",
+      priority: newPriority,
+      status: "Pending",
+    };
+
+    const updated = [newTask, ...tasks];
+    saveTasks(updated);
+    setNewTitle("");
+    setNewDesc("");
+    triggerNotification("Custom Task Added Successfully");
+  };
+
+  // Filter tasks
+  const filteredTasks = tasks.filter((t) => {
+    const matchesModule = activeModule === "All" || t.module === activeModule;
+    const matchesStatus = statusFilter === "All" || t.status === statusFilter;
+    const matchesSearch =
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.id.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesModule && matchesStatus && matchesSearch;
+  });
+
+  const priorityWeights = { High: 3, Medium: 2, Low: 1 };
+  const statusWeights = { Pending: 3, "In Progress": 2, Completed: 1 };
+
+  const filteredAndSortedTasks = [...filteredTasks].sort((a, b) => {
+    if (sortBy === "Priority") {
+      return (
+        (priorityWeights[b.priority] || 0) - (priorityWeights[a.priority] || 0)
+      );
+    }
+    if (sortBy === "Status") {
+      return (statusWeights[b.status] || 0) - (statusWeights[a.status] || 0);
+    }
+    return 0;
+  });
+
+  // Calculate statistics
+  const totalCount = tasks.length;
+  const completedCount = tasks.filter((t) => t.status === "Completed").length;
+  const inProgressCount = tasks.filter(
+    (t) => t.status === "In Progress",
+  ).length;
+  const pendingCount = tasks.filter((t) => t.status === "Pending").length;
+  const completionPercentage =
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  const moduleCounts = tasks.reduce((acc: { [key: string]: number }, t) => {
+    acc[t.module] = (acc[t.module] || 0) + 1;
+    return acc;
+  }, {});
+
+  const modulesList = [
+    "All",
+    "Dissection & Storage",
+    "Executive Dashboard",
+    "Device Inventory",
+    "Firmware Research",
+    "AI Operations & Logs",
+    "RootMasterOS Design Lab",
+    "Testing & Compliance",
+  ];
+
+  // Auto Scroll Terminal Logs
+  useEffect(() => {
+    if (buildTerminalEndRef.current) {
+      buildTerminalEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [osBuildLogs]);
+
+  useEffect(() => {
+    if (dissectTerminalEndRef.current) {
+      dissectTerminalEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [dissectLogs]);
+
+  useEffect(() => {
+    if (storageTerminalEndRef.current) {
+      storageTerminalEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [storageLogs]);
+
+  // LIVE OS BUILD PIPELINE SIMULATION
+  const runOSBuildAssembly = () => {
+    if (isBuildingOS) return;
+
+    // Check if zip dependencies are ready
+    if (
+      !selectedZipFiles.rootmaster ||
+      !selectedZipFiles.allinone ||
+      !selectedZipFiles.download
+    ) {
+      triggerNotification(
+        "Error: You must check and verify all three ZIP archives first.",
+      );
+      return;
+    }
+
+    setIsBuildingOS(true);
+    setIsoResultReady(false);
+    setOsBuildProgress(0);
+    setOsBuildLogs([]);
+
+    const logs = [
+      "Initializing RootMasterOS Bootable OS Builder Environment...",
+      `[SANDBOX] Resizing isolated compile workspace to selected ${sandboxSize} GB boundary...`,
+      `[SANDBOX] Successfully allocated ${sandboxSize} GB loopback RAMDisk mount.`,
+      "[SYSTEM] Host Architecture detected: x86_64, Linux Kernel Baseline v6.8.0",
+      "[SYSTEM] Verifying build dependencies inside sandbox...",
+      "  - debootstrap: INSTALLED",
+      "  - squashfs-tools: INSTALLED",
+      "  - xorriso: INSTALLED",
+      "  - grub-pc-bin: INSTALLED",
+      "  - mtools: INSTALLED",
+      "  - nodejs (v18.19.0): INSTALLED",
+      "  - npm (v10.2.3): INSTALLED",
+      "[SYSTEM] Dependencies successfully attested inside resized sandbox. Proceeding to File Extraction...",
+    ];
+
+    let logIndex = 0;
+    const interval = setInterval(() => {
+      if (logIndex < logs.length) {
+        setOsBuildLogs((prev) => [...prev, logs[logIndex]]);
+        setOsBuildProgress(Math.min(10, (logIndex + 1) * 2));
+        logIndex++;
+      } else {
+        clearInterval(interval);
+        runStage1();
+      }
+    }, 400);
+
+    // Stage 1: Unzip and Merge
+    const runStage1 = () => {
+      setOsBuildStepName("ZIP Extraction & Merging");
+      const s1Logs = [
+        " ",
+        "=================================================================",
+        "[STAGE 1] EXTRACTING AND MERGING USER ARCHIVES",
+        "=================================================================",
+        "[FS] Extracting RootMasterOS.zip (Base System) to ./rootmaster...",
+        "  - Extracted: ./rootmaster/backend/ (14 source controllers, server.js)",
+        "  - Extracted: ./rootmaster/frontend/ (Next.js layout, components, Tailwind layout)",
+        "  - Extracted: ./rootmaster/modules/ (Syscore hooks, DB connections)",
+        "[FS] Extracting All-in-One.zip (Web UI apps) to ./allinone...",
+        "  - Extracted: dashboard.html, dynamic_charts.js, process_logger.js, compliance_checker.node",
+        "[FS] Merging All-in-One apps into RootMasterOS UI layer...",
+        "  - Command: cp -r temp_all/* rootmaster/frontend/apps/",
+        "  - Success: App directory populated! Dynamic dashboard charts integrated.",
+        "[FS] Extracting Download.zip (Android Knox Magisk toolset) to ./androidmod...",
+        "  - Extracted: rootmaster_oneux/module.prop, post-fs-data.sh, service.sh, system.prop",
+        "[FS] Merging Magisk module binder into /modules/android...",
+        "  - Command: mkdir -p rootmaster/modules/android/bindhosts",
+        "  - Command: cp -r temp_android/* rootmaster/modules/android/bindhosts/",
+        "  - Success: Integrated RootMaster OneUX Knox bindhost modules into persistent cache.",
+      ];
+
+      let index = 0;
+      const s1Interval = setInterval(() => {
+        if (index < s1Logs.length) {
+          setOsBuildLogs((prev) => [...prev, s1Logs[index]]);
+          setOsBuildProgress(10 + Math.round((index + 1) * 1.5));
+          index++;
+        } else {
+          clearInterval(s1Interval);
+          runStage2();
+        }
+      }, 350);
+    };
+
+    // Stage 2: Debootstrap minimal system
+    const runStage2 = () => {
+      setOsBuildStepName("Ubuntu Debootstrap Installation");
+      const s2Logs = [
+        " ",
+        "=================================================================",
+        "[STAGE 2] CREATING MINIMAL UBUNTU BASE FILESYSTEM (debootstrap)",
+        "=================================================================",
+        "[BOOSTRAP] Executing: sudo debootstrap jammy rootfs http://archive.ubuntu.com/ubuntu/",
+        "  - Downloading Packages: gnupg, gpgv, libgmp10, libnettle8, libc-bin, systemd...",
+        "  - Resolving package dependency graph...",
+        "  - Extracting core system binaries: tar, gzip, bash, apt, dpkg...",
+        "  - Configuring basic networking, loopback interfaces, and nameservers...",
+        "  - Attesting root password hashes & generating default shadow entries...",
+        "  - Success: Minimal rootfs directory structure successfully assembled in ./rootfs",
+      ];
+
+      let index = 0;
+      const s2Interval = setInterval(() => {
+        if (index < s2Logs.length) {
+          setOsBuildLogs((prev) => [...prev, s2Logs[index]]);
+          setOsBuildProgress(40 + Math.round((index + 1) * 2.2));
+          index++;
+        } else {
+          clearInterval(s2Interval);
+          runStage3();
+        }
+      }, 400);
+    };
+
+    // Stage 3: Injecting OS UI, Node, and Auto Start
+    const runStage3 = () => {
+      setOsBuildStepName("Chroot Injection & Autostart Configurations");
+      const s3Logs = [
+        " ",
+        "=================================================================",
+        "[STAGE 3] INJECTING OS FILES, RUNTIMES, AND AUTOSTART CRONS",
+        "=================================================================",
+        "[INJECT] Writing RootMasterOS workspace into rootfs storage space...",
+        "  - Command: sudo mkdir -p rootfs/opt/rootmaster",
+        "  - Command: sudo cp -r rootmaster/* rootfs/opt/rootmaster/",
+        "[CHROOT] Entering chroot environment to configure runtime drivers...",
+        "  - Command: sudo chroot rootfs apt-get update",
+        "  - Command: sudo chroot rootfs apt-get install -y nodejs npm xfce4 xfce4-terminal xserver-xorg xinit",
+        "[STARTUP] Building /usr/bin/start-os launching script inside rootfs...",
+        "  - Target file: rootfs/usr/bin/start-os",
+        "  - Injected startup routines:",
+        "      #!/bin/bash",
+        "      echo '=== Launching RootMaster OS Core Engine ==='",
+        "      cd /opt/rootmaster",
+        "      node backend/server.js &",
+        "      npm --prefix frontend start",
+        "  - Set execution permissions: chmod +x rootfs/usr/bin/start-os",
+        "[SHELL] Adjusting system default boot behaviors...",
+        "  - Appending `/usr/bin/start-os` to rootfs/etc/profile login actions.",
+        "  - Configuring autologin for system operator on tty1.",
+      ];
+
+      let index = 0;
+      const s3Interval = setInterval(() => {
+        if (index < s3Logs.length) {
+          setOsBuildLogs((prev) => [...prev, s3Logs[index]]);
+          setOsBuildProgress(65 + Math.round((index + 1) * 1.5));
+          index++;
+        } else {
+          clearInterval(s3Interval);
+          runStage4();
+        }
+      }, 350);
+    };
+
+    // Stage 4: GRUB Setup, SquashFS, and ISO compilation
+    const runStage4 = () => {
+      setOsBuildStepName("SquashFS Compression & GRUB ISO Packaging");
+      const s4Logs = [
+        " ",
+        "=================================================================",
+        "[STAGE 4] COMPRESSING FILESYSTEM & REBUILDING GRUB BOOT SYSTEM",
+        "=================================================================",
+        "[KERNEL] Extracting boot kernel components to ISO payload mapping...",
+        "  - Copied Kernel: rootfs/boot/vmlinuz-6.8.0 -> iso/boot/vmlinuz",
+        "  - Copied RAMDisk: rootfs/boot/initrd.img-6.8.0 -> iso/boot/initrd",
+        "[GRUB] Constructing boot configuration settings...",
+        "  - Target file: iso/boot/grub/grub.cfg",
+        "  - Injected configuration schema:",
+        "      set timeout=5",
+        '      menuentry "RootMasterOS Bootable Distro (S25 Ultra Admin Tool)" {',
+        "          linux /boot/vmlinuz boot=live quiet splash loglevel=3",
+        "          initrd /boot/initrd",
+        "      }",
+        "[SQUASH] Compressing Linux base directory tree into high-density SquashFS container...",
+        "  - Command: mksquashfs rootfs iso/filesystem.squashfs -e boot -comp xz",
+        "  - Compression ratio: 4.8:1 - Reduced 2.8GB system workspace into 582MB SquashFS image.",
+        "[COMPILE] Packaging directory payload into secure hybrid bootable ISO with xorriso...",
+        "  - Command: grub-mkrescue -o RootMasterOS.iso iso/",
+        "  - Adding isolinux, UEFI compatibility blocks, and El Torito boot images...",
+        "  - Catalog file created. Root boot headers fully initialized.",
+        " ",
+        "=================================================================",
+        "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED",
+        "=================================================================",
+        "* ISO NAME: RootMasterOS.iso",
+        "* SIZE: 642 MB",
+        "* SHA-256 HASH: a510f92b7c43df1290e21a81232ff4cd9481977e201bcf5a2de2cfc19929831c",
+        "* STATUS: Ready to flash to USB or mount inside VirtualBox VM!",
+      ];
+
+      let index = 0;
+      const s4Interval = setInterval(() => {
+        if (index < s4Logs.length) {
+          setOsBuildLogs((prev) => [...prev, s4Logs[index]]);
+          setOsBuildProgress(80 + Math.round((index + 1) * 1.0));
+          index++;
+        } else {
+          clearInterval(s4Interval);
+          setIsBuildingOS(false);
+          setOsBuildStepName("Successful Execution");
+          setIsoResultReady(true);
+          triggerNotification(
+            "RootMasterOS bootable ISO successfully compiled!",
+          );
+
+          setSuccessfulBuilds((prev) => {
+            const nextId = `Build #${prev.length + 1}`;
+            const newBuildLogs = [
+              "Initializing RootMasterOS Bootable OS Builder Environment...",
+              "[SYSTEM] Host Architecture detected: x86_64, Linux Kernel Baseline v6.8.0",
+              "[STAGE 1] EXTRACTING AND MERGING USER ARCHIVES",
+              "[STAGE 2] CREATING MINIMAL UBUNTU BASE FILESYSTEM (debootstrap)",
+              "[STAGE 3] INJECTING OS FILES, RUNTIMES, AND AUTOSTART CRONS",
+              "[STAGE 4] COMPRESSING FILESYSTEM & REBUILDING GRUB BOOT SYSTEM",
+              "  - Compression ratio: 4.8:1 - Reduced 2.8GB system workspace into 582MB SquashFS image.",
+              "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED (" +
+                nextId +
+                ")",
+              "* ISO NAME: RootMasterOS_" +
+                nextId.replace(" ", "_").toLowerCase() +
+                ".iso",
+              "* SIZE: 642 MB",
+              "* STATUS: Ready to flash",
+            ];
+            return [
+              ...prev,
+              {
+                id: nextId,
+                filename: `build_${prev.length + 1}_log.txt`,
+                size: 642,
+                duration: 172,
+                ratio: 4.8,
+                logs: newBuildLogs,
+              },
+            ];
+          });
+        }
+      }, 300);
+    };
+  };
+
+  const exportLogHistoryZip = () => {
+    const files = successfulBuilds.map((b) => ({
+      filename: b.filename,
+      content: b.logs.join("\n"),
+    }));
+
+    try {
+      const blob = getMultiFileZipBlob(files);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "rootmaster_log_history.zip";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      triggerNotification(
+        `All ${successfulBuilds.length} build logs exported as ZIP successfully!`,
+      );
+    } catch (error) {
+      console.error(error);
+      triggerNotification("Failed to export log history ZIP.");
+    }
+  };
+
+  const exportBuildLogsZip = () => {
+    const logsToExport =
+      osBuildLogs.length > 0
+        ? osBuildLogs
+        : [
+            "Initializing RootMasterOS Bootable OS Builder Environment...",
+            "[SYSTEM] Host Architecture detected: x86_64, Linux Kernel Baseline v6.8.0",
+            "[SYSTEM] Verifying build dependencies...",
+            "  - debootstrap: INSTALLED",
+            "  - squashfs-tools: INSTALLED",
+            "  - xorriso: INSTALLED",
+            "  - grub-pc-bin: INSTALLED",
+            "  - mtools: INSTALLED",
+            "[SYSTEM] Dependencies successfully attested. Proceeding to File Extraction...",
+            "[STAGE 1] EXTRACTING AND MERGING USER ARCHIVES",
+            "[FS] Extracting RootMasterOS.zip (Base System) to ./rootmaster...",
+            "  - Extracted: ./rootmaster/backend/ (14 source controllers, server.js)",
+            "  - Extracted: ./rootmaster/frontend/ (Next.js layout, components, Tailwind layout)",
+            "  - Extracted: ./rootmaster/modules/ (Syscore hooks, DB connections)",
+            "[FS] Extracting All-in-One.zip (Web UI apps) to ./allinone...",
+            "  - Extracted: dashboard.html, dynamic_charts.js, process_logger.js, compliance_checker.node",
+            "[FS] Merging All-in-One apps into RootMasterOS UI layer...",
+            "[FS] Extracting Download.zip (Android Knox Magisk toolset) to ./androidmod...",
+            "[FS] Merging Magisk module binder into /modules/android...",
+            "[STAGE 2] CREATING MINIMAL UBUNTU BASE FILESYSTEM (debootstrap)",
+            "[BOOSTRAP] Executing: sudo debootstrap jammy rootfs http://archive.ubuntu.com/ubuntu/",
+            "[STAGE 3] INJECTING OS FILES, RUNTIMES, AND AUTOSTART CRONS",
+            "[INJECT] Writing RootMasterOS workspace into rootfs storage space...",
+            "[CHROOT] Entering chroot environment to configure runtime drivers...",
+            "[STARTUP] Building /usr/bin/start-os launching script inside rootfs...",
+            "[STAGE 4] COMPRESSING FILESYSTEM & REBUILDING GRUB BOOT SYSTEM",
+            "[KERNEL] Extracting boot kernel components to ISO payload mapping...",
+            "[GRUB] Constructing boot configuration settings...",
+            "[SQUASH] Compressing Linux base directory tree into high-density SquashFS container...",
+            "  - Compression ratio: 4.8:1 - Reduced 2.8GB system workspace into 582MB SquashFS image.",
+            "[COMPILE] Packaging directory payload into secure hybrid bootable ISO with xorriso...",
+            "=================================================================",
+            "[COMPLETED] BOOTABLE ROOTMASTEROS ISO FULLY COMPILED",
+            "=================================================================",
+            "* ISO NAME: RootMasterOS.iso",
+            "* SIZE: 642 MB",
+            "* SHA-256 HASH: a510f92b7c43df1290e21a81232ff4cd9481977e201bcf5a2de2cfc19929831c",
+            "* STATUS: Ready to flash to USB",
+          ];
+
+    const textContent = logsToExport.join("\n");
+
+    // Simple uncompressed ZIP file generator
+    const getZipBlob = (filename: string, content: string) => {
+      const encoder = new TextEncoder();
+      const fileData = encoder.encode(content);
+
+      const makeTable = () => {
+        let c;
+        const table = [];
+        for (let n = 0; n < 256; n++) {
+          c = n;
+          for (let k = 0; k < 8; k++) {
+            c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+          }
+          table[n] = c;
+        }
+        return table;
+      };
+      const crcTable = makeTable();
+      const crc32 = (data: Uint8Array) => {
+        let crc = 0 ^ -1;
+        for (let i = 0; i < data.length; i++) {
+          crc = (crc >>> 8) ^ crcTable[(crc ^ data[i]) & 0xff];
+        }
+        return (crc ^ -1) >>> 0;
+      };
+
+      const crc = crc32(fileData);
+      const size = fileData.length;
+      const nameBytes = encoder.encode(filename);
+      const nameLen = nameBytes.length;
+
+      const lh = new ArrayBuffer(30 + nameLen + size);
+      const lhView = new DataView(lh);
+      lhView.setUint32(0, 0x04034b50, true);
+      lhView.setUint16(4, 10, true);
+      lhView.setUint16(6, 0, true);
+      lhView.setUint16(8, 0, true);
+      lhView.setUint16(10, 0, true);
+      lhView.setUint16(12, 0, true);
+      lhView.setUint32(14, crc, true);
+      lhView.setUint32(18, size, true);
+      lhView.setUint32(22, size, true);
+      lhView.setUint16(26, nameLen, true);
+      lhView.setUint16(28, 0, true);
+
+      const lhBytes = new Uint8Array(lh);
+      lhBytes.set(nameBytes, 30);
+      lhBytes.set(fileData, 30 + nameLen);
+
+      const cd = new ArrayBuffer(46 + nameLen);
+      const cdView = new DataView(cd);
+      cdView.setUint32(0, 0x02014b50, true);
+      cdView.setUint16(4, 20, true);
+      cdView.setUint16(6, 10, true);
+      cdView.setUint16(8, 0, true);
+      cdView.setUint16(10, 0, true);
+      cdView.setUint16(12, 0, true);
+      cdView.setUint16(14, 0, true);
+      cdView.setUint32(16, crc, true);
+      cdView.setUint32(20, size, true);
+      cdView.setUint32(24, size, true);
+      cdView.setUint16(28, nameLen, true);
+      cdView.setUint16(30, 0, true);
+      cdView.setUint16(32, 0, true);
+      cdView.setUint16(34, 0, true);
+      cdView.setUint16(36, 0, true);
+      cdView.setUint32(38, 0, true);
+      cdView.setUint32(42, 0, true);
+
+      const cdBytes = new Uint8Array(cd);
+      cdBytes.set(nameBytes, 46);
+
+      const eocd = new ArrayBuffer(22);
+      const eocdView = new DataView(eocd);
+      eocdView.setUint32(0, 0x06054b50, true);
+      eocdView.setUint16(4, 0, true);
+      eocdView.setUint16(6, 0, true);
+      eocdView.setUint16(8, 1, true);
+      eocdView.setUint16(10, 1, true);
+      eocdView.setUint32(12, 46 + nameLen, true);
+      eocdView.setUint32(16, 30 + nameLen + size, true);
+      eocdView.setUint16(20, 0, true);
+
+      const eocdBytes = new Uint8Array(eocd);
+
+      return new Blob([lhBytes, cdBytes, eocdBytes], {
+        type: "application/zip",
+      });
+    };
+
+    try {
+      const blob = getZipBlob("build_logs.txt", textContent);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "rootmaster_build_logs.zip";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      triggerNotification("Build logs exported as ZIP successfully!");
+    } catch (error) {
+      console.error(error);
+      const blob = new Blob([textContent], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "rootmaster_build_logs.txt";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      triggerNotification("Build logs exported as TXT!");
+    }
+  };
+
+  // LIVE FIRMWARE DISSECTION PIPELINE SIMULATION
+  const runFirmwareDissection = () => {
+    if (isDissecting) return;
+    if (!selectedFirmwarePart) {
+      triggerNotification("Please select a firmware part to dissect first.");
+      return;
+    }
+
+    setIsDissecting(true);
+    setSuperImageUnpacked(false);
+    setDissectProgress(0);
+    setDissectLogs([]);
+
+    const baseLogs = [
+      `Initializing Reverse Engineering sweep for Galaxy S25 Ultra (SM-S938U) - Part: ${selectedFirmwarePart}...`,
+      `[ARCHIVE] Verifying file presence: S25_Ultra_Stock2026_05_04.rar`,
+      "[ARCHIVE] Rar integrity check: SUCCESS. SHA-256 baseline hashes match VRU3CXH2 baseline.",
+      `[UNPACK] Extracting partition segments from ${selectedFirmwarePart}.tar.md5 payload...`,
+    ];
+
+    let baseIndex = 0;
+    const interval = setInterval(() => {
+      if (baseIndex < baseLogs.length) {
+        setDissectLogs((prev) => [...prev, baseLogs[baseIndex]]);
+        setDissectProgress(Math.min(25, (baseIndex + 1) * 6));
+        baseIndex++;
+      } else {
+        clearInterval(interval);
+        if (selectedFirmwarePart === "AP") {
+          runAPDissection();
+        } else if (selectedFirmwarePart === "BL") {
+          runBLDissection();
+        } else if (selectedFirmwarePart === "CP") {
+          runCPDissection();
+        } else {
+          runCSCDissection();
+        }
+      }
+    }, 450);
+
+    const runAPDissection = () => {
+      const apLogs = [
+        "  - Extracted: boot.img (Kernel Image + Ramdisk)",
+        "  - Extracted: init_boot.img (Android Init Header)",
+        "  - Extracted: recovery.img (Stock Recovery Console)",
+        "  - Extracted: super.img.lz4 (Sparse Dynamic Filesystem)",
+        "  - Extracted: vbmeta.img (Android Verified Boot Security Blocks)",
+        " ",
+        "[lz4] Decompressing super.img.lz4 to super.img dynamic block device...",
+        "  - Command: lz4 -d super.img.lz4 super.img",
+        "  - Success: Uncompressed size matches expectations (8,941,222,912 bytes).",
+        " ",
+        "[SPARSE] Converting Android Sparse super.img to mountable RAW ext4 block format...",
+        "  - Command: simg2img super.img super.raw.img",
+        "  - Sparse conversion complete. Block structure validated.",
+        " ",
+        "[LPUNPACK] Extracting Dynamic Sub-Partitions with Android lpunpack suite...",
+        "  - Target raw image: super.raw.img",
+        "  - Output directory: output/super_extracted/",
+        "  - Extracting partition: system.img (ext4, size: 2.9 GB)...",
+        "  - Extracting partition: vendor.img (ext4, size: 1.1 GB)...",
+        "  - Extracting partition: product.img (ext4, size: 1.5 GB)...",
+        "  - Extracting partition: odm.img (ext4, size: 482 MB)...",
+        " ",
+        "[VALIDATE] Calculating block checksums for comparison with Stock Baseline VRU3CXH2...",
+        "  - system.img SHA-256: d8f36c561b34c264a91aef037e93081e7f3c1b002cbf7170104a081cf13f8992 [MATCHED]",
+        "  - vendor.img SHA-256: b32a4e5e4184c1737e91d5bc7ea46a9e102f92f2b3e47acdf981df983a54b38d [MATCHED]",
+        "  - product.img SHA-256: f12a441e976cb3deca5e03fe01b3a58e5cbfe0128c94faee600df81acbe753d0 [MATCHED]",
+        "  - odm.img SHA-256: 3c1a2c3d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b [MATCHED]",
+        " ",
+        "=================================================================",
+        "[COMPLETED] AP DISSECTION SUCCESSFUL",
+        "=================================================================",
+        "* Extracted sub-partitions are ready for system overlay mounts!",
+        "* Status registers and RKP kernel structures mapped cleanly.",
+      ];
+
+      let index = 0;
+      const apInterval = setInterval(() => {
+        if (index < apLogs.length) {
+          setDissectLogs((prev) => [...prev, apLogs[index]]);
+          setDissectProgress(25 + Math.round((index + 1) * 2.8));
+          index++;
+        } else {
+          clearInterval(apInterval);
+          setIsDissecting(false);
+          setSuperImageUnpacked(true);
+          triggerNotification(
+            "AP Partition dissection complete! Dynamic sub-partitions exposed.",
+          );
+        }
+      }, 350);
+    };
+
+    const runBLDissection = () => {
+      const blLogs = [
+        "  - Extracted: sboot.bin (Samsung Primary Bootloader)",
+        "  - Extracted: param.bin (LCD parameters, bootscreens, logos)",
+        "  - Extracted: tz.img (TrustZone runtime environment)",
+        "  - Extracted: keymaster.bin (Knox Key Vault services)",
+        " ",
+        "[DECOMPILE] Analyzing Knox Secure World BL_S938USQS3CXH2 trustlet firmware modules...",
+        "  - Loading security modules: /vendor/firmware/keymaster /vendor/firmware/gatekeeper",
+        "  - Mapping Knox Vault Trusted Application (TA) interfaces in sboot...",
+        "  - Scanning hardware register offsets managing Knox Warranty e-fuse status...",
+        "  - Found Register Address: 0x0022AF3C (Knox Void Fuse Flag)",
+        "  - Baseline Flag reading: 0x0 (Hardware Void Warranty intact)",
+        " ",
+        "=================================================================",
+        "[COMPLETED] BL DISSECTION SUCCESSFUL",
+        "=================================================================",
+        "* Knox hardware Vault key parameters mapped cleanly.",
+        "* Secure boot signature validations verified OK.",
+      ];
+
+      let index = 0;
+      const blInterval = setInterval(() => {
+        if (index < blLogs.length) {
+          setDissectLogs((prev) => [...prev, blLogs[index]]);
+          setDissectProgress(25 + Math.round((index + 1) * 6));
+          index++;
+        } else {
+          clearInterval(blInterval);
+          setIsDissecting(false);
+          triggerNotification(
+            "Bootloader signatures mapped and Knox registers exposed.",
+          );
+        }
+      }, 400);
+    };
+
+    const runCPDissection = () => {
+      const cpLogs = [
+        "  - Extracted: modem.bin (Snapdragon X80 5G Baseband radio controller)",
+        "  - Extracted: dsp.img (Digital Signal Processor instructions)",
+        " ",
+        "[DIAG] Reverse-engineering baseband frequency band configurations...",
+        "  - Carrier standard CSC mapped: VZW (Verizon Wireless USA)",
+        "  - Querying radio band access matrix limits:",
+        "      - LTE B13 (Verizon baseline): ENABLED [CTIA Attestation OK]",
+        "      - LTE B66 (Extended spectrum): ENABLED",
+        "      - 5G NR n2 (C-band baseline): ENABLED",
+        "      - 5G NR n5 (Sub-6 radio coverage): ENABLED",
+        "      - 5G NR n77 (Ultra-Wideband C-band spectrum): ENABLED",
+        "  - Cross-checking power thresholds against CTIA limits...",
+        "  - Maximum Radiated Signal Power limit: +23dBm [COMPLIANT]",
+        " ",
+        "=================================================================",
+        "[COMPLETED] CP BASEBAND RE-ENGINEERING COMPLETED",
+        "=================================================================",
+        "* Verizon baseband LTE/5G RF signal standard fully certified.",
+      ];
+
+      let index = 0;
+      const cpInterval = setInterval(() => {
+        if (index < cpLogs.length) {
+          setDissectLogs((prev) => [...prev, cpLogs[index]]);
+          setDissectProgress(25 + Math.round((index + 1) * 10));
+          index++;
+        } else {
+          clearInterval(cpInterval);
+          setIsDissecting(false);
+          triggerNotification("CP baseband radio configurations analyzed.");
+        }
+      }, 450);
+    };
+
+    const runCSCDissection = () => {
+      const cscLogs = [
+        "  - Extracted: cache.img.ext4 (Carrier caching directories)",
+        "  - Extracted: omr.img (Carrier customizations, APNs, carrier overlays)",
+        " ",
+        "[OVERLAYS] Parsing CSC customization blocks for S938U CSC (Verizon VZW)...",
+        "  - Extracted APN profiles: 12 baseline profiles matching Verizon IMS servers.",
+        "  - Extracted Carrier configuration policies: wifi_calling=true, rcs_enabled=true",
+        "  - Identified carrier bloat packages in product overlays.",
+        " ",
+        "=================================================================",
+        "[COMPLETED] CSC CUSTOMIZATION EXPOSURE SUCCESSFUL",
+        "=================================================================",
+        "* Carrier overlay mappings and APN lists fully detailed.",
+      ];
+
+      let index = 0;
+      const cscInterval = setInterval(() => {
+        if (index < cscLogs.length) {
+          setDissectLogs((prev) => [...prev, cscLogs[index]]);
+          setDissectProgress(25 + Math.round((index + 1) * 12));
+          index++;
+        } else {
+          clearInterval(cscInterval);
+          setIsDissecting(false);
+          triggerNotification("CSC carrier customization parameters mapped.");
+        }
+      }, 450);
+    };
+  };
+
+  return (
+    <div className="space-y-8 animate-fadeIn text-slate-200 min-h-screen">
+      {/* Toast Notification overlay */}
+      {notification && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#2F58CD] text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-white/20 animate-slideIn">
+          <Sparkles className="h-4.5 w-4.5 animate-pulse text-[#10B981]" />
+          <span className="text-xs font-bold uppercase tracking-wider">
+            {notification}
+          </span>
+        </div>
+      )}
+
+      {/* Hero Banner Header */}
+      <div className="relative p-8 rounded-3xl overflow-hidden border border-[#22314D] bg-gradient-to-r from-[#030712] via-[#091124] to-[#030712] shadow-[0_0_40px_rgba(47,88,205,0.15)]">
+        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-4xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="bg-[#2F58CD]/20 text-blue-400 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border border-[#2F58CD]/30">
+                Acing Matrix Project Master Suite
+              </span>
+              <span className="bg-[#6C3483]/20 text-purple-400 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border border-[#6C3483]/30">
+                Samsung S25 Ultra VRU3CXH2 Firmware
+              </span>
+              <span className="bg-[#10B981]/20 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border border-[#10B981]/30">
+                Simulator / Fixture Data
+              </span>
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              Acing IU: Genesis Lab Blueprint & OS Assembly
+            </h1>
+            <p className="text-sm font-medium text-slate-400 leading-relaxed max-w-3xl">
+              Demonstration blueprint using fixture data and timed UI
+              simulations. This route does not build an ISO, connect to ADB,
+              inspect firmware, verify hardware, root, unlock, flash, or modify
+              any device.
+            </p>
+          </div>
+
+          <div className="shrink-0 flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setShowExportModal(true)}
+              className="bg-gradient-to-r from-[#2F58CD] to-[#6C3483] hover:from-[#3a6bf0] hover:to-[#813ea2] text-white text-xs font-bold px-4 py-3 rounded-xl shadow-lg shadow-[#2F58CD]/10 flex items-center gap-2 border border-white/10 transition-all duration-200"
+            >
+              <Share2 className="h-4 w-4" />
+              <span>Export Blueprint</span>
+            </button>
+            <button
+              onClick={resetToDefault}
+              className="bg-[#111827] hover:bg-[#151D30] text-slate-300 hover:text-white text-xs font-bold px-4 py-3 rounded-xl border border-[#22314D] flex items-center gap-2 transition-all duration-200"
+              title="Reset tasks to default backlog"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span>Reset Backlog</span>
+            </button>
+          </div>
+        </div>
+        <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-[#2F58CD]/10 blur-3xl"></div>
+        <div className="absolute left-1/3 bottom-0 h-40 w-40 rounded-full bg-[#6C3483]/10 blur-3xl"></div>
+      </div>
+
+      {/* Internal Navigation Ribbon */}
+      <div className="flex bg-[#0B0F19] p-1.5 rounded-2xl border border-[#22314D] max-w-5xl overflow-x-auto whitespace-nowrap scrollbar-thin">
+        <button
+          onClick={() => setActiveTab("os-builder")}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all ${
+            activeTab === "os-builder"
+              ? "bg-[#2F58CD] text-white shadow-lg"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <Cpu className="h-4.5 w-4.5" />
+          <span>1. Bootable OS Builder</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("dissection")}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all ${
+            activeTab === "dissection"
+              ? "bg-[#2F58CD] text-white shadow-lg"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <Layers className="h-4.5 w-4.5" />
+          <span>2. Firmware Dissection</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("storage")}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all ${
+            activeTab === "storage"
+              ? "bg-[#2F58CD] text-white shadow-lg"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <HardDrive className="h-4.5 w-4.5" />
+          <span>3. S25 Storage Console</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("backlog")}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all ${
+            activeTab === "backlog"
+              ? "bg-[#2F58CD] text-white shadow-lg"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <ClipboardList className="h-4.5 w-4.5" />
+          <span>4. Master Backlog</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("manual")}
+          className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all ${
+            activeTab === "manual"
+              ? "bg-[#2F58CD] text-white shadow-lg"
+              : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <FileText className="h-4.5 w-4.5" />
+          <span>5. Engineering Manual</span>
+        </button>
+      </div>
+
+      {/* TAB CONTENT: 1. BOOTABLE OS BUILDER */}
+      {activeTab === "os-builder" && (
+        <div className="space-y-8 animate-fadeIn">
+          {/* OS Builder Header Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              {/* Build Control Console */}
+              <div className="glass-card p-6 rounded-2xl border border-[#22314D] space-y-6">
+                <div className="flex items-center justify-between border-b border-[#22314D] pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <Terminal className="h-5 w-5 text-blue-400 animate-pulse" />
+                    <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">
+                      Live ISO Builder Environment
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-1 bg-[#10B981]/20 border border-[#10B981]/30 text-emerald-400 rounded-md">
+                    BUILD HOST: READY
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-extrabold text-white uppercase tracking-wider">
+                    Select & Verify Package Sources:
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* RootMasterOS.zip Card */}
+                    <div className="p-4 rounded-xl border border-[#22314D] bg-[#070B14] hover:border-blue-500/30 transition-all flex flex-col justify-between space-y-3">
+                      <div className="flex items-start justify-between">
+                        <Package className="h-8 w-8 text-blue-500" />
+                        <input
+                          type="checkbox"
+                          checked={selectedZipFiles.rootmaster}
+                          onChange={(e) =>
+                            setSelectedZipFiles({
+                              ...selectedZipFiles,
+                              rootmaster: e.target.checked,
+                            })
+                          }
+                          className="rounded text-blue-500 bg-slate-900 border-slate-700 h-4.5 w-4.5 focus:ring-0"
+                        />
+                      </div>
+                      <div>
+                        <span className="block text-xs font-bold text-white">
+                          RootMasterOS.zip
+                        </span>
+                        <span className="block text-[10px] text-slate-500 mt-0.5">
+                          Base Distro & Express Files
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> VERIFIED OK
+                      </span>
+                    </div>
+
+                    {/* All-in-One.zip Card */}
+                    <div className="p-4 rounded-xl border border-[#22314D] bg-[#070B14] hover:border-purple-500/30 transition-all flex flex-col justify-between space-y-3">
+                      <div className="flex items-start justify-between">
+                        <Smartphone className="h-8 w-8 text-purple-500" />
+                        <input
+                          type="checkbox"
+                          checked={selectedZipFiles.allinone}
+                          onChange={(e) =>
+                            setSelectedZipFiles({
+                              ...selectedZipFiles,
+                              allinone: e.target.checked,
+                            })
+                          }
+                          className="rounded text-blue-500 bg-slate-900 border-slate-700 h-4.5 w-4.5 focus:ring-0"
+                        />
+                      </div>
+                      <div>
+                        <span className="block text-xs font-bold text-white">
+                          All-in-One.zip
+                        </span>
+                        <span className="block text-[10px] text-slate-500 mt-0.5">
+                          Unified Web Control Interface
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> VERIFIED OK
+                      </span>
+                    </div>
+
+                    {/* Download.zip Card */}
+                    <div className="p-4 rounded-xl border border-[#22314D] bg-[#070B14] hover:border-purple-500/30 transition-all flex flex-col justify-between space-y-3">
+                      <div className="flex items-start justify-between">
+                        <Layers className="h-8 w-8 text-purple-400" />
+                        <input
+                          type="checkbox"
+                          checked={selectedZipFiles.download}
+                          onChange={(e) =>
+                            setSelectedZipFiles({
+                              ...selectedZipFiles,
+                              download: e.target.checked,
+                            })
+                          }
+                          className="rounded text-blue-500 bg-slate-900 border-slate-700 h-4.5 w-4.5 focus:ring-0"
+                        />
+                      </div>
+                      <div>
+                        <span className="block text-xs font-bold text-white">
+                          Download.zip (bindhosts)
+                        </span>
+                        <span className="block text-[10px] text-slate-500 mt-0.5">
+                          Magisk Knox Android Module
+                        </span>
+                      </div>
+                      <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> VERIFIED OK
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dynamic Sandbox Resizing Console */}
+                <div className="p-5 rounded-2xl border border-[#22314D] bg-[#070B14] space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#22314D]/40 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Sliders className="h-4.5 w-4.5 text-indigo-400" />
+                      <div>
+                        <h4 className="text-xs font-extrabold text-white uppercase tracking-wider">
+                          Isolated Build Sandbox Allocation
+                        </h4>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          Adjust the dedicated workspace memory limits for
+                          compiling files safely.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase font-mono ${
+                          isResizingSandbox
+                            ? "bg-amber-950/40 text-yellow-400 animate-pulse border border-yellow-800/20"
+                            : "bg-blue-950/40 text-blue-400 border border-blue-900/20"
+                        }`}
+                      >
+                        {isResizingSandbox
+                          ? "REALLOCATING BOUNDS..."
+                          : "STATUS: OPTIMIZED"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold text-slate-300">
+                        Virtual Storage Limit:{" "}
+                        <span className="text-indigo-400 font-extrabold font-mono text-sm">
+                          {sandboxSize} GB
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-extrabold uppercase">
+                        Min: 4GB / Max: 64GB
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="range"
+                        min="4"
+                        max="64"
+                        value={sandboxSize}
+                        onChange={(e) =>
+                          handleSandboxResize(parseInt(e.target.value))
+                        }
+                        className="w-full h-2 bg-[#0B0F19] rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Virtual partition stats breakdown based on sandboxSize */}
+                    <div className="grid grid-cols-3 gap-3 pt-1">
+                      <div className="p-3 bg-[#0B0F19] rounded-xl border border-[#22314D]/40 text-center">
+                        <span className="text-[8px] text-slate-500 font-bold block uppercase">
+                          SquashFS RAM
+                        </span>
+                        <span className="text-xs font-mono font-bold text-white">
+                          {(sandboxSize * 0.45).toFixed(1)} GB
+                        </span>
+                      </div>
+                      <div className="p-3 bg-[#0B0F19] rounded-xl border border-[#22314D]/40 text-center">
+                        <span className="text-[8px] text-slate-500 font-bold block uppercase">
+                          Decompress Temp
+                        </span>
+                        <span className="text-xs font-mono font-bold text-white">
+                          {(sandboxSize * 0.35).toFixed(1)} GB
+                        </span>
+                      </div>
+                      <div className="p-3 bg-[#0B0F19] rounded-xl border border-[#22314D]/40 text-center">
+                        <span className="text-[8px] text-slate-500 font-bold block uppercase">
+                          Unallocated Gap
+                        </span>
+                        <span className="text-xs font-mono font-bold text-emerald-400">
+                          {(sandboxSize * 0.2).toFixed(1)} GB
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compile Actions */}
+                <div className="space-y-4 pt-4 border-t border-[#22314D]">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h4 className="text-xs font-extrabold text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <Gauge className="h-4 w-4 text-blue-400" /> Compile
+                        Engine Status
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Construct custom Ubuntu-Live squashfs filesystem
+                        injecting your merged files & GRUB menu entry.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={runOSBuildAssembly}
+                      disabled={isBuildingOS}
+                      className={`px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg ${
+                        isBuildingOS
+                          ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white shadow-blue-500/10 hover:shadow-blue-500/20 hover:scale-[1.02]"
+                      }`}
+                    >
+                      {isBuildingOS ? (
+                        <>
+                          <span className="h-4 w-4 rounded-full border-2 border-slate-400 border-t-transparent animate-spin"></span>
+                          <span>Assembling OS ({osBuildProgress}%)</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4 fill-white text-white" />
+                          <span>Assemble Bootable OS</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Build Progress Indicator */}
+                  {isBuildingOS && (
+                    <div className="space-y-2 p-4 rounded-xl bg-blue-950/20 border border-blue-900/30">
+                      <div className="flex justify-between items-center text-[10px] font-bold">
+                        <span className="text-blue-400 uppercase tracking-widest animate-pulse">
+                          ACTIVE STAGE: {osBuildStepName}
+                        </span>
+                        <span className="text-white">{osBuildProgress}%</span>
+                      </div>
+                      <div className="w-full bg-[#070B14] h-2.5 rounded-full overflow-hidden border border-[#22314D]">
+                        <div
+                          className="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-300"
+                          style={{ width: `${osBuildProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Terminal Output Stream */}
+              <div className="glass-card rounded-2xl border border-[#22314D] bg-[#020617] overflow-hidden shadow-2xl">
+                <div className="flex items-center justify-between bg-[#0B0F19] px-5 py-3 border-b border-[#22314D]">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-red-500"></span>
+                      <span className="h-2.5 w-2.5 rounded-full bg-yellow-500"></span>
+                      <span className="h-2.5 w-2.5 rounded-full bg-green-500"></span>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400 ml-2 font-bold uppercase tracking-wider">
+                      build_iso.sh - Shell Logcat
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={exportBuildLogsZip}
+                      className="text-[9px] font-extrabold uppercase px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1 transition-all"
+                    >
+                      <Download className="h-3 w-3" />
+                      <span>Export Build Logs</span>
+                    </button>
+                    <button
+                      onClick={() => setOsBuildLogs([])}
+                      className="text-[9px] font-extrabold uppercase px-2 py-1 rounded bg-slate-800 text-slate-400 hover:text-white"
+                    >
+                      Clear Logs
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-5 font-mono text-[11px] leading-relaxed text-blue-400/90 h-96 overflow-y-auto scrollbar-thin flex flex-col space-y-1">
+                  {osBuildLogs.length === 0 ? (
+                    <div className="text-slate-500 text-center py-20 flex flex-col items-center justify-center space-y-3">
+                      <Terminal className="h-8 w-8 text-slate-600 animate-bounce" />
+                      <span>
+                        {
+                          'Console idle. Click "Assemble Bootable OS" to begin compilation stream.'
+                        }
+                      </span>
+                    </div>
+                  ) : (
+                    osBuildLogs.map((log, i) => (
+                      <div
+                        key={i}
+                        className={
+                          log.includes("[STAGE") || log.includes("[COMPLETED")
+                            ? "text-purple-400 font-extrabold border-y border-[#22314D] py-1.5 my-1"
+                            : log.includes("Error")
+                              ? "text-red-500 font-extrabold"
+                              : log.includes("Success") ||
+                                  log.includes("VERIFIED OK")
+                                ? "text-emerald-400 font-bold"
+                                : "text-slate-300"
+                        }
+                      >
+                        {log}
+                      </div>
+                    ))
+                  )}
+                  <div ref={buildTerminalEndRef} />
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar ISO metadata & upgrade paths */}
+            <div className="space-y-6">
+              {/* Ready ISO Card */}
+              {isoResultReady ? (
+                <div className="p-6 rounded-2xl border-2 border-emerald-500 bg-emerald-950/10 shadow-[0_0_25px_rgba(16,185,129,0.1)] space-y-5 animate-pulse-slow">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                      <Package className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-extrabold text-white uppercase tracking-wider">
+                        COMPILATION SUCCESSFUL
+                      </h4>
+                      <p className="text-[10px] text-slate-400">
+                        Firmware OS package compiled.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 p-4 rounded-xl bg-slate-950 border border-slate-900 font-mono text-[10px] text-slate-300">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">FILE_NAME:</span>
+                      <span className="font-bold text-white">
+                        RootMasterOS.iso
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">SIZE:</span>
+                      <span className="font-bold text-white">642.8 MB</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">MD5_SUM:</span>
+                      <span className="font-bold text-white">
+                        cf83a9032d91...
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">KERNEL:</span>
+                      <span className="font-bold text-white">
+                        Linux 6.8-generic
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">DESKTOP:</span>
+                      <span className="font-bold text-white">
+                        XFCE UI Light
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <button
+                      onClick={() =>
+                        triggerNotification(
+                          "RootMasterOS.iso download started!",
+                        )
+                      }
+                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-extrabold uppercase tracking-wider py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all"
+                    >
+                      <Download className="h-4.5 w-4.5 text-slate-950" />
+                      <span>Download Ready ISO</span>
+                    </button>
+
+                    <button
+                      onClick={exportBuildLogsZip}
+                      className="w-full bg-[#0B0F19] border border-[#22314D] hover:border-blue-500/50 text-blue-400 text-xs font-extrabold uppercase tracking-wider py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
+                    >
+                      <Download className="h-4.5 w-4.5 text-blue-400" />
+                      <span>Export Build Logs (.ZIP)</span>
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        handleCopyToClipboard(
+                          "sudo dd if=RootMasterOS.iso of=/dev/sdX bs=4M status=progress",
+                          "DD Flash Command",
+                        )
+                      }
+                      className="w-full bg-[#0B0F19] border border-[#22314D] hover:border-slate-500 text-slate-300 text-[10px] font-mono py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all"
                     >
                       <Terminal className="h-4 w-4" />
                       <span>Copy dd USB Flash Code</span>
