@@ -59,10 +59,11 @@ jobs:
       - name: Apply migrations in order
         run: |
           set -euo pipefail
-          for f in \
-            infrastructure/postgres/init/000_security_core.sql \
-            infrastructure/postgres/init/001_init_identity_schema.sql \
-            infrastructure/postgres/init/002_roles_and_grants.sql
+          mapfile -t migration_files < <(
+            find infrastructure/postgres/init -maxdepth 1 -type f -name '*.sql' -print | sort
+          )
+          test "${#migration_files[@]}" -gt 0
+          for f in "${migration_files[@]}"
           do
             echo "Applying $f"
             psql -v ON_ERROR_STOP=1 -f "$f"
@@ -123,4 +124,4 @@ jobs:
         run: |
           psql -v ON_ERROR_STOP=1 -c "SELECT version, description FROM schema_migrations ORDER BY version;"
           count=$(psql -Atc "SELECT count(*) FROM schema_migrations")
-          test "$count" -ge 3
+          test "$count" -ge 8
