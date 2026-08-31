@@ -15,10 +15,10 @@ import {
 
 export default function Dashboard() {
   const stats = [
-    { name: 'S938U Knox Trust', value: '100 / 100', status: 'Compliant', color: 'text-[#10B981]', desc: 'Knox 0x0 Warranty intact' },
-    { name: 'Active Policies', value: '4 Enforced', status: 'Optimal', color: 'text-[#2F58CD]', desc: 'Conditional Access locked' },
-    { name: 'CTIA 3.8.2 RF Signal', value: 'TRP 23.40 dBm', status: 'Compliant', color: 'text-[#10B981]', desc: 'TIS within -92.15 limits' },
-    { name: 'Security Quarantine', value: '0 Devices', status: 'Secure', color: 'text-[#EF4444]', desc: 'No system breaches' }
+    { name: 'S938U Knox Trust', value: 'Fixture 100 / 100', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No device attestation' },
+    { name: 'Active Policies', value: '4 Demo Rules', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'Not enforced' },
+    { name: 'CTIA 3.8.2 RF Signal', value: 'Fixture 23.40 dBm', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No RF validation' },
+    { name: 'Security Quarantine', value: 'Fixture 0 Devices', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No live monitoring' }
   ];
 
   return (
@@ -30,7 +30,7 @@ export default function Dashboard() {
             Acing Matrix Security Operations
           </h1>
           <p className="max-w-2xl text-sm font-medium text-slate-400">
-            Real-time firmware integrity verification, Knox Warranty checks, and CTIA 3.8.2 OTA signal validation for decentralized Verizon SM-S938U dynamic environments.
+            Simulator dashboard for planned firmware, Knox, policy, RF, and quarantine workflows. All displayed values are fixtures; no live device state is read, verified, monitored, or enforced.
           </p>
         </div>
         {/* Dynamic decorative backdrop circles */}
