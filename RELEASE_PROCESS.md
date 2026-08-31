@@ -44,7 +44,7 @@ Tags containing a prerelease suffix, such as `-rc.1`, are published as GitHub pr
 2. Confirm Repository Integrity, Clean-Clone Baseline, Security and Dependency Review, and SBOM workflows pass.
 3. Confirm no unresolved release-blocking issues or pull requests remain.
 4. Update `CHANGELOG.md`.
-5. Create and push an annotated release-candidate tag.
+5. Create and push a cryptographically signed annotated release-candidate tag on the exact reviewed release commit.
 6. Confirm the Release workflow passes.
 7. Download all artifacts and verify the SHA-256 checksum.
 8. Smoke-test the Guardian JAR, .NET services, and frontend from the release archive.
@@ -57,4 +57,4 @@ Stable releases require a signed final tag, completed release-candidate evidence
 
 ## Hotfixes
 
-Create a minimal branch from the affected stable tag, run the complete CI and security gate set, and merge the reviewed correction back into `master`. After the canonical `master` commit passes the required checks, create and push the signed semantic-patch tag on that exact commit. The release workflow intentionally rejects a tag that does not identify the current canonical `master` commit.
+Create a dedicated patch branch from the affected stable tag and apply only the minimal hotfix. Run the complete CI and security gate set against that patch-only commit, then merge the reviewed patch branch back into `master` without changing the patch commit. After canonical `master` contains that exact commit, create and push the cryptographically signed annotated semantic-patch tag on the patch-only commit—not on a later `master` commit containing unrelated changes. The release workflow rejects any signed release commit that is not contained in canonical `master`.
