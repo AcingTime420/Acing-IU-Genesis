@@ -3425,13 +3425,11 @@ export default function RootMasterLab() {
                     </div>
 
                     <button
-                      onClick={runOSBuildAssembly}
-                      disabled={isBuildingOS}
-                      className={`px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg ${
-                        isBuildingOS
-                          ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                          : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white shadow-blue-500/10 hover:shadow-blue-500/20 hover:scale-[1.02]"
-                      }`}
+                      type="button"
+                      disabled
+                      aria-disabled="true"
+                      title="Unavailable until a verified build executor exists"
+                      className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500"
                     >
                       {isBuildingOS ? (
                         <>
@@ -3928,14 +3926,12 @@ export default function RootMasterLab() {
                     headers
                   </span>
 
-                  <button
-                    onClick={runFirmwareDissection}
-                    disabled={isDissecting}
-                    className={`px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-                      isDissecting
-                        ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white hover:scale-[1.01]"
-                    }`}
+                    <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Unavailable until a verified firmware-analysis executor exists"
+                    className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-500"
                   >
                     {isDissecting
                       ? "Dissecting Partition..."
