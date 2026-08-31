@@ -1,4 +1,4 @@
-﻿# ADR-002: Modular Control-Plane Architecture
+﻿# ADR-003: Modular Control-Plane Architecture
 
 **Status:** Accepted
 **Date:** 2026-08-16

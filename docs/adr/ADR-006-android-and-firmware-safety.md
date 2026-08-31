@@ -1,4 +1,4 @@
-﻿# ADR-005: Android and Firmware Operation Safety
+﻿# ADR-006: Android and Firmware Operation Safety
 
 **Status:** Accepted
 **Date:** 2026-08-16
