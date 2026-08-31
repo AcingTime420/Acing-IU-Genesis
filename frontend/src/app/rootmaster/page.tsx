@@ -1207,22 +1207,20 @@ function FirmwarePartitions() {
   >("tree");
 
   // Interactive partition state simulation
-  const [encryptionStates, setEncryptionStates] = useState<
-    Record<string, "encrypted" | "decrypted">
-  >({});
+  const encryptionStates: Record<string, "encrypted" | "decrypted"> = {};
   const [integrityCheckStates, setIntegrityCheckStates] = useState<
-    Record<string, "idle" | "verifying" | "verified">
+    Record<string, "idle" | "simulating" | "fixture_match">
   >({});
 
   const runIntegrityVerify = (subName: string) => {
     setIntegrityCheckStates((prev) => ({
       ...prev,
-      [subName]: "verifying",
+      [subName]: "simulating",
     }));
     setTimeout(() => {
       setIntegrityCheckStates((prev) => ({
         ...prev,
-        [subName]: "verified",
+        [subName]: "fixture_match",
       }));
     }, 1200);
   };
@@ -1231,20 +1229,21 @@ function FirmwarePartitions() {
     if (!selectedPartition) return;
     const details =
       partitionDetails[selectedPartition.name as keyof typeof partitionDetails];
-    const isEncrypted =
-      encryptionStates[selectedPartition.name] !== "decrypted";
-
     const summary = {
-      partition: selectedPartition.name,
-      label: selectedPartition.label,
-      size_bytes: selectedPartition.size,
-      sha256_hash: selectedPartition.sha256,
-      security_integrity: details?.permissionsStatus || "N/A",
-      total_files: details?.fileCount || 0,
-      encryption_state: isEncrypted
-        ? "FBE AES-256 Encrypted"
-        : "Plaintext Decrypted",
-      sub_partitions:
+      artifact_type: "ACING_IU_FIXTURE_PARTITION_SUMMARY",
+      fixture_only: true,
+      verified_device_evidence: false,
+      disclaimer:
+        "Simulator-generated fixture data. No device partition, encryption state, hash, or security integrity was read or verified.",
+      fixture_partition: selectedPartition.name,
+      fixture_label: selectedPartition.label,
+      fixture_size_bytes: selectedPartition.size,
+      fixture_sha256_example: selectedPartition.sha256,
+      fixture_security_integrity_example:
+        details?.permissionsStatus || "FIXTURE_NOT_AVAILABLE",
+      fixture_total_files: details?.fileCount || 0,
+      fixture_encryption_state: "NOT_READ_OR_VERIFIED",
+      fixture_sub_partitions:
         details?.subPartitions.map((sub) => ({
           name: sub.name,
           permission: sub.permission,
@@ -1252,7 +1251,8 @@ function FirmwarePartitions() {
           context: sub.context,
           rebranding_target: sub.rebrandingTarget || null,
           details: sub.details,
-          integrity_status: integrityCheckStates[sub.name] || "Not Checked",
+          fixture_integrity_status:
+            integrityCheckStates[sub.name] || "FIXTURE_NOT_CHECKED",
         })) || [],
     };
 
@@ -1261,7 +1261,7 @@ function FirmwarePartitions() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `rootmaster_${selectedPartition.name.replace(".img", "")}_deconstruction_summary.json`;
+    link.download = `rootmaster_fixture_${selectedPartition.name.replace(".img", "")}_summary.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1392,6 +1392,11 @@ function FirmwarePartitions() {
 
   return (
     <div className="relative border border-[#22314D] bg-[#070B14] p-4 rounded-xl mt-4">
+      <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-[10px] leading-relaxed text-amber-200">
+        Simulator only: partition details, hashes, and integrity results are
+        fixture data. This interface does not read, verify, unlock, flash, or
+        otherwise modify a connected device.
+      </div>
       <h4 className="text-xs font-extrabold text-white uppercase tracking-wider mb-3">
         super.img Partition Byte-Size Distribution (D3.js Visualization)
       </h4>
@@ -1531,32 +1536,20 @@ function FirmwarePartitions() {
                         Partition Encryption State
                       </span>
                       <span
-                        className={`text-xs font-bold font-mono block ${isEncrypted ? "text-emerald-400" : "text-amber-500"}`}
+                        className="text-xs font-bold font-mono block text-amber-400"
                       >
-                        {isEncrypted
-                          ? "FBE AES-256-XTS Active (Hardware Wrapped)"
-                          : "Plaintext Decrypted (Security Keys Zeroed / Raw Access)"}
+                        Fixture encryption state — no device state read
                       </span>
                     </div>
                   </div>
                   <button
-                    onClick={() => {
-                      setEncryptionStates((prev) => ({
-                        ...prev,
-                        [selectedPartition.name]: isEncrypted
-                          ? "decrypted"
-                          : "encrypted",
-                      }));
-                    }}
-                    className={`px-3.5 py-1.5 rounded-lg text-[9px] font-extrabold uppercase transition-all flex items-center gap-1.5 border ${
-                      isEncrypted
-                        ? "bg-amber-500/10 border-amber-500/40 text-amber-400 hover:bg-amber-500/20"
-                        : "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20"
-                    }`}
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Device encryption operations are unavailable in this simulator"
+                    className="px-3.5 py-1.5 rounded-lg text-[9px] font-extrabold uppercase flex items-center gap-1.5 border bg-slate-900 border-slate-700 text-slate-500 cursor-not-allowed"
                   >
-                    {isEncrypted
-                      ? "Decrypt Partition"
-                      : "Enable FBE Encryption"}
+                    Unavailable — Fixture Only
                   </button>
                 </div>
               );
@@ -1613,15 +1606,16 @@ function FirmwarePartitions() {
                         </span>
                         <div className="flex items-center gap-1.5 text-[9px] font-mono font-semibold">
                           {/* Integrity Verify Button */}
-                          {integrityCheckStates[sub.name] === "verifying" ? (
+                          {integrityCheckStates[sub.name] === "simulating" ? (
                             <span className="bg-indigo-950/40 border border-indigo-500/30 text-indigo-400 px-2 py-0.5 rounded-md animate-pulse flex items-center gap-1">
                               <span className="w-1 h-1 rounded-full bg-indigo-400 animate-ping" />
-                              Verifying Hash...
+                              Simulating Fixture Check...
                             </span>
-                          ) : integrityCheckStates[sub.name] === "verified" ? (
+                          ) : integrityCheckStates[sub.name] ===
+                            "fixture_match" ? (
                             <span className="bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded-md flex items-center gap-1">
                               <span className="w-1 h-1 rounded-full bg-emerald-400" />
-                              SHA-256 Match
+                              Fixture Hash Match
                             </span>
                           ) : (
                             <button
@@ -1631,7 +1625,7 @@ function FirmwarePartitions() {
                               }}
                               className="bg-slate-900 border border-slate-700/50 hover:border-indigo-500/50 hover:bg-slate-800 text-slate-300 hover:text-indigo-400 px-2 py-0.5 rounded-md transition-all uppercase text-[8px] font-extrabold flex items-center gap-1"
                             >
-                              <span>Verify Hash</span>
+                              <span>Simulate Hash Check</span>
                             </button>
                           )}
 
@@ -1683,14 +1677,15 @@ function FirmwarePartitions() {
                             <span className="text-slate-500 font-bold block uppercase text-[8px]">
                               Hash Integrity Status
                             </span>
-                            {integrityCheckStates[sub.name] === "verified" ? (
+                            {integrityCheckStates[sub.name] ===
+                            "fixture_match" ? (
                               <span className="text-emerald-400 font-bold block mt-0.5 font-mono text-[9px]">
-                                MATCH (Knox Baseline Verified)
+                                FIXTURE MATCH (Not Device Verified)
                               </span>
                             ) : integrityCheckStates[sub.name] ===
-                              "verifying" ? (
+                              "simulating" ? (
                               <span className="text-indigo-400 font-semibold block mt-0.5 font-mono text-[9px] animate-pulse">
-                                Fetching Knox baseline...
+                                Simulating fixture comparison...
                               </span>
                             ) : (
                               <span className="text-slate-500 font-medium block mt-0.5 font-mono text-[9px]">
@@ -2097,15 +2092,14 @@ export default function RootMasterLab() {
 
   // Storage Optimizer States
   const [adbConnected, setAdbConnected] = useState(true);
-  const [storageStats, setStorageStats] = useState({
+  const storageStats = {
     total: 512,
     used: 489.2,
     free: 22.8,
     trashCaches: 18.4,
     tempLogs: 3.1,
-  });
-  const [optimizingStorage, setOptimizingStorage] = useState(false);
-  const [storageLogs, setStorageLogs] = useState<string[]>([]);
+  };
+  const storageLogs: string[] = [];
   const storageTerminalEndRef = useRef<HTMLDivElement>(null);
 
   // General UI state
@@ -2124,7 +2118,7 @@ export default function RootMasterLab() {
     Array<{
       partition: string;
       filepath: string;
-      status: "verified" | "corrupted" | "pending";
+      status: "fixture_match" | "fixture_mismatch" | "pending";
     }>
   >([
     { partition: "/system", filepath: "system/bin/init", status: "pending" },
@@ -2270,8 +2264,8 @@ export default function RootMasterLab() {
           const finalStatus =
             file.filepath === "system/framework/services.jar" ||
             file.filepath === "vendor/etc/selinux/nonplat_sepolicy.cil"
-              ? "corrupted"
-              : "verified";
+              ? "fixture_mismatch"
+              : "fixture_match";
           updated[currentIdx] = { ...file, status: finalStatus };
           setCurrentScanningFile(`${file.partition} -> ${file.filepath}`);
           return updated;
@@ -2281,9 +2275,9 @@ export default function RootMasterLab() {
       } else {
         clearInterval(interval);
         setIntegrityScanActive(false);
-        setCurrentScanningFile("Integrity Scan Completed!");
+        setCurrentScanningFile("Fixture Simulation Completed!");
         triggerNotification(
-          "Partition Integrity Check Complete! Security alerts raised for corrupted system and vendor payloads.",
+          "Partition fixture simulation complete. Example mismatches were generated; no payloads were inspected.",
         );
       }
     }, 180);
@@ -3096,67 +3090,6 @@ export default function RootMasterLab() {
     };
   };
 
-  // LIVE STORAGE OPTIMIZER SIMULATION
-  const runStorageOptimization = () => {
-    if (optimizingStorage) return;
-
-    setOptimizingStorage(true);
-    setStorageLogs([]);
-
-    const actions = [
-      "Connecting to Galaxy S25 Ultra over ADB shell tunnel...",
-      "  - Device detected: SM-S938U (S25 Ultra Snapdragon 8 Elite)",
-      "  - Connection Type: USB High-Speed debugging mode",
-      " ",
-      "[ADB] Requesting storage partition allocation specs...",
-      `  - System partition size: 128.0 GB`,
-      `  - Data partition (/data): 384.0 GB`,
-      `  - Free storage space: ${storageStats.free} GB`,
-      " ",
-      "[OPTIMIZE] Clearing system logs and memory heap backlogs...",
-      "  - Command: adb shell logcat -c",
-      "  - Logcat buffers successfully cleared.",
-      " ",
-      "[OPTIMIZE] Trimming dynamic application package caches...",
-      "  - Command: adb shell pm trim-caches 10G",
-      "  - Cleaning up cache files inside /data/system/caches/ and /data/user/0/*/cache/...",
-      "  - Successfully purged 12.4 GB of stagnant webview, browser, and temp app files.",
-      " ",
-      "[OPTIMIZE] Purging user download cache directories...",
-      "  - Command: adb shell rm -rf /sdcard/Android/data/*/cache/*",
-      "  - Purged user background caches.",
-      " ",
-      "[OPTIMIZE] Restructuring partition file tables and running trim checks...",
-      "  - Command: adb shell fstrim -v /data",
-      "  - Trim operation completed: 18.5 GB block chunks freed.",
-      " ",
-      "=================================================================",
-      "[SUCCESS] ADB STORAGE OPTIMIZATION COMPLETED SUCCESSFULLY",
-      "=================================================================",
-    ];
-
-    let index = 0;
-    const interval = setInterval(() => {
-      if (index < actions.length) {
-        setStorageLogs((prev) => [...prev, actions[index]]);
-        index++;
-      } else {
-        clearInterval(interval);
-        setOptimizingStorage(false);
-        setStorageStats({
-          total: 512,
-          used: 467.7,
-          free: 44.3,
-          trashCaches: 0.0,
-          tempLogs: 0.0,
-        });
-        triggerNotification(
-          "S25 Ultra storage optimized successfully! 21.5 GB freed.",
-        );
-      }
-    }, 400);
-  };
-
   return (
     <div className="space-y-8 animate-fadeIn text-slate-200 min-h-screen">
       {/* Toast Notification overlay */}
@@ -3181,18 +3114,17 @@ export default function RootMasterLab() {
                 Samsung S25 Ultra VRU3CXH2 Firmware
               </span>
               <span className="bg-[#10B981]/20 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border border-[#10B981]/30">
-                Bootable OS ISO Builder Lab
+                Simulator / Fixture Data
               </span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               Acing IU: Genesis Lab Blueprint & OS Assembly
             </h1>
             <p className="text-sm font-medium text-slate-400 leading-relaxed max-w-3xl">
-              Construct a real, bootable Ubuntu-based live Linux ISO embedding
-              Acing IU: Genesis modules, All-in-One dashboards, and Magisk
-              Android modules. Complete with interactive simulators for Samsung
-              S25 Ultra Odin firmware partition reverse-engineering, IML tools,
-              and storage optimizations.
+              Demonstration blueprint using fixture data and timed UI
+              simulations. This route does not build an ISO, connect to ADB,
+              inspect firmware, verify hardware, root, unlock, flash, or modify
+              any device.
             </p>
           </div>
 
@@ -3493,13 +3425,11 @@ export default function RootMasterLab() {
                     </div>
 
                     <button
-                      onClick={runOSBuildAssembly}
-                      disabled={isBuildingOS}
-                      className={`px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg ${
-                        isBuildingOS
-                          ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                          : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white shadow-blue-500/10 hover:shadow-blue-500/20 hover:scale-[1.02]"
-                      }`}
+                      type="button"
+                      disabled
+                      aria-disabled="true"
+                      title="Unavailable until a verified build executor exists"
+                      className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500"
                     >
                       {isBuildingOS ? (
                         <>
@@ -3996,14 +3926,12 @@ export default function RootMasterLab() {
                     headers
                   </span>
 
-                  <button
-                    onClick={runFirmwareDissection}
-                    disabled={isDissecting}
-                    className={`px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-                      isDissecting
-                        ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white hover:scale-[1.01]"
-                    }`}
+                    <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Unavailable until a verified firmware-analysis executor exists"
+                    className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-500"
                   >
                     {isDissecting
                       ? "Dissecting Partition..."
@@ -4058,13 +3986,13 @@ export default function RootMasterLab() {
                 </div>
               </div>
 
-              {/* Dynamic Partition Integrity Scan Card */}
+              {/* Partition integrity fixture simulation card */}
               <div className="glass-card p-6 rounded-2xl border border-[#22314D] bg-[#070B14] space-y-4">
                 <div className="flex items-center justify-between border-b border-[#22314D] pb-3">
                   <div className="flex items-center gap-2">
                     <ShieldAlert className="h-4.5 w-4.5 text-red-400 animate-pulse" />
                     <h3 className="text-xs font-extrabold text-white uppercase tracking-wider">
-                      Dynamic Partition Integrity Scan
+                      Partition Integrity Fixture Simulator
                     </h3>
                   </div>
                   <button
@@ -4079,8 +4007,8 @@ export default function RootMasterLab() {
                     <Play className="h-3 w-3" />
                     <span>
                       {integrityScanActive
-                        ? "Scanning..."
-                        : "Start Integrity Scan"}
+                        ? "Simulating..."
+                        : "Start Fixture Simulation"}
                     </span>
                   </button>
                 </div>
@@ -4090,7 +4018,7 @@ export default function RootMasterLab() {
                   <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold">
                     <span className="font-mono">
                       {currentScanningFile ||
-                        "Ready to analyze system partitions"}
+                        "Ready to simulate fixture comparisons"}
                     </span>
                     <span>{integrityScanProgress}%</span>
                   </div>
@@ -4109,10 +4037,10 @@ export default function RootMasterLab() {
                       (f) => f.partition === part,
                     );
                     const verifiedCount = partFiles.filter(
-                      (f) => f.status === "verified",
+                      (f) => f.status === "fixture_match",
                     ).length;
                     const corruptedCount = partFiles.filter(
-                      (f) => f.status === "corrupted",
+                      (f) => f.status === "fixture_mismatch",
                     ).length;
 
                     return (
@@ -4150,14 +4078,14 @@ export default function RootMasterLab() {
                               >
                                 {file.filepath.split("/").pop()}
                               </span>
-                              {file.status === "verified" ? (
+                              {file.status === "fixture_match" ? (
                                 <span className="text-emerald-400 flex items-center gap-1 text-[9px] font-bold">
                                   <Check className="h-3 w-3 stroke-[3]" />{" "}
-                                  Verified
+                                  Fixture Match
                                 </span>
-                              ) : file.status === "corrupted" ? (
+                              ) : file.status === "fixture_mismatch" ? (
                                 <span className="text-red-400 flex items-center gap-1 text-[9px] font-bold animate-pulse">
-                                  <ShieldAlert className="h-3 w-3" /> Corrupted
+                                  <ShieldAlert className="h-3 w-3" /> Fixture Mismatch
                                 </span>
                               ) : (
                                 <span className="text-slate-600 text-[9px]">
@@ -4286,39 +4214,38 @@ export default function RootMasterLab() {
                 <div className="flex items-center gap-2 border-b border-[#22314D] pb-3">
                   <Shield className="h-4.5 w-4.5 text-blue-400" />
                   <h3 className="text-xs font-extrabold text-white uppercase tracking-wider">
-                    Samsung Knox Safety Attestation
+                    Samsung Knox Attestation Fixture
                   </h3>
                 </div>
 
                 <div className="space-y-3 font-mono text-[10px] text-slate-300">
                   <div className="flex justify-between items-center">
-                    <span>Knox Warranty Bit:</span>
+                    <span>Knox Warranty Bit Fixture:</span>
                     <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-900/30">
-                      0x0 (VALID)
+                      EXAMPLE 0x0 (NOT VERIFIED)
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span>Secure Bootloader:</span>
+                    <span>Secure Bootloader Fixture:</span>
                     <span className="text-slate-400">
-                      LOCKED (CARRIER SPEC)
+                      EXAMPLE LOCKED
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span>SELInux Policy:</span>
-                    <span className="text-slate-400">ENFORCING (DEFAULT)</span>
+                    <span>SELinux Policy Fixture:</span>
+                    <span className="text-slate-400">EXAMPLE ENFORCING</span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span>RKP Engine state:</span>
-                    <span className="text-emerald-400">ACTIVE</span>
+                    <span>RKP Engine Fixture:</span>
+                    <span className="text-amber-400">EXAMPLE ACTIVE</span>
                   </div>
 
                   <p className="text-[10px] leading-relaxed text-slate-500 font-sans mt-2 pt-2 border-t border-[#22314D]">
-                    Note: Writing compiled packages directly voids the Knox Bit
-                    instantly! Run boot verification loops first inside isolated
-                    custom OS VM containers.
+                    Fixture display only. No Knox attestation or device state is
+                    read, and no package-writing operation is available here.
                   </p>
                 </div>
               </div>
@@ -4341,15 +4268,15 @@ export default function RootMasterLab() {
                       Ultra Space Optimizer
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Clear cache blocks via ADB shell pm commands to make space
-                      for 17GB stock file operations.
+                      Fixture-only storage optimization demonstration. No ADB
+                      connection or device cleanup is performed.
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">
-                      ADB_CONNECTED
+                      FIXTURE — NO ADB CONNECTION
                     </span>
                   </div>
                 </div>
@@ -4436,22 +4363,17 @@ export default function RootMasterLab() {
 
                 <div className="flex justify-between items-center pt-4 border-t border-[#22314D]">
                   <span className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                    <Info className="h-4 w-4" /> Ready to invoke pm trim-caches
-                    blocks
+                    <Info className="h-4 w-4" /> Device cleanup executor not implemented
                   </span>
 
                   <button
-                    onClick={runStorageOptimization}
-                    disabled={optimizingStorage}
-                    className={`px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-                      optimizingStorage
-                        ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white"
-                    }`}
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Unavailable until a verified device executor exists"
+                    className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-500"
                   >
-                    {optimizingStorage
-                      ? "Optimizing Space..."
-                      : "Run Cache Optimizer"}
+                    Cache Optimizer Unavailable
                   </button>
                 </div>
               </div>
@@ -4471,7 +4393,7 @@ export default function RootMasterLab() {
                   {storageLogs.length === 0 ? (
                     <div className="text-slate-500 text-center py-20">
                       {
-                        'Shell inactive. Click "Run Cache Optimizer" to launch automated ADB cleanup sweeps.'
+                        "Fixture console inactive. ADB cleanup is unavailable because no verified device executor exists."
                       }
                     </div>
                   ) : (

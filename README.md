@@ -1,7 +1,7 @@
 # Acing IU: Genesis
 
-> **A custom Android OS security platform with hardware-backed protection,
-> boot integrity, and a hardened administrative interface for Acing OS devices.**
+> **An Android-oriented security research and engineering platform for device
+> trust, boot-integrity experimentation, and governed administrative workflows.**
 
 ---
 
@@ -144,3 +144,7 @@ Security issues: see [SECURITY.md](SECURITY.md) — **do not open a public issue
 ## License
 
 *License to be determined — see project maintainer.*
+
+## Repository Governance
+
+The canonical source repository is AcingTime420/Acing-IU-Genesis. The public logical identifier for the maintainer's Windows worktree is `canonical-windows-worktree`; its machine-specific location remains private. Repository controls, authorized recovery paths, and the archive-only legacy remote policy are defined in [docs/governance/REPOSITORY_GOVERNANCE.md](docs/governance/REPOSITORY_GOVERNANCE.md).

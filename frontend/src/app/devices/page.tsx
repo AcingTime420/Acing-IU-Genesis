@@ -145,10 +145,10 @@ export default function DevicesPage() {
   useEffect(() => {
     setIsMounted(true);
     
-    // Initial real-time toast for compromised device
+    // Initial fixture-only toast; no device is contacted or changed.
     const timer = setTimeout(() => {
       addToast(
-        "CRITICAL SYSTEM WARNING: 'Compromised S25 Target' failed hardware integrity! Auto-quarantined.", 
+        "FIXTURE ALERT: The simulated compromised-device record starts in a quarantined display state.",
         "error"
       );
     }, 1200);
@@ -219,7 +219,7 @@ export default function DevicesPage() {
     }));
 
     addToast(
-      `BULK ACTION COMPLETED: ${selectedIds.length} device(s) successfully ${quarantine ? 'QUARANTINED' : 'UN-QUARANTINED'}.`,
+      `FIXTURE UPDATE: ${selectedIds.length} simulated device record(s) marked ${quarantine ? 'QUARANTINED' : 'NOT QUARANTINED'} locally. No device operation occurred.`,
       quarantine ? 'warning' : 'success'
     );
     
@@ -246,7 +246,7 @@ export default function DevicesPage() {
     }));
 
     addToast(
-      `REASSESSMENT SECURED: Re-evaluated cryptographic signatures for ${selectedIds.length} target node(s).`,
+      `FIXTURE UPDATE: Recalculated local demonstration scores for ${selectedIds.length} record(s). No cryptographic or device verification occurred.`,
       'info'
     );
     setSelectedIds([]);
@@ -280,7 +280,7 @@ export default function DevicesPage() {
     const targetDevice = devices.find(d => d.id === scannerDeviceTarget);
     
     addToast(
-      `KNOX CHIP CERTIFIED: Cryptographic verification signature attested for '${targetDevice?.name || 'Device'}'.`, 
+      `FIXTURE UPDATE: Simulated chip-detection result recorded for '${targetDevice?.name || 'Device'}'. No Knox attestation or certification occurred.`,
       'success'
     );
 
@@ -300,6 +300,9 @@ export default function DevicesPage() {
 
   return (
     <div className="space-y-8 animate-fadeIn relative pb-24">
+      <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100">
+        <strong>Simulator fixture only.</strong> All devices, trust scores, firmware states, radio values, charts, and reports on this page are demonstration data. This page does not connect to, attest, certify, quarantine, or modify a physical device.
+      </div>
       
       {/* Persistent Floating Selected Devices Counter */}
       {selectedIds.length > 0 && (
@@ -353,22 +356,23 @@ export default function DevicesPage() {
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-3">
             <Smartphone className="h-6 w-6 text-[#2F58CD]" />
-            Device Trust and Radio Attestations
+            Simulated Device Trust and Radio Fixtures
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Zero-trust inventory with full cryptographic partition hash audits and CTIA 3.8.2 RF performance telemetry.
+            Local demonstration records only; no cryptographic audit, hardware attestation, or RF measurement is performed.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => triggerScannerFlow(devices[0].id)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-[#2F58CD]/15 hover:bg-[#2F58CD]/30 text-[#2F58CD] text-xs font-bold border border-[#2F58CD]/30 transition-all"
+            title="Open a local fixture animation; no device is contacted"
+            className="flex items-center gap-2 rounded-lg border border-[#2F58CD]/30 bg-[#2F58CD]/15 px-3.5 py-1.5 text-xs font-bold text-[#2F58CD] transition-all hover:bg-[#2F58CD]/30"
           >
             <QrCode className="h-4 w-4" />
-            Launch Knox Attestor
+            Open Fixture Scanner
           </button>
           <span className="text-xs bg-[#10B981]/20 text-[#10B981] font-bold px-3 py-1.5 rounded-full border border-[#10B981]/30">
-            Device Registry Stable
+            Fixture Registry
           </span>
         </div>
       </div>
@@ -512,7 +516,7 @@ export default function DevicesPage() {
                       <div className="lg:col-span-2 space-y-3">
                         <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
                           <Activity className="h-4 w-4 text-[#10B981]" />
-                          <span>30-Day Device Trust Score Trend (Attestation Sparkline)</span>
+                          <span>30-Day Fixture Trust-Score Trend (Simulation)</span>
                         </h4>
 
                         {/* Recharts Area sparkline graph */}
@@ -567,21 +571,21 @@ export default function DevicesPage() {
                       <div className="space-y-3">
                         <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
                           <Sparkles className="h-4 w-4 text-amber-400" />
-                          <span>Firmware Integrity Checklist</span>
+                          <span>Firmware Integrity Fixture Checklist</span>
                         </h4>
 
                         <div className="bg-[#111827]/40 rounded-xl border border-[#22314D] p-3.5 space-y-2 text-[11px] font-semibold text-slate-300">
                           <div className="flex items-center justify-between">
                             <span>Base System Hash Code:</span>
-                            <span className="font-mono text-[#10B981]">MATCHED</span>
+                            <span className="font-mono text-[#10B981]">FIXTURE_MATCH</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span>OEM Keys Registered:</span>
-                            <span className="font-mono text-[#10B981]">VERIFIED</span>
+                            <span className="font-mono text-[#10B981]">FIXTURE_VERIFIED</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span>TEE Integrity Attestation:</span>
-                            <span className="font-mono text-[#10B981]">SECURE</span>
+                            <span className="font-mono text-[#10B981]">FIXTURE_SECURE</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span>FRP Protection Status:</span>
@@ -602,10 +606,11 @@ export default function DevicesPage() {
                   <div className="flex items-center gap-4 shrink-0 self-end sm:self-auto">
                     <button 
                       onClick={() => triggerScannerFlow(dev.id)}
-                      className="text-xs font-bold flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors"
+                      title="Open a local fixture animation; no device is contacted"
+                      className="flex items-center gap-1.5 text-xs font-bold text-slate-400 transition-colors hover:text-white"
                     >
                       <QrCode className="h-3.5 w-3.5 text-[#2F58CD]" />
-                      <span>Attest Knox Chip</span>
+                      <span>Open Fixture Simulation</span>
                     </button>
 
                     <button 
@@ -635,7 +640,7 @@ export default function DevicesPage() {
                 <p className="text-xs font-extrabold text-white">
                   {selectedIds.length} Device{selectedIds.length === 1 ? '' : 's'} Selected
                 </p>
-                <p className="text-[10px] text-slate-400 font-medium">Perform batch compliance operations on nodes</p>
+                <p className="text-[10px] text-slate-400 font-medium">Local fixture selection; device-changing operations are unavailable</p>
               </div>
             </div>
 
@@ -645,22 +650,24 @@ export default function DevicesPage() {
                 className="px-3.5 py-2 rounded-xl bg-[#151D30] border border-[#22314D] hover:border-slate-500 text-white text-xs font-bold transition-all flex items-center gap-1.5"
               >
                 <RefreshCw className="h-3.5 w-3.5 text-[#2F58CD]" />
-                Reassess Nodes
+                Recalculate Fixtures
               </button>
               
               <button 
-                onClick={() => handleBulkQuarantine(false)}
-                className="px-3.5 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-[#10B981] border border-emerald-500/20 text-xs font-bold transition-all"
+                disabled
+                title="Unavailable until a verified device-policy executor exists"
+                className="cursor-not-allowed rounded-xl border border-slate-600/20 bg-slate-700/10 px-3.5 py-2 text-xs font-bold text-slate-600"
               >
-                Clear Quarantine
+                Clear Quarantine Unavailable
               </button>
 
               <button 
-                onClick={() => handleBulkQuarantine(true)}
-                className="px-3.5 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition-all flex items-center gap-1.5"
+                disabled
+                title="Unavailable until a verified device-policy executor exists"
+                className="flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-slate-600/20 bg-slate-700/10 px-3.5 py-2 text-xs font-bold text-slate-600"
               >
                 <ShieldAlert className="h-3.5 w-3.5" />
-                Quarantine Batch
+                Quarantine Unavailable
               </button>
 
               <button 
@@ -686,7 +693,7 @@ export default function DevicesPage() {
             <div className="flex items-center justify-between border-b border-[#22314D] pb-4">
               <div className="flex items-center gap-2.5">
                 <QrCode className="h-5 w-5 text-[#2F58CD]" />
-                <h3 className="text-base font-bold text-white uppercase tracking-wider">Acing Matrix Knox Chip Attestor</h3>
+                <h3 className="text-base font-bold text-white uppercase tracking-wider">Knox Attestation Fixture Simulator</h3>
               </div>
               <button 
                 onClick={() => setShowScanner(false)} 
@@ -714,13 +721,13 @@ export default function DevicesPage() {
               <div className="text-center space-y-2 relative z-10 px-8">
                 <ScanLine className="h-10 w-10 text-slate-500 mx-auto animate-pulse" />
                 <p className="text-xs font-bold text-slate-300">ALIGN CHIP QR SIGNATURE CODE</p>
-                <p className="text-[10px] text-slate-500 max-w-xs font-medium">Scanning Knox fuse-level RKP security hash on target device motherboard</p>
+                <p className="text-[10px] text-slate-500 max-w-xs font-medium">Animated demonstration only; no camera, device, Knox fuse, or RKP security data is accessed</p>
               </div>
 
               {/* Scanning status pill */}
               <div className="absolute bottom-4 bg-[#151D30] border border-[#22314D] px-3 py-1 rounded-full text-[10px] font-bold text-slate-300 tracking-wider flex items-center gap-1.5">
                 <span className="w-2 h-2 bg-[#10B981] rounded-full animate-ping"></span>
-                <span>VIEWFINDER ACTIVE</span>
+                <span>FIXTURE ANIMATION ACTIVE</span>
               </div>
             </div>
 
@@ -764,23 +771,23 @@ export default function DevicesPage() {
       {/* ==================================================================== */}
       <div className="print-report-container">
         <div className="print-title">
-          VERIZON DEVICES INTEGRITY & SECURE ATTESTATION CERTIFICATE
+          SIMULATED DEVICE INTEGRITY FIXTURE REPORT — NOT A CERTIFICATE
         </div>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
             <strong>DOCUMENT ID:</strong> DEV-COMP-S938U-2026-VZW<br />
-            <strong>ISSUED BY:</strong> Acing Operations Matrix Security Office<br />
+            <strong>GENERATED BY:</strong> Acing IU: Genesis Simulator<br />
             <strong>EXPORTED AT:</strong> {new Date().toUTCString()}
           </div>
           <div style={{ textAlign: 'right' }}>
-            <strong>SYSTEM CLASSIFICATION:</strong> SECRET / UNCLASSIFIED<br />
-            <strong>REGISTRY STATUS:</strong> ACTIVE SECURE<br />
-            <strong>TOTAL NODES VERIFIED:</strong> {devices.length}
+            <strong>DATA CLASSIFICATION:</strong> PUBLIC TEST FIXTURE<br />
+            <strong>REGISTRY STATUS:</strong> SIMULATED / UNVERIFIED<br />
+            <strong>TOTAL FIXTURE RECORDS:</strong> {devices.length}
           </div>
         </div>
 
-        <div className="print-section-title">Hardware attestation & RF metrics (CTIA 3.8.2)</div>
+        <div className="print-section-title">Simulated hardware-attestation and RF fixture values (not CTIA evidence)</div>
         <table className="print-table">
           <thead>
             <tr>
@@ -810,7 +817,7 @@ export default function DevicesPage() {
 
         <div style={{ marginTop: '50px', borderTop: '1px solid #999', paddingTop: '10px', fontSize: '9pt', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
           <div>
-            <em>Digitally attested by TIMA-RKP-256 Crypto Assurance Matrix</em>
+            <em>Generated from local fixture data; not digitally attested and not valid compliance evidence</em>
           </div>
           
           {/* Security Seal SVG Graphic Overlay */}
@@ -831,19 +838,19 @@ export default function DevicesPage() {
               
               <text fontSize="5.5" fontWeight="bold" fill="#000000" letterSpacing="0.4">
                 <textPath href="#printSealTextPath" startOffset="50%" textAnchor="middle">
-                  • FIRMWARE INTEGRITY VERIFIED •
+                  • SIMULATOR FIXTURE • NOT VERIFIED •
                 </textPath>
               </text>
               
               <text x="50" y="68" fontSize="6" fontWeight="extrabold" fill="#000000" textAnchor="middle" fontFamily="monospace">
-                SECURITY SEAL
+                FIXTURE MARK
               </text>
               <text x="50" y="75" fontSize="4.5" fill="#444444" textAnchor="middle" fontFamily="monospace">
-                KNOX ATTESTED
+                NOT ATTESTED
               </text>
             </svg>
             <div style={{ textAlign: 'right', fontSize: '9pt' }}>
-              <strong>CERTIFICATE SECURED</strong><br />
+              <strong>DEMONSTRATION REPORT ONLY</strong><br />
               Page 1 of 1
             </div>
           </div>
