@@ -18,6 +18,52 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify signed canonical release tag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          ref_json="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${GITHUB_REF_NAME}")"
+          object_type="$(jq -r '.object.type' <<<"$ref_json")"
+          tag_object_sha="$(jq -r '.object.sha' <<<"$ref_json")"
+
+          if [[ "$object_type" != "tag" ]]; then
+            echo "Release tags must be annotated and cryptographically signed; lightweight tags are rejected."
+            exit 1
+          fi
+
+          tag_json="$(gh api "repos/${GITHUB_REPOSITORY}/git/tags/${tag_object_sha}")"
+          if [[ "$(jq -r '.verification.verified' <<<"$tag_json")" != "true" ]]; then
+            echo "GitHub did not verify the release tag signature."
+            jq -r '.verification.reason' <<<"$tag_json"
+            exit 1
+          fi
+
+          tag_commit_sha="$(jq -r '.object.sha' <<<"$tag_json")"
+          tag_target_type="$(jq -r '.object.type' <<<"$tag_json")"
+          if [[ "$tag_target_type" != "commit" ]]; then
+            echo "The signed tag must point directly to a commit."
+            exit 1
+          fi
+
+          git fetch --no-tags origin master
+          canonical_commit_sha="$(git rev-parse refs/remotes/origin/master)"
+          checked_out_commit_sha="$(git rev-parse HEAD)"
+
+          if [[ "$tag_commit_sha" != "$canonical_commit_sha" ]]; then
+            echo "The release tag does not identify the current canonical master commit."
+            exit 1
+          fi
+
+          if [[ "$checked_out_commit_sha" != "$tag_commit_sha" ]]; then
+            echo "The checked-out source does not match the verified tag commit."
+            exit 1
+          fi
+
+          echo "Verified signed tag ${GITHUB_REF_NAME} at canonical commit ${tag_commit_sha}."
+
       - name: Setup .NET 8 SDK
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:

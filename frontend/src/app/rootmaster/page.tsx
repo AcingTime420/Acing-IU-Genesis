@@ -1207,9 +1207,7 @@ function FirmwarePartitions() {
   >("tree");
 
   // Interactive partition state simulation
-  const [encryptionStates, setEncryptionStates] = useState<
-    Record<string, "encrypted" | "decrypted">
-  >({});
+  const encryptionStates: Record<string, "encrypted" | "decrypted"> = {};
   const [integrityCheckStates, setIntegrityCheckStates] = useState<
     Record<string, "idle" | "simulating" | "fixture_match">
   >({});
@@ -1536,32 +1534,20 @@ function FirmwarePartitions() {
                         Partition Encryption State
                       </span>
                       <span
-                        className={`text-xs font-bold font-mono block ${isEncrypted ? "text-emerald-400" : "text-amber-500"}`}
+                        className="text-xs font-bold font-mono block text-amber-400"
                       >
-                        {isEncrypted
-                          ? "FBE AES-256-XTS Active (Hardware Wrapped)"
-                          : "Plaintext Decrypted (Security Keys Zeroed / Raw Access)"}
+                        Fixture encryption state — no device state read
                       </span>
                     </div>
                   </div>
                   <button
-                    onClick={() => {
-                      setEncryptionStates((prev) => ({
-                        ...prev,
-                        [selectedPartition.name]: isEncrypted
-                          ? "decrypted"
-                          : "encrypted",
-                      }));
-                    }}
-                    className={`px-3.5 py-1.5 rounded-lg text-[9px] font-extrabold uppercase transition-all flex items-center gap-1.5 border ${
-                      isEncrypted
-                        ? "bg-amber-500/10 border-amber-500/40 text-amber-400 hover:bg-amber-500/20"
-                        : "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20"
-                    }`}
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Device encryption operations are unavailable in this simulator"
+                    className="px-3.5 py-1.5 rounded-lg text-[9px] font-extrabold uppercase flex items-center gap-1.5 border bg-slate-900 border-slate-700 text-slate-500 cursor-not-allowed"
                   >
-                    {isEncrypted
-                      ? "Decrypt Partition"
-                      : "Enable FBE Encryption"}
+                    Unavailable — Fixture Only
                   </button>
                 </div>
               );
@@ -4292,39 +4278,38 @@ export default function RootMasterLab() {
                 <div className="flex items-center gap-2 border-b border-[#22314D] pb-3">
                   <Shield className="h-4.5 w-4.5 text-blue-400" />
                   <h3 className="text-xs font-extrabold text-white uppercase tracking-wider">
-                    Samsung Knox Safety Attestation
+                    Samsung Knox Attestation Fixture
                   </h3>
                 </div>
 
                 <div className="space-y-3 font-mono text-[10px] text-slate-300">
                   <div className="flex justify-between items-center">
-                    <span>Knox Warranty Bit:</span>
+                    <span>Knox Warranty Bit Fixture:</span>
                     <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-900/30">
-                      0x0 (VALID)
+                      EXAMPLE 0x0 (NOT VERIFIED)
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span>Secure Bootloader:</span>
+                    <span>Secure Bootloader Fixture:</span>
                     <span className="text-slate-400">
-                      LOCKED (CARRIER SPEC)
+                      EXAMPLE LOCKED
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span>SELInux Policy:</span>
-                    <span className="text-slate-400">ENFORCING (DEFAULT)</span>
+                    <span>SELinux Policy Fixture:</span>
+                    <span className="text-slate-400">EXAMPLE ENFORCING</span>
                   </div>
 
                   <div className="flex justify-between items-center">
-                    <span>RKP Engine state:</span>
-                    <span className="text-emerald-400">ACTIVE</span>
+                    <span>RKP Engine Fixture:</span>
+                    <span className="text-amber-400">EXAMPLE ACTIVE</span>
                   </div>
 
                   <p className="text-[10px] leading-relaxed text-slate-500 font-sans mt-2 pt-2 border-t border-[#22314D]">
-                    Note: Writing compiled packages directly voids the Knox Bit
-                    instantly! Run boot verification loops first inside isolated
-                    custom OS VM containers.
+                    Fixture display only. No Knox attestation or device state is
+                    read, and no package-writing operation is available here.
                   </p>
                 </div>
               </div>
@@ -4347,15 +4332,15 @@ export default function RootMasterLab() {
                       Ultra Space Optimizer
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Clear cache blocks via ADB shell pm commands to make space
-                      for 17GB stock file operations.
+                      Fixture-only storage optimization demonstration. No ADB
+                      connection or device cleanup is performed.
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">
-                      ADB_CONNECTED
+                      FIXTURE — NO ADB CONNECTION
                     </span>
                   </div>
                 </div>

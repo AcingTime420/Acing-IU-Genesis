@@ -118,7 +118,7 @@ export default function AuditPage() {
       device: "Fixture S25 Device",
       ip: "192.0.2.10",
       details:
-        '{"DeviceName":"S25 Ultra Mock","TrustScore":100,"PartitionVerification":"PASSED"}',
+        '{"FixtureDeviceName":"S25 Ultra Example","FixtureTrustScore":100,"FixturePartitionResult":"FIXTURE_PASS"}',
     },
     {
       id: "log-38491-ff12",
@@ -129,7 +129,7 @@ export default function AuditPage() {
       device: "Fixture S24 Device",
       ip: "192.0.2.20",
       details:
-        '{"WipedBlock":"/persistent","ConsensusVerified":true,"PolicyApproved":true}',
+        '{"FixtureTarget":"/persistent","FixtureConsensusResult":"FIXTURE_PASS","FixturePolicyResult":"FIXTURE_PASS"}',
     },
     {
       id: "log-02849-aa92",
@@ -140,7 +140,7 @@ export default function AuditPage() {
       device: "Fixture Quarantined Device",
       ip: "192.0.2.30",
       details:
-        '{"Reason":"Knox Warranty Void blown 0x1","Selinux":"Permissive"}',
+        '{"FixtureReason":"Example Knox warranty state 0x1","FixtureSelinuxState":"Permissive"}',
     },
     {
       id: "log-93810-bc56",
@@ -150,7 +150,8 @@ export default function AuditPage() {
       status: "SUCCESS",
       device: "Fixture S25 Device",
       ip: "192.0.2.10",
-      details: '{"CertSerial":"CERT-4CC8B9A09","Algorithm":"TIMA-RKP-256"}',
+      details:
+        '{"FixtureCertificate":"EXAMPLE-CERT-4CC8B9A09","FixtureAlgorithm":"TIMA-RKP-256"}',
     },
     {
       id: "log-55091-ca18",
@@ -160,7 +161,8 @@ export default function AuditPage() {
       status: "SUCCESS",
       device: "Fixture S25 Device",
       ip: "192.0.2.10",
-      details: '{"BaselineVersion":"S938UVRU3CXH2","AP_Block":"Verified"}',
+      details:
+        '{"FixtureBaselineVersion":"S938UVRU3CXH2","FixtureApResult":"FIXTURE_MATCH"}',
     },
     {
       id: "log-11928-dd43",
@@ -171,7 +173,7 @@ export default function AuditPage() {
       device: "Fixture S24 Device",
       ip: "192.0.2.20",
       details:
-        '{"Reason":"Unauthorized user role. Action requires Admin-level credentials."}',
+        '{"FixtureReason":"Example role denied; demonstration requires an admin fixture."}',
     },
   ];
 

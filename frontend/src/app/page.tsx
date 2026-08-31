@@ -171,10 +171,12 @@ export default function Dashboard() {
           <div className="bg-[#111827]/40 p-4 rounded-xl border border-[#22314D] space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-slate-300">CTIA RF Validation</span>
-              <span className="text-[#10B981] font-bold">Standard Met</span>
+              <span className="text-[#F59E0B] font-bold">Fixture Example</span>
             </div>
             <p className="text-[10px] text-slate-400 leading-relaxed">
-              Trp (Total Radiated Power) baseline target is {`>=`} 23.0 dBm. S938U Verizon image records TRP of 23.40 dBm.
+              Simulator example: TRP baseline target {`>=`} 23.0 dBm with a
+              fixture value of 23.40 dBm. No RF measurement or CTIA validation
+              was performed.
             </p>
           </div>
         </div>
