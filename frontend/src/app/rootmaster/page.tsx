@@ -2288,9 +2288,9 @@ export default function RootMasterLab() {
       } else {
         clearInterval(interval);
         setIntegrityScanActive(false);
-        setCurrentScanningFile("Integrity Scan Completed!");
+        setCurrentScanningFile("Fixture Simulation Completed!");
         triggerNotification(
-          "Partition Integrity Check Complete! Security alerts raised for corrupted system and vendor payloads.",
+          "Partition fixture simulation complete. Example mismatches were generated; no payloads were inspected.",
         );
       }
     }, 180);
@@ -4064,13 +4064,13 @@ export default function RootMasterLab() {
                 </div>
               </div>
 
-              {/* Dynamic Partition Integrity Scan Card */}
+              {/* Partition integrity fixture simulation card */}
               <div className="glass-card p-6 rounded-2xl border border-[#22314D] bg-[#070B14] space-y-4">
                 <div className="flex items-center justify-between border-b border-[#22314D] pb-3">
                   <div className="flex items-center gap-2">
                     <ShieldAlert className="h-4.5 w-4.5 text-red-400 animate-pulse" />
                     <h3 className="text-xs font-extrabold text-white uppercase tracking-wider">
-                      Dynamic Partition Integrity Scan
+                      Partition Integrity Fixture Simulator
                     </h3>
                   </div>
                   <button
@@ -4085,8 +4085,8 @@ export default function RootMasterLab() {
                     <Play className="h-3 w-3" />
                     <span>
                       {integrityScanActive
-                        ? "Scanning..."
-                        : "Start Integrity Scan"}
+                        ? "Simulating..."
+                        : "Start Fixture Simulation"}
                     </span>
                   </button>
                 </div>
@@ -4096,7 +4096,7 @@ export default function RootMasterLab() {
                   <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold">
                     <span className="font-mono">
                       {currentScanningFile ||
-                        "Ready to analyze system partitions"}
+                        "Ready to simulate fixture comparisons"}
                     </span>
                     <span>{integrityScanProgress}%</span>
                   </div>
