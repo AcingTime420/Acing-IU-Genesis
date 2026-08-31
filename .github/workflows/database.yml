@@ -6,14 +6,14 @@ on:
     branches: [master, develop, "release/**"]
     paths:
       - "infrastructure/postgres/**"
-      - "irp/02-database/**"
+      - "docs/irp/02-database/**"
       - "tests/database/**"
       - ".github/workflows/database.yml"
   pull_request:
     branches: [master, develop]
     paths:
       - "infrastructure/postgres/**"
-      - "irp/02-database/**"
+      - "docs/irp/02-database/**"
       - "tests/database/**"
       - ".github/workflows/database.yml"
   workflow_dispatch:
@@ -60,9 +60,9 @@ jobs:
         run: |
           set -euo pipefail
           for f in \
-            irp/02-database/migrations/000_security_core.sql \
-            irp/02-database/migrations/001_init_identity_schema.sql \
-            irp/02-database/migrations/002_roles_and_grants.sql
+            infrastructure/postgres/init/000_security_core.sql \
+            infrastructure/postgres/init/001_init_identity_schema.sql \
+            infrastructure/postgres/init/002_roles_and_grants.sql
           do
             echo "Applying $f"
             psql -v ON_ERROR_STOP=1 -f "$f"
