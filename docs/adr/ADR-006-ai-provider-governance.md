@@ -1,4 +1,4 @@
-﻿# ADR-0006: Governed AI and External API Integration
+﻿# ADR-006: Governed AI and External API Integration
 
 **Status:** Accepted
 **Date:** 2026-08-16

@@ -10,11 +10,11 @@
 |---|---|
 | Canonical GitHub repository | `AcingTime420/Acing-IU-Genesis` |
 | Canonical remote | `origin` — `https://github.com/AcingTime420/Acing-IU-Genesis.git` |
-| Normal Windows worktree | `D:\Acing-IU\Genesis` |
-| Baseline branch at record creation | `fix/repository-integrity-baseline` |
-| Baseline commit at record creation | `3b0819e16520b9984c6613bab400d38250e28b19` |
+| Canonical integration and default branch | `master` |
+| Normal worktree identifier | `canonical-windows-worktree` |
+| Local evidence at record creation | Initial and post-governance snapshots are retained in private recovery evidence; neither is canonical Git history |
 
-All engineering changes, validation evidence, release tags, and security decisions for Genesis must be traceable to the canonical repository and a reviewed branch. The normal Windows worktree above is the only location authorized for routine implementation during the stabilization gate.
+All engineering changes, validation evidence, release tags, and security decisions for Genesis must be traceable to the canonical repository and a reviewed branch. The logical worktree identified above is the only owner-designated location authorized for routine implementation during the stabilization gate; its machine-specific path remains private.
 
 The Windows worktree and preservation details in this record are owner-supplied local evidence. They cannot be independently established from the GitHub repository tree and must be revalidated by the operator before recovery or cleanup work relies on them.
 
@@ -45,13 +45,13 @@ Canonical-root status does not by itself certify every project below `backend/` 
 
 Additional worktrees are inventory subjects, not implicit deployment or release sources. They may be used only for their recorded branches and purposes. No worktree may be deleted, force-reset, or repointed until its preservation status is recorded in the Phase 0 inventory.
 
-The `legacy-local` remote points to `C:\Users\edandspring\Documents\GitHub\Acing-IU`. It is **archive-only**. Fetching from it is permitted solely for comparison or recovery evidence. Pushing to it, merging from it, or treating it as a release source is prohibited unless a later Architecture Decision Record explicitly supersedes this control.
+The `legacy-local` remote points to an owner-controlled local archive whose machine-specific path is retained only in private recovery evidence. It is **archive-only**. Fetching from it is permitted solely for comparison or recovery evidence. Pushing to it, merging from it, or treating it as a release source is prohibited unless a later Architecture Decision Record explicitly supersedes this control.
 
 ## Authorized Synchronization Paths
 
 | Source | Allowed destination | Purpose | Restrictions |
 |---|---|---|---|
-| Reviewed task branch in canonical repository | Canonical protected integration branch | Normal delivery | Requires validation evidence and review. |
+| Reviewed task branch in canonical repository | Protected `master` branch | Normal delivery | Requires validation evidence and review. |
 | Canonical signed tag | Release pipeline | Reproducible release | Tag must identify an evidence-backed commit. |
 | `legacy-local` archive | Recovery branch in canonical repository | Forensic comparison or recovery | Read-only source; create a dedicated branch and preserve evidence. |
 | Preserved local patches | Dedicated recovery branch | Restore reviewed work | Apply only after diff review and automated validation. |

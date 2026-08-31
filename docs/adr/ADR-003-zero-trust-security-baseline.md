@@ -1,4 +1,4 @@
-﻿# ADR-0003: Zero-Trust Security Baseline
+﻿# ADR-003: Zero-Trust Security Baseline
 
 **Status:** Accepted
 **Date:** 2026-08-16

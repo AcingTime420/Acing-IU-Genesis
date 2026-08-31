@@ -56,7 +56,7 @@ The top-level `backend/` tree itself contains projects that are not members of t
 - Files present only in canonical tree: 28.
 - Files present only in installer payload: 0.
 
-`installer/scripts/prepare-payload.ps1` explicitly copies Identity and DeviceTrust from `backend/` into the installer payload and rewrites Docker Compose build contexts for the installed layout. This establishes the payload as generated packaging content. The observed differences show that payload freshness must be verified before release.
+`installer/scripts/prepare-payload.ps1` explicitly copies Identity and DeviceTrust from `backend/` into the installer payload, which establishes the payload as generated packaging content. Its current context-rewrite expressions target an older Compose layout and do not match the canonical `context: ..` plus `dockerfile: backend/...` form. Therefore, the script does not currently prove that a regenerated installer Compose file can build from the installed layout. Payload freshness and installed-layout Compose generation must be corrected and verified in a dedicated installer change before release.
 
 ## Safety Boundary
 

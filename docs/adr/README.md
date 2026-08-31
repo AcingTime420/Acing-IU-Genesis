@@ -24,7 +24,13 @@ and linked to the replacing ADR.
 
 | ID | Title | Status | Date |
 |---|---|---|---|
-| [ADR-001](ADR-001-canonical-repo-structure.md) | Canonical repository structure | Accepted | 2026-07-30 |
+| [ADR-001](ADR-001-canonical-repo-structure.md) | Canonical repository structure, delivery authority, and recovery sources | Accepted; expanded by Phase 0 governance | 2026-07-30; expanded 2026-08-16 |
+| [ADR-002](ADR-002-modular-architecture.md) | Modular control-plane architecture and canonical backend paths | Accepted | 2026-08-16 |
+| [ADR-003](ADR-003-zero-trust-security-baseline.md) | Zero-trust security baseline | Accepted | 2026-08-16 |
+| [ADR-004](ADR-004-data-and-audit-boundaries.md) | Data ownership, migrations, and immutable audit logging | Accepted | 2026-08-16 |
+| [ADR-005](ADR-005-android-and-firmware-safety.md) | Android and firmware operation safety | Accepted | 2026-08-16 |
+| [ADR-006](ADR-006-ai-provider-governance.md) | Governed AI and external API integration | Accepted | 2026-08-16 |
+| [ADR-007](ADR-007-release-provenance-and-recovery.md) | Reproducible releases, provenance, and recovery | Accepted | 2026-08-16 |
 
 ---
 

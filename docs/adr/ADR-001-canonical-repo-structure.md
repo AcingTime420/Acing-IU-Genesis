@@ -88,6 +88,13 @@ Key rules:
    clearly named top-level directories (e.g., `backend/`, `frontend/`, `infra/`)
    without duplicating the existing `system/` tree.
 
+7. **Canonical delivery and recovery sources** are governed separately from
+   local preservation material. `AcingTime420/Acing-IU-Genesis` is the
+   canonical repository and `origin` is its authoritative remote. Local
+   archives and preserved changes are recovery inputs only: they may be
+   compared or restored on dedicated branches, but they may not be treated as
+   release sources without review and validation.
+
 ---
 
 ## Options considered
@@ -115,6 +122,13 @@ Key rules:
   Contributors will need to run `git rm --cached` for these files.
 - Some `.idea/` project config is still tracked; teams must decide whether to remove it
   (recommended) or keep it (acceptable with justification).
+- Preserved worktrees and local archives require continuing inventory and
+  recovery controls outside normal delivery.
+
+## References
+
+- `docs/governance/REPOSITORY_GOVERNANCE.md`
+- `docs/governance/WORKTREE_INVENTORY.md`
 
 ---
 

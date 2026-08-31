@@ -70,14 +70,14 @@ export default function Dashboard() {
 
           <div className="space-y-4">
             <p className="text-xs text-slate-400 leading-relaxed font-medium">
-              The Acing Matrix verifies Knox integrity by comparing SHA-256 partition signatures in real time. Dynamic dynamic partitions are parsed through our validated `FirmwareCenter` partition-bounds schema:
+              Simulator data illustrates a planned SHA-256 partition comparison workflow. These values are fixtures only; no device, firmware image, or Knox integrity state has been verified.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 rounded-xl border border-[#22314D] bg-[#111827]/40 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white">system.img</span>
-                  <span className="text-[10px] text-[#10B981] font-extrabold uppercase">Verified</span>
+                  <span className="text-[10px] text-[#F59E0B] font-extrabold uppercase">Simulator</span>
                 </div>
                 <div className="w-full bg-[#22314D] h-2 rounded-full overflow-hidden">
                   <div className="bg-[#2F58CD] h-full rounded-full" style={{ width: '85%' }}></div>
@@ -91,7 +91,7 @@ export default function Dashboard() {
               <div className="p-4 rounded-xl border border-[#22314D] bg-[#111827]/40 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white">vendor.img</span>
-                  <span className="text-[10px] text-[#10B981] font-extrabold uppercase">Verified</span>
+                  <span className="text-[10px] text-[#F59E0B] font-extrabold uppercase">Simulator</span>
                 </div>
                 <div className="w-full bg-[#22314D] h-2 rounded-full overflow-hidden">
                   <div className="bg-[#2F58CD] h-full rounded-full" style={{ width: '60%' }}></div>
@@ -105,7 +105,7 @@ export default function Dashboard() {
               <div className="p-4 rounded-xl border border-[#22314D] bg-[#111827]/40 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white">product.img</span>
-                  <span className="text-[10px] text-[#10B981] font-extrabold uppercase">Verified</span>
+                  <span className="text-[10px] text-[#F59E0B] font-extrabold uppercase">Simulator</span>
                 </div>
                 <div className="w-full bg-[#22314D] h-2 rounded-full overflow-hidden">
                   <div className="bg-[#2F58CD] h-full rounded-full" style={{ width: '75%' }}></div>
@@ -119,7 +119,7 @@ export default function Dashboard() {
               <div className="p-4 rounded-xl border border-[#22314D] bg-[#111827]/40 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white">odm.img</span>
-                  <span className="text-[10px] text-[#10B981] font-extrabold uppercase">Verified</span>
+                  <span className="text-[10px] text-[#F59E0B] font-extrabold uppercase">Simulator</span>
                 </div>
                 <div className="w-full bg-[#22314D] h-2 rounded-full overflow-hidden">
                   <div className="bg-[#2F58CD] h-full rounded-full" style={{ width: '45%' }}></div>

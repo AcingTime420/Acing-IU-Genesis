@@ -1,4 +1,4 @@
-﻿# ADR-0007: Reproducible Releases, Provenance, and Recovery
+﻿# ADR-007: Reproducible Releases, Provenance, and Recovery
 
 **Status:** Accepted
 **Date:** 2026-08-16

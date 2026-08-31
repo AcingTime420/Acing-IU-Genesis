@@ -10,7 +10,7 @@ Until the repository baseline is verified, new feature work is frozen. Permitted
 
 ## Required Remote Controls
 
-The canonical integration branch must require pull requests, successful authoritative validation, and review before merge. The Phase 0 tracking issue must remain open until all required Phase 0 evidence is reviewed.
+The canonical integration branch, `master`, must require pull requests, successful authoritative validation, and review before merge. The Phase 0 tracking issue must remain open until all required Phase 0 evidence is reviewed.
 
 Remote enforcement is classified `POLICY_UNVERIFIED`. On 2026-08-16, an integration request to the `master` branch-protection endpoint returned `403 Resource not accessible by integration`. On 2026-08-30, a later unauthenticated read-only request returned `401 Requires authentication`. These are authentication/authorization failures, not evidence of the configured policy. An owner-supplied GitHub repository screenshot on 2026-08-30 displayed the “Protect this branch” prompt, which indicates that protection still requires administrator attention, but the complete effective rules and ruleset context remain unverified. A repository administrator must inspect the authenticated settings, apply the controls below, and attach confirmation to issue #54.
 

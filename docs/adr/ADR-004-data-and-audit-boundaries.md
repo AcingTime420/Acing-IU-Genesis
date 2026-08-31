@@ -1,4 +1,4 @@
-﻿# ADR-0004: Data Ownership, Migration Discipline, and Immutable Audit Logging
+﻿# ADR-004: Data Ownership, Migration Discipline, and Immutable Audit Logging
 
 **Status:** Accepted
 **Date:** 2026-08-16
