@@ -21,9 +21,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
       - name: Build Identity
-        run: docker build -t acing-identity:ci backend/Identity/src/AcingIU.Identity.Api
+        run: docker build -f backend/Identity/src/AcingIU.Identity.Api/Dockerfile -t acing-identity:ci .
       - name: Build Device Trust
-        run: docker build -t acing-device-trust:ci backend/DeviceTrust/src/AcingIU.DeviceTrust.Api
+        run: docker build -f backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Dockerfile -t acing-device-trust:ci .
       - name: Trivy Identity
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
