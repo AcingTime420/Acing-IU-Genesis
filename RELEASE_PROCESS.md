@@ -57,4 +57,4 @@ Stable releases require a signed final tag, completed release-candidate evidence
 
 ## Hotfixes
 
-Create a minimal branch from the affected stable tag, run the complete CI and security gate set, publish a new semantic patch version, and merge the correction back into `master`.
+Create a minimal branch from the affected stable tag, run the complete CI and security gate set, and merge the reviewed correction back into `master`. After the canonical `master` commit passes the required checks, create and push the signed semantic-patch tag on that exact commit. The release workflow intentionally rejects a tag that does not identify the current canonical `master` commit.
