@@ -364,12 +364,12 @@ export default function DevicesPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            disabled
-            title="Unavailable until a verified device-attestation executor exists"
-            className="flex cursor-not-allowed items-center gap-2 rounded-lg border border-slate-600/30 bg-slate-700/20 px-3.5 py-1.5 text-xs font-bold text-slate-500 opacity-70"
+            onClick={() => triggerScannerFlow(devices[0].id)}
+            title="Open a local fixture animation; no device is contacted"
+            className="flex items-center gap-2 rounded-lg border border-[#2F58CD]/30 bg-[#2F58CD]/15 px-3.5 py-1.5 text-xs font-bold text-[#2F58CD] transition-all hover:bg-[#2F58CD]/30"
           >
             <QrCode className="h-4 w-4" />
-            Attestation Unavailable
+            Open Fixture Scanner
           </button>
           <span className="text-xs bg-[#10B981]/20 text-[#10B981] font-bold px-3 py-1.5 rounded-full border border-[#10B981]/30">
             Fixture Registry
@@ -605,12 +605,12 @@ export default function DevicesPage() {
                   
                   <div className="flex items-center gap-4 shrink-0 self-end sm:self-auto">
                     <button 
-                      disabled
-                      title="Unavailable until a verified device-attestation executor exists"
-                      className="flex cursor-not-allowed items-center gap-1.5 text-xs font-bold text-slate-600"
+                      onClick={() => triggerScannerFlow(dev.id)}
+                      title="Open a local fixture animation; no device is contacted"
+                      className="flex items-center gap-1.5 text-xs font-bold text-slate-400 transition-colors hover:text-white"
                     >
                       <QrCode className="h-3.5 w-3.5 text-[#2F58CD]" />
-                      <span>Attestation Unavailable</span>
+                      <span>Open Fixture Simulation</span>
                     </button>
 
                     <button 
