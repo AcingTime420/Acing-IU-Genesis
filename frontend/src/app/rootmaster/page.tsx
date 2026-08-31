@@ -1211,18 +1211,18 @@ function FirmwarePartitions() {
     Record<string, "encrypted" | "decrypted">
   >({});
   const [integrityCheckStates, setIntegrityCheckStates] = useState<
-    Record<string, "idle" | "verifying" | "verified">
+    Record<string, "idle" | "simulating" | "fixture_match">
   >({});
 
   const runIntegrityVerify = (subName: string) => {
     setIntegrityCheckStates((prev) => ({
       ...prev,
-      [subName]: "verifying",
+      [subName]: "simulating",
     }));
     setTimeout(() => {
       setIntegrityCheckStates((prev) => ({
         ...prev,
-        [subName]: "verified",
+        [subName]: "fixture_match",
       }));
     }, 1200);
   };
@@ -1392,6 +1392,11 @@ function FirmwarePartitions() {
 
   return (
     <div className="relative border border-[#22314D] bg-[#070B14] p-4 rounded-xl mt-4">
+      <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-950/20 px-3 py-2 text-[10px] leading-relaxed text-amber-200">
+        Simulator only: partition details, hashes, and integrity results are
+        fixture data. This interface does not read, verify, unlock, flash, or
+        otherwise modify a connected device.
+      </div>
       <h4 className="text-xs font-extrabold text-white uppercase tracking-wider mb-3">
         super.img Partition Byte-Size Distribution (D3.js Visualization)
       </h4>
@@ -1613,15 +1618,16 @@ function FirmwarePartitions() {
                         </span>
                         <div className="flex items-center gap-1.5 text-[9px] font-mono font-semibold">
                           {/* Integrity Verify Button */}
-                          {integrityCheckStates[sub.name] === "verifying" ? (
+                          {integrityCheckStates[sub.name] === "simulating" ? (
                             <span className="bg-indigo-950/40 border border-indigo-500/30 text-indigo-400 px-2 py-0.5 rounded-md animate-pulse flex items-center gap-1">
                               <span className="w-1 h-1 rounded-full bg-indigo-400 animate-ping" />
-                              Verifying Hash...
+                              Simulating Fixture Check...
                             </span>
-                          ) : integrityCheckStates[sub.name] === "verified" ? (
+                          ) : integrityCheckStates[sub.name] ===
+                            "fixture_match" ? (
                             <span className="bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded-md flex items-center gap-1">
                               <span className="w-1 h-1 rounded-full bg-emerald-400" />
-                              SHA-256 Match
+                              Fixture Hash Match
                             </span>
                           ) : (
                             <button
@@ -1631,7 +1637,7 @@ function FirmwarePartitions() {
                               }}
                               className="bg-slate-900 border border-slate-700/50 hover:border-indigo-500/50 hover:bg-slate-800 text-slate-300 hover:text-indigo-400 px-2 py-0.5 rounded-md transition-all uppercase text-[8px] font-extrabold flex items-center gap-1"
                             >
-                              <span>Verify Hash</span>
+                              <span>Simulate Hash Check</span>
                             </button>
                           )}
 
@@ -1683,14 +1689,15 @@ function FirmwarePartitions() {
                             <span className="text-slate-500 font-bold block uppercase text-[8px]">
                               Hash Integrity Status
                             </span>
-                            {integrityCheckStates[sub.name] === "verified" ? (
+                            {integrityCheckStates[sub.name] ===
+                            "fixture_match" ? (
                               <span className="text-emerald-400 font-bold block mt-0.5 font-mono text-[9px]">
-                                MATCH (Knox Baseline Verified)
+                                FIXTURE MATCH (Not Device Verified)
                               </span>
                             ) : integrityCheckStates[sub.name] ===
-                              "verifying" ? (
+                              "simulating" ? (
                               <span className="text-indigo-400 font-semibold block mt-0.5 font-mono text-[9px] animate-pulse">
-                                Fetching Knox baseline...
+                                Simulating fixture comparison...
                               </span>
                             ) : (
                               <span className="text-slate-500 font-medium block mt-0.5 font-mono text-[9px]">
@@ -2124,7 +2131,7 @@ export default function RootMasterLab() {
     Array<{
       partition: string;
       filepath: string;
-      status: "verified" | "corrupted" | "pending";
+      status: "fixture_match" | "fixture_mismatch" | "pending";
     }>
   >([
     { partition: "/system", filepath: "system/bin/init", status: "pending" },
@@ -2270,8 +2277,8 @@ export default function RootMasterLab() {
           const finalStatus =
             file.filepath === "system/framework/services.jar" ||
             file.filepath === "vendor/etc/selinux/nonplat_sepolicy.cil"
-              ? "corrupted"
-              : "verified";
+              ? "fixture_mismatch"
+              : "fixture_match";
           updated[currentIdx] = { ...file, status: finalStatus };
           setCurrentScanningFile(`${file.partition} -> ${file.filepath}`);
           return updated;
@@ -3181,18 +3188,17 @@ export default function RootMasterLab() {
                 Samsung S25 Ultra VRU3CXH2 Firmware
               </span>
               <span className="bg-[#10B981]/20 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border border-[#10B981]/30">
-                Bootable OS ISO Builder Lab
+                Simulator / Fixture Data
               </span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               Acing IU: Genesis Lab Blueprint & OS Assembly
             </h1>
             <p className="text-sm font-medium text-slate-400 leading-relaxed max-w-3xl">
-              Construct a real, bootable Ubuntu-based live Linux ISO embedding
-              Acing IU: Genesis modules, All-in-One dashboards, and Magisk
-              Android modules. Complete with interactive simulators for Samsung
-              S25 Ultra Odin firmware partition reverse-engineering, IML tools,
-              and storage optimizations.
+              Demonstration blueprint using fixture data and timed UI
+              simulations. This route does not build an ISO, connect to ADB,
+              inspect firmware, verify hardware, root, unlock, flash, or modify
+              any device.
             </p>
           </div>
 
@@ -4109,10 +4115,10 @@ export default function RootMasterLab() {
                       (f) => f.partition === part,
                     );
                     const verifiedCount = partFiles.filter(
-                      (f) => f.status === "verified",
+                      (f) => f.status === "fixture_match",
                     ).length;
                     const corruptedCount = partFiles.filter(
-                      (f) => f.status === "corrupted",
+                      (f) => f.status === "fixture_mismatch",
                     ).length;
 
                     return (
@@ -4150,14 +4156,14 @@ export default function RootMasterLab() {
                               >
                                 {file.filepath.split("/").pop()}
                               </span>
-                              {file.status === "verified" ? (
+                              {file.status === "fixture_match" ? (
                                 <span className="text-emerald-400 flex items-center gap-1 text-[9px] font-bold">
                                   <Check className="h-3 w-3 stroke-[3]" />{" "}
-                                  Verified
+                                  Fixture Match
                                 </span>
-                              ) : file.status === "corrupted" ? (
+                              ) : file.status === "fixture_mismatch" ? (
                                 <span className="text-red-400 flex items-center gap-1 text-[9px] font-bold animate-pulse">
-                                  <ShieldAlert className="h-3 w-3" /> Corrupted
+                                  <ShieldAlert className="h-3 w-3" /> Fixture Mismatch
                                 </span>
                               ) : (
                                 <span className="text-slate-600 text-[9px]">

@@ -147,4 +147,4 @@ Security issues: see [SECURITY.md](SECURITY.md) — **do not open a public issue
 
 ## Repository Governance
 
-The canonical source repository is AcingTime420/Acing-IU-Genesis, with routine implementation performed from D:\Acing-IU\Genesis. Repository controls, authorized recovery paths, and the archive-only legacy remote policy are defined in [docs/governance/REPOSITORY_GOVERNANCE.md](docs/governance/REPOSITORY_GOVERNANCE.md).
+The canonical source repository is AcingTime420/Acing-IU-Genesis. The public logical identifier for the maintainer's Windows worktree is `canonical-windows-worktree`; its machine-specific location remains private. Repository controls, authorized recovery paths, and the archive-only legacy remote policy are defined in [docs/governance/REPOSITORY_GOVERNANCE.md](docs/governance/REPOSITORY_GOVERNANCE.md).

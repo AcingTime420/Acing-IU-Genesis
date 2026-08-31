@@ -3,14 +3,14 @@ name: Database
 
 on:
   push:
-    branches: [main, develop, "release/**"]
+    branches: [master, develop, "release/**"]
     paths:
       - "infrastructure/postgres/**"
       - "irp/02-database/**"
       - "tests/database/**"
       - ".github/workflows/database.yml"
   pull_request:
-    branches: [main, develop]
+    branches: [master, develop]
     paths:
       - "infrastructure/postgres/**"
       - "irp/02-database/**"

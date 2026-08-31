@@ -46,10 +46,10 @@ export default function AuditPage() {
   // Recent searches state
   const [recentSearches, setRecentSearches] = useState<string[]>([
     "DEVICE_POLICY_EVALUATION",
-    "FRP_PARTITION_WIPE",
-    "operator.s938u@aistudio.build",
+    "SIMULATED_PARTITION_WIPE",
+    "fixture.operator@example.invalid",
     "DENIED",
-    "Mick's S25 Ultra",
+    "Fixture S25 Device",
   ]);
 
   // CSV Preview modal state
@@ -112,64 +112,64 @@ export default function AuditPage() {
     {
       id: "log-1940a-ee28",
       timestamp: "2026-06-26 19:35:12 UTC",
-      user: "mick.hart@verizon.com",
-      action: "DEVICE_POLICY_EVALUATION",
+      user: "fixture.admin@example.invalid",
+      action: "SIMULATED_DEVICE_POLICY_EVALUATION",
       status: "SUCCESS",
-      device: "Mick's S25 Ultra",
-      ip: "192.168.1.150",
+      device: "Fixture S25 Device",
+      ip: "192.0.2.10",
       details:
         '{"DeviceName":"S25 Ultra Mock","TrustScore":100,"PartitionVerification":"PASSED"}',
     },
     {
       id: "log-38491-ff12",
       timestamp: "2026-06-26 19:28:44 UTC",
-      user: "operator.s938u@aistudio.build",
-      action: "FRP_PARTITION_WIPE",
+      user: "fixture.operator@example.invalid",
+      action: "SIMULATED_PARTITION_WIPE",
       status: "SUCCESS",
-      device: "Standard S24 Dev Node",
-      ip: "10.0.12.80",
+      device: "Fixture S24 Device",
+      ip: "192.0.2.20",
       details:
         '{"WipedBlock":"/persistent","ConsensusVerified":true,"PolicyApproved":true}',
     },
     {
       id: "log-02849-aa92",
       timestamp: "2026-06-26 18:44:02 UTC",
-      user: "ROOT_SYSTEM_WATCHDOG",
-      action: "DEVICE_QUARANTINE_TRIGGERED",
+      user: "FIXTURE_SYSTEM_WATCHDOG",
+      action: "SIMULATED_DEVICE_QUARANTINE",
       status: "DENIED",
-      device: "Compromised S25 Target",
-      ip: "172.16.89.12",
+      device: "Fixture Quarantined Device",
+      ip: "192.0.2.30",
       details:
         '{"Reason":"Knox Warranty Void blown 0x1","Selinux":"Permissive"}',
     },
     {
       id: "log-93810-bc56",
       timestamp: "2026-06-26 18:12:30 UTC",
-      user: "mick.hart@verizon.com",
-      action: "KEY_ROTATION",
+      user: "fixture.admin@example.invalid",
+      action: "SIMULATED_KEY_ROTATION",
       status: "SUCCESS",
-      device: "Mick's S25 Ultra",
-      ip: "192.168.1.150",
+      device: "Fixture S25 Device",
+      ip: "192.0.2.10",
       details: '{"CertSerial":"CERT-4CC8B9A09","Algorithm":"TIMA-RKP-256"}',
     },
     {
       id: "log-55091-ca18",
       timestamp: "2026-06-26 15:30:10 UTC",
-      user: "operator.s938u@aistudio.build",
-      action: "FIRMWARE_FLASH",
+      user: "fixture.operator@example.invalid",
+      action: "SIMULATED_FIRMWARE_WORKFLOW",
       status: "SUCCESS",
-      device: "Mick's S25 Ultra",
-      ip: "192.168.1.150",
+      device: "Fixture S25 Device",
+      ip: "192.0.2.10",
       details: '{"BaselineVersion":"S938UVRU3CXH2","AP_Block":"Verified"}',
     },
     {
       id: "log-11928-dd43",
       timestamp: "2026-06-26 14:15:00 UTC",
-      user: "operator.s938u@aistudio.build",
-      action: "PARTITION_WIPE",
+      user: "fixture.operator@example.invalid",
+      action: "SIMULATED_PARTITION_POLICY_DENIAL",
       status: "DENIED",
-      device: "Standard S24 Dev Node",
-      ip: "10.0.12.80",
+      device: "Fixture S24 Device",
+      ip: "192.0.2.20",
       details:
         '{"Reason":"Unauthorized user role. Action requires Admin-level credentials."}',
     },
@@ -345,17 +345,18 @@ export default function AuditPage() {
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-3">
             <FileText className="h-6 w-6 text-[#2F58CD]" />
-            Immutable PostgreSQL Audit Logging Pipeline
+            Audit Logging Pipeline Simulator
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Secure write-once-read-many (WORM) audit ledger tracking Knox
-            transitions and system operations.
+            Fixture-only demonstration of a proposed audit ledger. No live
+            PostgreSQL sync, WORM enforcement, device connection, or hardware
+            telemetry is active on this page.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs bg-[#2F58CD]/20 text-[#2F58CD] font-bold px-3 py-1.5 rounded-full border border-[#2F58CD]/30 flex items-center gap-1.5">
             <Database className="h-3.5 w-3.5" />
-            PostgreSQL Sync Live
+            Simulator / Fixture Data
           </span>
         </div>
       </div>
@@ -373,8 +374,9 @@ export default function AuditPage() {
               CTIA 3.8.2 RF & Knox Security Status
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed font-medium">
-              Real-time audit telemetry tracking verified Knox 0x0 warranty,
-              SELinux parameters, and Verizon hardware RF compliance thresholds.
+              Simulated audit telemetry illustrating proposed Knox, SELinux,
+              and hardware RF fields. Values are fixtures and are not device or
+              compliance verification results.
             </p>
           </div>
 
@@ -860,7 +862,7 @@ export default function AuditPage() {
       {/* ==================================================================== */}
       <div className="print-report-container">
         <div className="print-title">
-          VERIZON SM-S938U Knox Trust & CTIA 3.8.2 Compliance Certificate
+          SIMULATED SM-S938U AUDIT REPORT — FIXTURE DATA, NOT A COMPLIANCE CERTIFICATE
         </div>
 
         <div
@@ -873,16 +875,16 @@ export default function AuditPage() {
           <div>
             <strong>DOCUMENT ID:</strong> TX-COMP-S938U-2026-VZW
             <br />
-            <strong>ISSUED BY:</strong> Acing Operations Matrix Security Office
+            <strong>GENERATED BY:</strong> Acing IU Audit UI Simulator
             <br />
             <strong>EXPORTED AT:</strong> {new Date().toUTCString()}
           </div>
           <div style={{ textAlign: "right" }}>
-            <strong>SYSTEM CLASSIFICATION:</strong> SECRET / UNCLASSIFIED
+            <strong>DATA CLASSIFICATION:</strong> DEMONSTRATION FIXTURES
             <br />
             <strong>COMPLIANCE SCOPE:</strong> VRU3CXH2 BASELINE
             <br />
-            <strong>CURRENT CORE INTEGRITY:</strong>{" "}
+            <strong>FIXTURE RESULT:</strong>{" "}
             <span
               className="print-badge"
               style={{
@@ -890,7 +892,7 @@ export default function AuditPage() {
                 color: deniedLogs.length > 0 ? "red" : "green",
               }}
             >
-              {deniedLogs.length > 0 ? "WARNING_DEGRADED" : "PASSED"}
+              {deniedLogs.length > 0 ? "FIXTURE_WARNING" : "FIXTURE_PASS"}
             </span>
           </div>
         </div>
@@ -956,31 +958,31 @@ export default function AuditPage() {
         </div>
 
         <div className="print-section-title">
-          Hardware attestation & RF metrics (CTIA 3.8.2)
+          Simulated Hardware & RF Fields (Not Attestation)
         </div>
         <div className="print-grid" style={{ marginBottom: "15px" }}>
           <div>
-            <strong>Knox Hardware root:</strong> 0x0 Warranty Intact (Passed)
+            <strong>Knox Hardware root fixture:</strong> 0x0 Warranty Intact
             <br />
-            <strong>SELinux state:</strong> Enforcing (Passed)
+            <strong>SELinux state fixture:</strong> Enforcing
             <br />
-            <strong>TIMA Kernel Guard:</strong> Active (Passed)
+            <strong>TIMA Kernel Guard fixture:</strong> Active
             <br />
-            <strong>Bootloader status:</strong> Locked (Passed)
+            <strong>Bootloader status fixture:</strong> Locked
           </div>
           <div>
-            <strong>Total Radiated Power (TRP):</strong> 23.40 dBm (Target &gt;=
-            23.0 dBm) [PASSED]
+            <strong>Total Radiated Power fixture:</strong> 23.40 dBm (Example
+            target &gt;= 23.0 dBm)
             <br />
-            <strong>Isotropic Sensitivity (TIS):</strong> -92.15 dBm (Target
-            &lt;= -90.0 dBm) [PASSED]
+            <strong>Isotropic Sensitivity fixture:</strong> -92.15 dBm (Example
+            target &lt;= -90.0 dBm)
             <br />
-            <strong>super.img Baseline SHA:</strong> Approved Matches Perfect
+            <strong>super.img Baseline SHA fixture:</strong> Example match
           </div>
         </div>
 
         <div className="print-section-title">
-          Verified Active logging Ledger
+          Simulated Audit Ledger — Fixture Data Only
         </div>
         <table className="print-table">
           <thead>
