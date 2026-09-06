@@ -1996,8 +1996,8 @@ export default function RootMasterLab() {
       {
         id: "RM-TEST-01",
         module: "Testing & Compliance",
-        title: "Draft CTIA 3.8.2 RF Signal compliance reports",
-        desc: "Generate official compliance records certifying total radiated power limits are achieved.",
+        title: "Draft CTIA 3.8.2 RF Signal simulation reports",
+        desc: "Generate fixture-based simulation records showing whether modeled total radiated power thresholds are met.",
         priority: "High",
         status: "Pending",
       },
@@ -2021,7 +2021,7 @@ export default function RootMasterLab() {
         id: "RM-TEST-04",
         module: "Testing & Compliance",
         title: "Integrate dynamic PDF report print export with Security Seal",
-        desc: "Ensure PDF reports dynamically overlay custom SVG Knox certified verification insignias.",
+        desc: "Ensure PDF reports dynamically overlay custom SVG fixture-only Knox simulation insignias.",
         priority: "High",
         status: "Pending",
       },
@@ -2493,7 +2493,7 @@ export default function RootMasterLab() {
       "  - mtools: INSTALLED",
       "  - nodejs (v18.19.0): INSTALLED",
       "  - npm (v10.2.3): INSTALLED",
-      "[SYSTEM] Dependencies successfully attested inside resized sandbox. Proceeding to File Extraction...",
+      "[SYSTEM] Dependencies successfully validated inside resized sandbox. Proceeding to File Extraction...",
     ];
 
     let logIndex = 0;
@@ -2742,7 +2742,7 @@ export default function RootMasterLab() {
             "  - xorriso: INSTALLED",
             "  - grub-pc-bin: INSTALLED",
             "  - mtools: INSTALLED",
-            "[SYSTEM] Dependencies successfully attested. Proceeding to File Extraction...",
+            "[SYSTEM] Dependencies successfully validated. Proceeding to File Extraction...",
             "[STAGE 1] EXTRACTING AND MERGING USER ARCHIVES",
             "[FS] Extracting RootMasterOS.zip (Base System) to ./rootmaster...",
             "  - Extracted: ./rootmaster/backend/ (14 source controllers, server.js)",
@@ -3004,7 +3004,7 @@ export default function RootMasterLab() {
         "[COMPLETED] BL DISSECTION SUCCESSFUL",
         "=================================================================",
         "* Knox hardware Vault key parameters mapped cleanly.",
-        "* Secure boot signature validations verified OK.",
+        "* Simulation Result: PASS — fixture signature baseline matched. Hardware attestation not performed.",
       ];
 
       let index = 0;
@@ -3017,7 +3017,7 @@ export default function RootMasterLab() {
           clearInterval(blInterval);
           setIsDissecting(false);
           triggerNotification(
-            "Bootloader signatures mapped and Knox registers exposed.",
+                "Bootloader fixture signatures mapped and Knox register references displayed.",
           );
         }
       }, 400);
@@ -3031,18 +3031,18 @@ export default function RootMasterLab() {
         "[DIAG] Reverse-engineering baseband frequency band configurations...",
         "  - Carrier standard CSC mapped: VZW (Verizon Wireless USA)",
         "  - Querying radio band access matrix limits:",
-        "      - LTE B13 (Verizon baseline): ENABLED [CTIA Attestation OK]",
+        "      - LTE B13 (Verizon baseline): ENABLED [Simulation Result: PASS]",
         "      - LTE B66 (Extended spectrum): ENABLED",
         "      - 5G NR n2 (C-band baseline): ENABLED",
         "      - 5G NR n5 (Sub-6 radio coverage): ENABLED",
         "      - 5G NR n77 (Ultra-Wideband C-band spectrum): ENABLED",
         "  - Cross-checking power thresholds against CTIA limits...",
-        "  - Maximum Radiated Signal Power limit: +23dBm [COMPLIANT]",
+        "  - Maximum Radiated Signal Power limit: +23dBm [SIMULATION_RESULT_PASS]",
         " ",
         "=================================================================",
         "[COMPLETED] CP BASEBAND RE-ENGINEERING COMPLETED",
         "=================================================================",
-        "* Verizon baseband LTE/5G RF signal standard fully certified.",
+        "* Generated from fixture data; Verizon LTE/5G RF certification not performed.",
       ];
 
       let index = 0;
@@ -3259,7 +3259,8 @@ export default function RootMasterLab() {
                         </span>
                       </div>
                       <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> VERIFIED OK
+                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION
+                        RESULT: PASS
                       </span>
                     </div>
 
@@ -3288,7 +3289,8 @@ export default function RootMasterLab() {
                         </span>
                       </div>
                       <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> VERIFIED OK
+                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION
+                        RESULT: PASS
                       </span>
                     </div>
 
@@ -3317,7 +3319,8 @@ export default function RootMasterLab() {
                         </span>
                       </div>
                       <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> VERIFIED OK
+                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION
+                        RESULT: PASS
                       </span>
                     </div>
                   </div>
@@ -3428,7 +3431,7 @@ export default function RootMasterLab() {
                       type="button"
                       disabled
                       aria-disabled="true"
-                      title="Unavailable until a verified build executor exists"
+                      title="Unavailable until an authoritative build executor exists"
                       className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500"
                     >
                       {isBuildingOS ? (
@@ -3515,7 +3518,7 @@ export default function RootMasterLab() {
                             : log.includes("Error")
                               ? "text-red-500 font-extrabold"
                               : log.includes("Success") ||
-                                  log.includes("VERIFIED OK")
+                                  log.includes("SIMULATION RESULT: PASS")
                                 ? "text-emerald-400 font-bold"
                                 : "text-slate-300"
                         }
@@ -3922,7 +3925,7 @@ export default function RootMasterLab() {
 
                 <div className="flex justify-between items-center pt-4 border-t border-[#22314D]">
                   <span className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                    <Info className="h-4 w-4" /> Ready to decompile and verify
+                    <Info className="h-4 w-4" /> Ready to simulate and compare
                     headers
                   </span>
 
@@ -3930,7 +3933,7 @@ export default function RootMasterLab() {
                     type="button"
                     disabled
                     aria-disabled="true"
-                    title="Unavailable until a verified firmware-analysis executor exists"
+                    title="Unavailable until an authoritative firmware-analysis executor exists"
                     className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-500"
                   >
                     {isDissecting
@@ -4370,7 +4373,7 @@ export default function RootMasterLab() {
                     type="button"
                     disabled
                     aria-disabled="true"
-                    title="Unavailable until a verified device executor exists"
+                    title="Unavailable until an authoritative device executor exists"
                     className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-500"
                   >
                     Cache Optimizer Unavailable
@@ -4393,7 +4396,7 @@ export default function RootMasterLab() {
                   {storageLogs.length === 0 ? (
                     <div className="text-slate-500 text-center py-20">
                       {
-                        "Fixture console inactive. ADB cleanup is unavailable because no verified device executor exists."
+                        "Fixture console inactive. ADB cleanup is unavailable because no authoritative device executor exists."
                       }
                     </div>
                   ) : (
@@ -4551,15 +4554,15 @@ export default function RootMasterLab() {
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" />{" "}
-                  Attested compliance
+                  Simulation results
                 </span>
                 <h2 className="text-2xl font-extrabold text-white tracking-tight">
                   {completedCount}
                 </h2>
               </div>
               <div className="mt-4 flex items-center justify-between border-t border-[#22314D] pt-3 text-[10px] font-bold text-[#10B981]">
-                <span>VERIFIED OK</span>
-                <span>SIGNATURE HASHED</span>
+                <span>SIMULATION RESULT: PASS</span>
+                <span>FIXTURE HASH DISPLAYED</span>
               </div>
             </div>
           </div>
@@ -5052,7 +5055,7 @@ npm --prefix frontend start`}
             {/* Footnotes */}
             <div className="border-t border-[#22314D] pt-6 flex justify-between items-center text-[10px] text-slate-500 font-bold uppercase">
               <span>ACING IU: GENESIS ENGINEERING COOPERATIVE</span>
-              <span>EST. 2026 - COMPLIANT CTIA 3.8.2</span>
+              <span>EST. 2026 - CTIA 3.8.2 PLANNING TRACK</span>
             </div>
           </div>
         </div>

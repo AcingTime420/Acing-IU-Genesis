@@ -1,6 +1,6 @@
 # Acing IU — Architectural Specifications
 
-This document outlines the system architecture for **Acing IU**, a security-first platform modeled after a Knox-style zero-trust trust architecture. All interactions are centralized, authenticated, authorized, policy-checked, and thoroughly audited before granting resource access.
+This document outlines the system architecture for **Acing IU**, a security-first research and simulator platform modeled after a Knox-style zero-trust trust architecture. It describes the target authoritative architecture and planned controls; current simulator surfaces use fixture/synthetic data and do not perform hardware attestation or compliance certification.
 
 ---
 
@@ -68,10 +68,10 @@ Protects endpoints and specific features by:
 *   Consulting the Attribute-Based Access Control (ABAC) engine to consider operational variables (e.g., source IP, time-of-day).
 
 ### 2.4 Device Trust Engine
-Enforces hardware and platform health compliance:
+Defines planned hardware and platform health evaluation:
 *   Enrolls and identifies devices using unique digital signatures.
-*   Calculates a dynamic **Device Trust Score** (0-100) based on platform version, security patches, app version, jailbreak status, and attestation.
-*   Grants access only to devices with acceptable trust tiers:
+*   Models a dynamic **Device Trust Score** (0-100) based on platform version, security patches, app version, jailbreak status, and attestation signals.
+*   Intended policy outcome in authoritative services is tiered access:
     *   **90 - 100**: Trusted
     *   **70 - 89**: Elevated
     *   **40 - 69**: Restricted
@@ -84,7 +84,7 @@ The rule-evaluator of Acing IU:
 *   Blocks unauthorized or risky requests immediately.
 
 ### 2.6 Audit Service
-The immutable compliance recorder:
+Planned immutable compliance recorder (authoritative-service boundary):
 *   Collects security events asynchronously via a message channel or localized high-performance logger.
 *   Enforces that no transaction, login, policy update, or device registration can complete without saving a persistent audit log entry.
 
@@ -92,7 +92,7 @@ The immutable compliance recorder:
 
 ## 3. The Acing Matrix Trust Chain
 
-To guarantee complete zero-trust access control, Acing IU implements the **Acing Matrix Trust Chain** for SM-S938U Verizon endpoints. Access is only authorized when each tier of the trust chain is validated continuously in real-time.
+To define complete zero-trust access control goals, Acing IU specifies the **Acing Matrix Trust Chain** for SM-S938U Verizon endpoints. In current simulator flows, trust-chain results are synthetic; in target deployment, access is authorized only when each tier is validated in real time.
 
 ```text
   [Tier 1: SM-S938U Hardware RoT]
@@ -103,7 +103,7 @@ To guarantee complete zero-trust access control, Acing IU implements the **Acing
                 v  (TIMA, RKP, and SELinux Enforcing checks)
   [Tier 3: Knox Attestation API]
                 |
-                v  (Odin AP/BL/CP/CSC certified partition checks)
+                v  (Odin AP/BL/CP/CSC simulation baseline checks)
   [Tier 4: Carrier Firmware Asset Verification]
                 |
                 v  (CTIA OTA 3.8.2 RF TRP/TIS connection checks)
@@ -114,18 +114,18 @@ To guarantee complete zero-trust access control, Acing IU implements the **Acing
 ```
 
 ### 3.1 Trust Chain Verification Mechanics
-1.  **Tier 1: Hardware Root of Trust**: The S25 Ultra Qualcomm Snapdragon 8 Elite hardware-backed RoT verifies primary system image signatures during the boot stage.
-2.  **Tier 2: Knox Vault Isolation**: Knox Vault isolated security hardware securely signs attestations using private keys generated in-chip, ensuring the trust state cannot be spoofed.
-3.  **Tier 3: Knox Attestation**: The system invokes the Knox Attestation API, validating that TrustZone-based TIMA, RKP, and SELinux are fully functional and in `Enforcing` mode.
-4.  **Tier 4: Carrier Firmware Asset Verification**: Partitions uploaded through Odin (AP system binary, BL bootloader, CP radio modem, CSC Verizon config) are evaluated. The MD5/SHA-256 hashes must strictly match the authorized Verizon SM-S938U baseline version.
-5.  **Tier 5: Secure Radio Transport**: Ensures that connection to the system is established via standard Verizon bands and that the terminal conforms with **CTIA OTA Performance Test Plan v3.8.2** limits (verifying TRP, TIS, and A-GNSS metrics) to protect the link against interference or baseband spoofing.
-6.  **Tier 6: Acing Policy Evaluator**: Access is permitted only when all preceding trust tiers are successful.
+1.  **Tier 1: Hardware Root of Trust**: Production-target behavior is for the S25 Ultra Qualcomm Snapdragon 8 Elite hardware-backed RoT to verify primary system image signatures during boot.
+2.  **Tier 2: Knox Vault Isolation**: Production-target behavior is for Knox Vault isolated security hardware to sign attestations using private keys generated in-chip.
+3.  **Tier 3: Knox Attestation**: Planned authoritative behavior is to invoke the Knox Attestation API and validate TrustZone-based TIMA, RKP, and SELinux status.
+4.  **Tier 4: Carrier Firmware Asset Verification**: Planned authoritative behavior is to evaluate Odin partitions (AP/BL/CP/CSC) against approved Verizon SM-S938U baselines.
+5.  **Tier 5: Secure Radio Transport**: Planned authoritative behavior is to evaluate Verizon-band connectivity and CTIA OTA v3.8.2 benchmark alignment (TRP, TIS, A-GNSS metrics).
+6.  **Tier 6: Acing Policy Evaluator**: Planned policy contract is to permit access only when all preceding trust tiers succeed.
 
 ---
 
 ## 4. Sequence Flow (Zero-Trust Validation)
 
-This sequence diagram specifies the transaction lifecycle of a request requiring high security trust (e.g., accessing confidential research):
+This sequence diagram specifies the target transaction lifecycle of a request requiring high security trust (e.g., accessing confidential research). Simulator UI traces are representations of this design, not proof of live hardware attestation.
 
 ```text
 User/Client           Gateway           Auth Serv          Trust Eng.        Policy Eng.         Database

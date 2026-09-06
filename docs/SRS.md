@@ -3,7 +3,7 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This document specifies the software requirements for the **Acing IU** platform. Acing IU is a high-security, Knox-inspired enterprise platform designed to coordinate user identity, device compliance metrics, policy decisions, and audit events to protect critical workspace operations. 
+This document specifies the software requirements for the **Acing IU** platform. Acing IU is a Knox-inspired security research program and simulator prototype intended to coordinate user identity, device compliance metrics, policy decisions, and audit events.
 
 ### 1.2 Scope
 Acing IU comprises:
@@ -14,7 +14,9 @@ Acing IU comprises:
 5.  An Immutable Auditing pipeline recording all transactional events.
 6.  An interactive Next.js-based Security Dashboard displaying analytics, telemetry, and configuration settings.
 
-This specification details the **SM-S938U Verizon baseline** (Samsung Galaxy S25 Ultra) as the primary secure endpoint reference, imposing hardware-specific Knox, carrier-locked bootloader, and radio performance constraints.
+This specification details the **SM-S938U Verizon baseline** (Samsung Galaxy S25 Ultra) as the primary secure endpoint reference, defining hardware-specific Knox, carrier-locked bootloader, and radio performance requirements for authoritative implementations.
+
+**Status note:** Requirements in this document describe target behavior. Current simulator/UI outputs in this repository are fixture-driven and must be interpreted as simulation results unless implementation evidence states otherwise.
 
 ---
 

@@ -373,7 +373,7 @@ export default function AuditPage() {
               <span>Compliance Period</span>
             </div>
             <h3 className="text-lg font-bold text-white">
-              CTIA 3.8.2 RF & Knox Security Status
+              CTIA 3.8.2 RF & Knox Security Status (Simulation)
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed font-medium">
               Simulated audit telemetry illustrating proposed Knox, SELinux,
@@ -1040,7 +1040,7 @@ export default function AuditPage() {
           }}
         >
           <div>
-            <em>Digitally attested by TIMA-RKP-256 Crypto Assurance Matrix</em>
+            <em>Generated from fixture data; hardware attestation not performed</em>
           </div>
           <div>Page 1 of 1</div>
         </div>
@@ -1066,7 +1066,7 @@ export default function AuditPage() {
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              Reviewing the filtered active compliance audit logs below prior to
+              Reviewing the filtered simulated compliance audit logs below prior to
               exporting as a formatted CSV spreadsheet:
             </p>
 
