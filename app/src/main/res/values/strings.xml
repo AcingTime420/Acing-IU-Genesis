@@ -14,22 +14,22 @@
    <string name="welcome_start_button">Start</string>
    
    <string name="matrix_sync_title">Matrix Identity</string>
-   <string name="matrix_sync_desc">Your Acing Matrix Identity establishes a decentralized trust chain. Connect your wallet to begin.</string>
+   <string name="matrix_sync_desc">This experimental setup flow stores local demo state only. Wallet and trust-chain steps are simulated.</string>
    <string name="matrix_sync_button_connect">Connect Matrix Wallet</string>
    <string name="matrix_sync_button_skip">Skip for now</string>
 
    <!-- Advanced Protection (Android 16 Security) -->
    <string name="security_advanced_title">Advanced Security</string>
-   <string name="security_advanced_desc">Acing IU includes decentralized security features like Acing Lockdown and Biometric Triggers.</string>
+   <string name="security_advanced_desc">Acing IU includes experimental local demo flows for lockdown and biometric-trigger simulations.</string>
    <string name="security_advanced_toggle_label">Enable Acing Matrix Protections</string>
 
    <!-- Fresh Start / FRP Capability Notice -->
    <string name="fresh_start_title">Fresh Start Capability</string>
-   <string name="fresh_start_desc">This firmware includes owner-authorized FRP erasure. Use your designated biometric trigger to start fresh at any time.</string>
+   <string name="fresh_start_desc">This experimental build includes a local FRP-wipe simulation. No supported device-control capability is provided.</string>
 
    <!-- Finishing the Setup -->
    <string name="setup_complete_title">You\'re all set!</string>
-   <string name="setup_complete_desc">Your Acing IU experience is ready. Welcome to a decentralized foundation.</string>
+   <string name="setup_complete_desc">Your Acing IU demo environment is ready. Live device control and hardware attestation remain unsupported.</string>
    <string name="setup_complete_button_finish">Finish</string>
 
    <!-- Branding Overrides -->

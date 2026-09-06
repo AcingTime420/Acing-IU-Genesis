@@ -33,11 +33,11 @@ public sealed class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return ProblemResult(400, "Validation failed", "Request body failed validation.");
 
-        var (response, error, status) = await _auth.RegisterAsync(request, HttpContext.TraceIdentifier, ct);
+        var (response, refreshToken, error, status) = await _auth.RegisterAsync(request, HttpContext.TraceIdentifier, ct);
         if (response is null)
             return ProblemResult(status, status == 409 ? "Conflict" : "Error", error!);
 
-        SetRefreshCookie(response.RefreshToken);
+        SetRefreshCookie(refreshToken!);
         return StatusCode(status, response);
     }
 
@@ -51,11 +51,11 @@ public sealed class AuthController : ControllerBase
 
         var ua = Request.Headers.UserAgent.ToString();
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var (response, error, status) = await _auth.LoginAsync(request, ua, ip, HttpContext.TraceIdentifier, ct);
+        var (response, refreshToken, error, status) = await _auth.LoginAsync(request, ua, ip, HttpContext.TraceIdentifier, ct);
         if (response is null)
             return ProblemResult(status, "Unauthorized", error!);
 
-        SetRefreshCookie(response.RefreshToken);
+        SetRefreshCookie(refreshToken!);
         return Ok(response);
     }
 
@@ -73,7 +73,7 @@ public sealed class AuthController : ControllerBase
 
         var ua = Request.Headers.UserAgent.ToString();
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var (response, error, status) = await _auth.RefreshAsync(
+        var (response, refreshToken, error, status) = await _auth.RefreshAsync(
             new RefreshRequest { RefreshToken = raw }, ua, ip, HttpContext.TraceIdentifier, ct);
         if (response is null)
         {
@@ -81,7 +81,7 @@ public sealed class AuthController : ControllerBase
             return ProblemResult(status, "Unauthorized", error!);
         }
 
-        SetRefreshCookie(response.RefreshToken);
+        SetRefreshCookie(refreshToken!);
         return Ok(response);
     }
 

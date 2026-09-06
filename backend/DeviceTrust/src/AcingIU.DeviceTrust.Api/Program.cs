@@ -1,6 +1,7 @@
 using System.Text;
 using AcingIU.DeviceTrust.Api.Data;
 using AcingIU.DeviceTrust.Api.Services;
+using AcingIU.SharedKernel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -13,8 +14,8 @@ builder.Services.AddSingleton<ITrustScoreEngine, TrustScoreEngine>();
 builder.Services.AddScoped<ITrustService, TrustService>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var signingKey = jwtSection["SigningKey"]
-    ?? throw new InvalidOperationException("Jwt:SigningKey is required.");
+var signingKey = jwtSection["SigningKey"];
+JwtSigningKeyPolicy.EnsureAllowed(signingKey, builder.Environment.EnvironmentName);
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -27,7 +28,7 @@ builder.Services
             ValidateAudience = true,
             ValidAudience = jwtSection["Audience"] ?? "acing-iu-api",
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey!)),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(30),
             NameClaimType = "sub",
@@ -44,7 +45,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Acing IU Device Trust API",
         Version = "v1",
-        Description = "S3 Device Trust — telemetry, attestation score, device registry"
+        Description = "S3 Device Trust — caller-submitted telemetry, trust scoring, and device registry"
     });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

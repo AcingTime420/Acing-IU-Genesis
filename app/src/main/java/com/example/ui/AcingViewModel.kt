@@ -129,7 +129,7 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                 repository.saveSandboxScript(
                     SandboxScript(
                         name = "Network Vulnerability Scanner",
-                        description = "Simulates polling several trusted servers and security APIs to fetch active threats.",
+                        description = "Simulates polling example endpoints and local security state for demo purposes.",
                         code = "CONNECT https://node1.acing.matrix/reputation\nCONNECT https://threat-intel.net/v2/live-exploits\nDELAY 1200\nCONNECT https://google.com/dns-query\nSYSTEM_ALERT Port scan lookup finalized by Network Scanner Daemon.",
                         permissions = "NETWORK_ACCESS",
                         isDefault = true,
@@ -139,7 +139,7 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                 repository.saveSandboxScript(
                     SandboxScript(
                         name = "Acing Policy Auditing Agent",
-                        description = "Automated baseline check of the hardware & radio port controls. Compares against Knox specs.",
+                        description = "Automated baseline review of submitted demo security state and radio-control labels.",
                         code = "GET_MATRIX_STATE\nDELAY 1500\nSYSTEM_ALERT Policy and encryption state audit successfully logged.",
                         permissions = "MATRIX_READ",
                         isDefault = true,
@@ -149,7 +149,7 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                 repository.saveSandboxScript(
                     SandboxScript(
                         name = "Intrusion Panic Daemon",
-                        description = "Active network watchdog. Automatically locks down physical USB-C ports on detection of anomalies.",
+                        description = "Active demo watchdog. Simulates local lockdown state changes when anomalies are detected.",
                         code = "CONNECT https://external.watchdog/health\nDELAY 800\nGET_MATRIX_STATE\nDELAY 500\nSYSTEM_ALERT [CRITICAL] Anomaly detected in remote telemetry. Launching hardware lockdown!\nTRIGGER_LOCKDOWN\nSYSTEM_ALERT Active lockdown executed.",
                         permissions = "NETWORK_ACCESS,MATRIX_READ,MATRIX_WRITE",
                         isDefault = true,
@@ -159,7 +159,7 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                 repository.saveSandboxScript(
                     SandboxScript(
                         name = "RootMaster Lab Dissect Suite",
-                        description = "Automated firmware dissection pipeline. Unpacks super.img, converts sparse raw, and validates S25 Ultra baseline hashes.",
+                        description = "Automated firmware demo pipeline. Simulates unpacking and comparing example baseline hashes.",
                         code = "SYSTEM_ALERT Initializing RootMaster Lab Dissection Suite...\nDELAY 500\nSYSTEM_ALERT STEP 1: Unpacking S25_Ultra_Stock2026_05_04.rar archive...\nDELAY 1000\nSYSTEM_ALERT STEP 2: Sparse image conversion: simg2img super.img super.raw.img\nDELAY 1200\nSYSTEM_ALERT STEP 3: Dynamic partition unpacking: lpunpack super.raw.img output/\nDELAY 1000\nCONNECT https://firmware-database.acing.org/s938u-baseline-hashes\nDELAY 800\nSYSTEM_ALERT STEP 4: SHA-256 Checksum Verification: MATCHED system.img (VRU3CXH2)\nDELAY 600\nSYSTEM_ALERT STEP 5: Optimizing device internal storage caches via ADB pm trim-caches...\nDELAY 1000\nSYSTEM_ALERT Finalizing RootMaster OS pipeline: SUCCESS. Device fully compliant.",
                         permissions = "NETWORK_ACCESS,MATRIX_READ",
                         isDefault = true,
@@ -285,11 +285,11 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 "Right Index" -> {
                     _activeFingerprintResult.value = "Right Index: Launching Wallet"
-                    insertSystemLog("BIOMETRICS", "Right Index Match! Action: Opening Acing Matrix Security Wallet.", "SUCCESS")
+                    insertSystemLog("BIOMETRICS", "Right Index Match! Action: Opening local demo wallet view.", "SUCCESS")
                 }
                 "Left Ring" -> {
                     _activeFingerprintResult.value = "Left Ring: Lockdown Triggered!"
-                    insertSystemLog("BIOMETRICS", "Left Ring Match! Action: Emergency Acing Lockdown Activated.", "WARN")
+                    insertSystemLog("BIOMETRICS", "Left Ring Match! Action: Emergency demo lockdown activated.", "WARN")
                     // Automatically turn on security toggles as part of the lockdown!
                     val current = settingsState.value
                     repository.saveSettings(current.copy(
@@ -301,7 +301,7 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 "Left Pinky" -> {
                     _activeFingerprintResult.value = "Left Pinky: FRP Wipe Initiated!"
-                    insertSystemLog("BIOMETRICS", "Left Pinky Match! Action: Authorized FRP Persistent Wipe Sequence started.", "ERROR")
+                    insertSystemLog("BIOMETRICS", "Left Pinky Match! Action: Local FRP wipe simulation started.", "ERROR")
                     runPersistentWipeSequence()
                 }
             }
@@ -312,7 +312,7 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
         _activeFingerprintResult.value = null
     }
 
-    // Persistent FRP data block wipe sequence (simulation)
+    // Persistent FRP data block wipe sequence (local simulation only)
     fun runPersistentWipeSequence() {
         if (_isWiping.value) return
         _isWiping.value = true
@@ -355,7 +355,7 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
 
             // Step 4: Verification
             insertSystemLog("FRP_AUDIT", "FRP lock partition successfully erased! Flag EXTRA_WIPE_PERSISTENT_DATA = true", "SUCCESS")
-            insertSystemLog("SYSTEM", "MasterClear intent sent. Device is prepared for a clean, unlocked start.", "SUCCESS")
+            insertSystemLog("SYSTEM", "Demo reset sequence completed locally. No physical device command was issued.", "SUCCESS")
             delay(1500)
 
             // Reset states
@@ -544,7 +544,7 @@ class AcingViewModel(application: Application) : AndroidViewModel(application) {
                     delay(300)
                     if (hasMatrixWrite) {
                         insertSystemLog("SANDBOX", "[${script.name}] $msg", "WARN")
-                        addSandboxConsoleLog("SYSTEM: Custom event log written to Knox Firmware audit trail.")
+                        addSandboxConsoleLog("SYSTEM: Custom demo event written to local audit fixtures.")
                     } else {
                         addSandboxConsoleLog("SECURITY_ERR: Write operation blocked. MATRIX_WRITE permission is DENIED.")
                     }

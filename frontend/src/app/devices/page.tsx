@@ -280,7 +280,7 @@ export default function DevicesPage() {
     const targetDevice = devices.find(d => d.id === scannerDeviceTarget);
     
     addToast(
-      `FIXTURE UPDATE: Simulated chip-detection result recorded for '${targetDevice?.name || 'Device'}'. No Knox attestation or certification occurred.`,
+      `FIXTURE UPDATE: Simulated chip-detection result recorded for '${targetDevice?.name || 'Device'}'. No hardware attestation or certification occurred.`,
       'success'
     );
 
@@ -359,7 +359,7 @@ export default function DevicesPage() {
             Simulated Device Trust and Radio Fixtures
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Local demonstration records only; no cryptographic audit, hardware attestation, or RF measurement is performed.
+            Local demonstration records only; no cryptographic audit, hardware-backed attestation, or RF measurement is performed.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -787,7 +787,7 @@ export default function DevicesPage() {
           </div>
         </div>
 
-        <div className="print-section-title">Simulated hardware-attestation and RF fixture values (not CTIA evidence)</div>
+        <div className="print-section-title">Simulated submitted-evidence and RF fixture values (not CTIA evidence)</div>
         <table className="print-table">
           <thead>
             <tr>

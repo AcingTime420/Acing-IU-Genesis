@@ -19,7 +19,6 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-[#0B0F19] border-r border-[#22314D] flex flex-col justify-between h-screen sticky top-0">
       <div>
-        {/* Branding Area */}
         <div className="p-6 border-b border-[#22314D] flex items-center gap-3">
           <div className="bg-gradient-to-tr from-[#2F58CD] to-[#6C3483] p-2.5 rounded-xl">
             <Shield className="h-5 w-5 text-white" />
@@ -30,7 +29,6 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Navigation Items */}
         <nav className="p-4 space-y-1.5">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -53,14 +51,13 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      {/* System Status Indicators (Bottom of Sidebar) */}
       <div className="p-4 border-t border-[#22314D] space-y-3.5 bg-[#111827]/40">
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-slate-400 font-medium">
             <Cpu className="h-3.5 w-3.5 text-[#2F58CD]" />
             <span>KSP Integrity</span>
           </div>
-          <span className="text-[#10B981] font-bold">ACTIVE</span>
+          <span className="text-[#F59E0B] font-bold">FIXTURE</span>
         </div>
 
         <div className="flex items-center justify-between text-xs">
@@ -68,12 +65,12 @@ export default function Sidebar() {
             <Database className="h-3.5 w-3.5 text-[#6C3483]" />
             <span>PostgreSQL</span>
           </div>
-          <span className="text-[#10B981] font-bold">CONNECTED</span>
+          <span className="text-[#F59E0B] font-bold">NOT POLLED</span>
         </div>
 
         <div className="flex items-center gap-2 p-2.5 bg-[#151D30] rounded-lg border border-[#22314D] text-[10px] text-slate-400">
-          <CheckCircle className="h-3.5 w-3.5 text-[#10B981] shrink-0" />
-          <span className="font-medium">SM-S938U Baseline Synced</span>
+          <CheckCircle className="h-3.5 w-3.5 text-[#F59E0B] shrink-0" />
+          <span className="font-medium">Demo UI using local fixture state only</span>
         </div>
       </div>
     </aside>

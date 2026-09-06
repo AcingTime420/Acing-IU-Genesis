@@ -15,7 +15,7 @@ import {
 
 export default function Dashboard() {
   const stats = [
-    { name: 'S938U Knox Trust', value: 'Fixture 100 / 100', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No device attestation' },
+    { name: 'Submitted Trust Evidence', value: 'Fixture 100 / 100', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No hardware attestation' },
     { name: 'Active Policies', value: '4 Demo Rules', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'Not enforced' },
     { name: 'CTIA 3.8.2 RF Signal', value: 'Fixture 23.40 dBm', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No RF validation' },
     { name: 'Security Quarantine', value: 'Fixture 0 Devices', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No live monitoring' }

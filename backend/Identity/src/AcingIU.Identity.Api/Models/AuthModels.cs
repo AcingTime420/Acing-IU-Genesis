@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace AcingIU.Identity.Api.Models;
 
@@ -29,7 +29,6 @@ public sealed class RefreshRequest
 public sealed class AuthResponse
 {
     public string AccessToken { get; set; } = string.Empty;
-    public string RefreshToken { get; set; } = string.Empty;
     public DateTimeOffset AccessTokenExpiresAt { get; set; }
     public Guid UserId { get; set; }
     public string Email { get; set; } = string.Empty;
@@ -64,4 +63,3 @@ public sealed class UserRecord
     public DateTimeOffset CreatedAt { get; set; }
     public List<string> Roles { get; set; } = new();
 }
-

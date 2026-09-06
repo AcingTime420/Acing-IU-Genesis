@@ -2,6 +2,7 @@ using System.Text;
 using AcingIU.Identity.Api.Data;
 using AcingIU.Identity.Api.Options;
 using AcingIU.Identity.Api.Services;
+using AcingIU.SharedKernel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -9,9 +10,6 @@ using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------------------------------------------------------------------------
-// Configuration
-// ---------------------------------------------------------------------------
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services
     .AddOptions<MfaSecretProtectionOptions>()
@@ -19,9 +17,6 @@ builder.Services
     .Validate(MfaSecretProtectionOptions.IsValid, "MFA secret protection requires a valid active key identifier and base64-encoded 32-byte key material.")
     .ValidateOnStart();
 
-// ---------------------------------------------------------------------------
-// Data & infrastructure
-// ---------------------------------------------------------------------------
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
@@ -31,23 +26,15 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     ConnectionMultiplexer.Connect(redisConn));
 builder.Services.AddSingleton<ITokenRevocationStore, RedisTokenRevocationStore>();
 
-// ---------------------------------------------------------------------------
-// Domain services
-// ---------------------------------------------------------------------------
 builder.Services.AddSingleton<IPasswordHasher, Argon2idPasswordHasher>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddSingleton<IMfaService, TotpMfaService>();
 builder.Services.AddSingleton<IMfaSecretProtector, AesGcmMfaSecretProtector>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// ---------------------------------------------------------------------------
-// AuthN
-// ---------------------------------------------------------------------------
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
-var signingKey = jwtSection["SigningKey"]
-    ?? throw new InvalidOperationException("Jwt:SigningKey is required.");
-if (signingKey.Length < 32)
-    throw new InvalidOperationException("Jwt:SigningKey must be at least 32 characters.");
+var signingKey = jwtSection["SigningKey"];
+JwtSigningKeyPolicy.EnsureAllowed(signingKey, builder.Environment.EnvironmentName);
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -60,7 +47,7 @@ builder.Services
             ValidateAudience = true,
             ValidAudience = jwtSection["Audience"],
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey!)),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(30),
             NameClaimType = "sub",
@@ -81,9 +68,6 @@ builder.Services
     });
 builder.Services.AddAuthorization();
 
-// ---------------------------------------------------------------------------
-// API surface
-// ---------------------------------------------------------------------------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -96,7 +80,7 @@ builder.Services.AddSwaggerGen(c =>
     });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme.",
+        Description = "JWT Authorization header using the ******",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
@@ -117,7 +101,6 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddHealthChecks();
 
-// Structured console logging (stdout → Docker / FluentBit / Loki)
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(o =>
 {
@@ -128,9 +111,6 @@ builder.Logging.AddJsonConsole(o =>
 
 var app = builder.Build();
 
-// ---------------------------------------------------------------------------
-// Pipeline
-// ---------------------------------------------------------------------------
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acing IU Identity v1"));
 
@@ -141,5 +121,4 @@ app.MapControllers();
 
 app.Run();
 
-// Expose for integration tests
 public partial class Program { }

@@ -8,9 +8,9 @@ namespace AcingIU.Identity.Api.Services;
 
 public interface IAuthService
 {
-    Task<(AuthResponse? Response, string? Error, int Status)> RegisterAsync(RegisterRequest req, string? traceId, CancellationToken ct = default);
-    Task<(AuthResponse? Response, string? Error, int Status)> LoginAsync(LoginRequest req, string? userAgent, string? ip, string? traceId, CancellationToken ct = default);
-    Task<(AuthResponse? Response, string? Error, int Status)> RefreshAsync(RefreshRequest req, string? userAgent, string? ip, string? traceId, CancellationToken ct = default);
+    Task<(AuthResponse? Response, string? RefreshToken, string? Error, int Status)> RegisterAsync(RegisterRequest req, string? traceId, CancellationToken ct = default);
+    Task<(AuthResponse? Response, string? RefreshToken, string? Error, int Status)> LoginAsync(LoginRequest req, string? userAgent, string? ip, string? traceId, CancellationToken ct = default);
+    Task<(AuthResponse? Response, string? RefreshToken, string? Error, int Status)> RefreshAsync(RefreshRequest req, string? userAgent, string? ip, string? traceId, CancellationToken ct = default);
     Task<UserProfileResponse?> GetProfileAsync(Guid userId, CancellationToken ct = default);
     Task<(MfaEnrollResponse? Response, string? Error, int Status)> EnrollMfaAsync(Guid userId, string? traceId, CancellationToken ct = default);
     Task<(MfaVerifyResponse? Response, string? Error, int Status)> VerifyMfaAsync(Guid userId, string code, string? traceId, CancellationToken ct = default);
@@ -45,13 +45,13 @@ public sealed class AuthService : IAuthService
         _jwt = jwt.Value;
     }
 
-    public async Task<(AuthResponse? Response, string? Error, int Status)> RegisterAsync(RegisterRequest req, string? traceId, CancellationToken ct = default)
+    public async Task<(AuthResponse? Response, string? RefreshToken, string? Error, int Status)> RegisterAsync(RegisterRequest req, string? traceId, CancellationToken ct = default)
     {
         var existing = await _users.FindByEmailAsync(req.Email, ct);
         if (existing is not null)
         {
             await _users.WriteAuditAsync("auth.register.conflict", "WARNING", req.Email, "/api/auth/register", new { reason = "email_taken" }, traceId, ct);
-            return (null, "An account with this email already exists.", 409);
+            return (null, null, "An account with this email already exists.", 409);
         }
 
         var hash = _hasher.Hash(req.Password);
@@ -59,32 +59,32 @@ public sealed class AuthService : IAuthService
 
         await _users.WriteAuditAsync("auth.register.success", "INFO", user.Id.ToString(), "/api/auth/register", new { email = user.Email }, traceId, ct);
 
-        var response = await IssueTokensAsync(user, null, null, ct);
-        return (response, null, 201);
+        var issued = await IssueTokensAsync(user, null, null, ct);
+        return (issued.Response, issued.RefreshToken, null, 201);
     }
 
-    public async Task<(AuthResponse? Response, string? Error, int Status)> LoginAsync(LoginRequest req, string? userAgent, string? ip, string? traceId, CancellationToken ct = default)
+    public async Task<(AuthResponse? Response, string? RefreshToken, string? Error, int Status)> LoginAsync(LoginRequest req, string? userAgent, string? ip, string? traceId, CancellationToken ct = default)
     {
         var user = await _users.FindByEmailAsync(req.Email, ct);
         if (user is null || !_hasher.Verify(req.Password, user.PasswordHash))
         {
             await _users.WriteAuditAsync("auth.login.failure", "WARNING", req.Email, "/api/auth/login", new { reason = "invalid_credentials" }, traceId, ct);
-            return (null, "Invalid email or password.", 401);
+            return (null, null, "Invalid email or password.", 401);
         }
 
         if (!user.IsActive)
         {
             await _users.WriteAuditAsync("auth.login.disabled", "WARNING", user.Id.ToString(), "/api/auth/login", null, traceId, ct);
-            return (null, "Account is disabled.", 403);
+            return (null, null, "Account is disabled.", 403);
         }
 
         await _users.WriteAuditAsync("auth.login.success", "INFO", user.Id.ToString(), "/api/auth/login", new { email = user.Email }, traceId, ct);
 
-        var response = await IssueTokensAsync(user, userAgent, ip, ct);
-        return (response, null, 200);
+        var issued = await IssueTokensAsync(user, userAgent, ip, ct);
+        return (issued.Response, issued.RefreshToken, null, 200);
     }
 
-    public async Task<(AuthResponse? Response, string? Error, int Status)> RefreshAsync(RefreshRequest req, string? userAgent, string? ip, string? traceId, CancellationToken ct = default)
+    public async Task<(AuthResponse? Response, string? RefreshToken, string? Error, int Status)> RefreshAsync(RefreshRequest req, string? userAgent, string? ip, string? traceId, CancellationToken ct = default)
     {
         var hash = _tokens.HashToken(req.RefreshToken);
         var found = await _users.FindRefreshTokenAsync(hash, ct);
@@ -92,31 +92,29 @@ public sealed class AuthService : IAuthService
         if (found is null)
         {
             await _users.WriteAuditAsync("auth.refresh.unknown", "WARNING", "anonymous", "/api/auth/refresh", null, traceId, ct);
-            return (null, "Invalid refresh token.", 401);
+            return (null, null, "Invalid refresh token.", 401);
         }
 
         var (userId, familyId, isDead) = found.Value;
 
-        // Reuse detection: if token already revoked/expired, burn the whole family
         if (isDead || await _revocation.IsFamilyRevokedAsync(familyId, ct))
         {
             await _users.RevokeRefreshFamilyAsync(familyId, ct);
             await _revocation.RevokeFamilyAsync(familyId, TimeSpan.FromDays(_jwt.RefreshTokenDays), ct);
             await _users.WriteAuditAsync("auth.refresh.reuse_detected", "CRITICAL", userId.ToString(), "/api/auth/refresh", new { familyId }, traceId, ct);
-            return (null, "Refresh token reuse detected. All sessions in this family have been revoked.", 401);
+            return (null, null, "Refresh token reuse detected. All sessions in this family have been revoked.", 401);
         }
 
         var user = await _users.FindByIdAsync(userId, ct);
         if (user is null || !user.IsActive)
-            return (null, "User not found or disabled.", 401);
+            return (null, null, "User not found or disabled.", 401);
 
-        // Rotate: revoke old, issue new in same family
         await _users.RevokeRefreshTokenAsync(hash, null, ct);
 
         await _users.WriteAuditAsync("auth.refresh.success", "INFO", userId.ToString(), "/api/auth/refresh", new { familyId }, traceId, ct);
 
-        var response = await IssueTokensAsync(user, userAgent, ip, ct, familyId);
-        return (response, null, 200);
+        var issued = await IssueTokensAsync(user, userAgent, ip, ct, familyId);
+        return (issued.Response, issued.RefreshToken, null, 200);
     }
 
     public async Task<UserProfileResponse?> GetProfileAsync(Guid userId, CancellationToken ct = default)
@@ -227,7 +225,7 @@ public sealed class AuthService : IAuthService
         return (true, null, 204);
     }
 
-    private async Task<AuthResponse> IssueTokensAsync(UserRecord user, string? userAgent, string? ip, CancellationToken ct, Guid? existingFamily = null)
+    private async Task<(AuthResponse Response, string RefreshToken)> IssueTokensAsync(UserRecord user, string? userAgent, string? ip, CancellationToken ct, Guid? existingFamily = null)
     {
         var (access, expires, _) = _tokens.CreateAccessToken(user);
         var refresh = _tokens.CreateRefreshToken();
@@ -237,14 +235,15 @@ public sealed class AuthService : IAuthService
 
         await _users.InsertRefreshTokenAsync(user.Id, refreshHash, familyId, refreshExpiry, userAgent, ip, ct);
 
-        return new AuthResponse
-        {
-            AccessToken = access,
-            RefreshToken = refresh,
-            AccessTokenExpiresAt = expires,
-            UserId = user.Id,
-            Email = user.Email,
-            Roles = user.Roles
-        };
+        return (
+            new AuthResponse
+            {
+                AccessToken = access,
+                AccessTokenExpiresAt = expires,
+                UserId = user.Id,
+                Email = user.Email,
+                Roles = user.Roles
+            },
+            refresh);
     }
 }
