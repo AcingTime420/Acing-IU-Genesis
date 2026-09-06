@@ -246,7 +246,7 @@ export default function DevicesPage() {
     }));
 
     addToast(
-      `REASSESSMENT SECURED: Re-evaluated cryptographic signatures for ${selectedIds.length} target node(s).`,
+      `SIMULATION RESULT: Reassessed cryptographic signatures for ${selectedIds.length} target node(s).`,
       'info'
     );
     setSelectedIds([]);
@@ -280,7 +280,7 @@ export default function DevicesPage() {
     const targetDevice = devices.find(d => d.id === scannerDeviceTarget);
     
     addToast(
-      `KNOX CHIP CERTIFIED: Cryptographic verification signature attested for '${targetDevice?.name || 'Device'}'.`, 
+      `Simulation Result: Knox chip signature detected for '${targetDevice?.name || 'Device'}'. Hardware attestation not performed.`, 
       'success'
     );
 
@@ -577,11 +577,11 @@ export default function DevicesPage() {
                           </div>
                           <div className="flex items-center justify-between">
                             <span>OEM Keys Registered:</span>
-                            <span className="font-mono text-[#10B981]">VERIFIED</span>
+                            <span className="font-mono text-[#10B981]">SIMULATION RESULT: PASS</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span>TEE Integrity Attestation:</span>
-                            <span className="font-mono text-[#10B981]">SECURE</span>
+                            <span className="font-mono text-[#10B981]">HARDWARE ATTESTATION NOT PERFORMED</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span>FRP Protection Status:</span>
@@ -764,7 +764,7 @@ export default function DevicesPage() {
       {/* ==================================================================== */}
       <div className="print-report-container">
         <div className="print-title">
-          VERIZON DEVICES INTEGRITY & SECURE ATTESTATION CERTIFICATE
+          VERIZON DEVICES INTEGRITY SIMULATION REPORT
         </div>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -776,11 +776,11 @@ export default function DevicesPage() {
           <div style={{ textAlign: 'right' }}>
             <strong>SYSTEM CLASSIFICATION:</strong> SECRET / UNCLASSIFIED<br />
             <strong>REGISTRY STATUS:</strong> ACTIVE SECURE<br />
-            <strong>TOTAL NODES VERIFIED:</strong> {devices.length}
+            <strong>TOTAL NODES IN SIMULATION:</strong> {devices.length}
           </div>
         </div>
 
-        <div className="print-section-title">Hardware attestation & RF metrics (CTIA 3.8.2)</div>
+        <div className="print-section-title">Hardware attestation not performed; RF simulation metrics (CTIA 3.8.2)</div>
         <table className="print-table">
           <thead>
             <tr>
@@ -810,7 +810,7 @@ export default function DevicesPage() {
 
         <div style={{ marginTop: '50px', borderTop: '1px solid #999', paddingTop: '10px', fontSize: '9pt', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
           <div>
-            <em>Digitally attested by TIMA-RKP-256 Crypto Assurance Matrix</em>
+            <em>Simulation Result: TIMA-RKP-256 emulated assurance workflow</em>
           </div>
           
           {/* Security Seal SVG Graphic Overlay */}
@@ -831,7 +831,7 @@ export default function DevicesPage() {
               
               <text fontSize="5.5" fontWeight="bold" fill="#000000" letterSpacing="0.4">
                 <textPath href="#printSealTextPath" startOffset="50%" textAnchor="middle">
-                  • FIRMWARE INTEGRITY VERIFIED •
+                  • FIRMWARE INTEGRITY SIMULATION RESULT •
                 </textPath>
               </text>
               
@@ -839,11 +839,11 @@ export default function DevicesPage() {
                 SECURITY SEAL
               </text>
               <text x="50" y="75" fontSize="4.5" fill="#444444" textAnchor="middle" fontFamily="monospace">
-                KNOX ATTESTED
+                KNOX EMULATED
               </text>
             </svg>
             <div style={{ textAlign: 'right', fontSize: '9pt' }}>
-              <strong>CERTIFICATE SECURED</strong><br />
+              <strong>SIMULATION RESULT</strong><br />
               Page 1 of 1
             </div>
           </div>

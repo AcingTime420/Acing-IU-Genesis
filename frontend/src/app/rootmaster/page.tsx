@@ -2476,7 +2476,7 @@ export default function RootMasterLab() {
       !selectedZipFiles.download
     ) {
       triggerNotification(
-        "Error: You must check and verify all three ZIP archives first.",
+        "Error: You must select all three ZIP archives first.",
       );
       return;
     }
@@ -2499,7 +2499,7 @@ export default function RootMasterLab() {
       "  - mtools: INSTALLED",
       "  - nodejs (v18.19.0): INSTALLED",
       "  - npm (v10.2.3): INSTALLED",
-      "[SYSTEM] Dependencies successfully attested inside resized sandbox. Proceeding to File Extraction...",
+      "[SYSTEM] Simulation Result: Dependencies check PASS inside resized sandbox. Proceeding to File Extraction...",
     ];
 
     let logIndex = 0;
@@ -2748,7 +2748,7 @@ export default function RootMasterLab() {
             "  - xorriso: INSTALLED",
             "  - grub-pc-bin: INSTALLED",
             "  - mtools: INSTALLED",
-            "[SYSTEM] Dependencies successfully attested. Proceeding to File Extraction...",
+            "[SYSTEM] Simulation Result: Dependencies check PASS. Proceeding to File Extraction...",
             "[STAGE 1] EXTRACTING AND MERGING USER ARCHIVES",
             "[FS] Extracting RootMasterOS.zip (Base System) to ./rootmaster...",
             "  - Extracted: ./rootmaster/backend/ (14 source controllers, server.js)",
@@ -3010,7 +3010,7 @@ export default function RootMasterLab() {
         "[COMPLETED] BL DISSECTION SUCCESSFUL",
         "=================================================================",
         "* Knox hardware Vault key parameters mapped cleanly.",
-        "* Secure boot signature validations verified OK.",
+        "* Simulation Result: Secure boot signature validation PASS.",
       ];
 
       let index = 0;
@@ -3043,12 +3043,12 @@ export default function RootMasterLab() {
         "      - 5G NR n5 (Sub-6 radio coverage): ENABLED",
         "      - 5G NR n77 (Ultra-Wideband C-band spectrum): ENABLED",
         "  - Cross-checking power thresholds against CTIA limits...",
-        "  - Maximum Radiated Signal Power limit: +23dBm [COMPLIANT]",
+        "  - Maximum Radiated Signal Power limit: +23dBm [Simulation Result: PASS]",
         " ",
         "=================================================================",
         "[COMPLETED] CP BASEBAND RE-ENGINEERING COMPLETED",
         "=================================================================",
-        "* Verizon baseband LTE/5G RF signal standard fully certified.",
+        "* Verizon baseband LTE/5G RF signal standard simulation result: PASS.",
       ];
 
       let index = 0;
@@ -3327,7 +3327,7 @@ export default function RootMasterLab() {
                         </span>
                       </div>
                       <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> VERIFIED OK
+                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION RESULT: PASS
                       </span>
                     </div>
 
@@ -3356,7 +3356,7 @@ export default function RootMasterLab() {
                         </span>
                       </div>
                       <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> VERIFIED OK
+                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION RESULT: PASS
                       </span>
                     </div>
 
@@ -3385,7 +3385,7 @@ export default function RootMasterLab() {
                         </span>
                       </div>
                       <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> VERIFIED OK
+                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION RESULT: PASS
                       </span>
                     </div>
                   </div>
@@ -3585,7 +3585,7 @@ export default function RootMasterLab() {
                             : log.includes("Error")
                               ? "text-red-500 font-extrabold"
                               : log.includes("Success") ||
-                                  log.includes("VERIFIED OK")
+                                  log.includes("SIMULATION RESULT: PASS")
                                 ? "text-emerald-400 font-bold"
                                 : "text-slate-300"
                         }
@@ -4629,14 +4629,14 @@ export default function RootMasterLab() {
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" />{" "}
-                  Attested compliance
+                  Simulation compliance
                 </span>
                 <h2 className="text-2xl font-extrabold text-white tracking-tight">
                   {completedCount}
                 </h2>
               </div>
               <div className="mt-4 flex items-center justify-between border-t border-[#22314D] pt-3 text-[10px] font-bold text-[#10B981]">
-                <span>VERIFIED OK</span>
+                <span>SIMULATION RESULT: PASS</span>
                 <span>SIGNATURE HASHED</span>
               </div>
             </div>

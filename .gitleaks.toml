@@ -1,0 +1,11 @@
+title = "Acing IU: Genesis Gitleaks Baseline"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Ignore deterministic Buddy runtime identifiers from historical import commit only"
+condition = "AND"
+commits = ["2b0cb1345a4d4fc309f849b86136a00463b92ce9"]
+paths = ['''^\.refact/buddy/memory_ops\.jsonl$''']
+regexes = ['''"idempotency_key":"[a-z0-9_]{60,}"''']

@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           FAIL=0
-          PATTERNS=("bin" "obj" "out" "dist" "TestResults" "coverage" "node_modules" ".next")
+          PATTERNS=("bin" "obj" "out" "dist" "TestResults" "coverage" "node_modules" ".next" ".refact/buddy/memory_ops.jsonl" ".refact/buddy/runtime_queue.jsonl" ".refact/buddy/state.json" ".refact/buddy/chats/workflows" ".refact/tasks/index.json")
           for pattern in "${PATTERNS[@]}"; do
             matches=$(git ls-files -- "$pattern" 2>/dev/null || true)
             if [[ -n "$matches" ]]; then

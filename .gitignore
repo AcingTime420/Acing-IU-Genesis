@@ -61,6 +61,13 @@ gha-creds-*.json
 .kotlin
 .gemini/
 
+# ── Refact local runtime state (generated) ─────────────────────
+.refact/buddy/memory_ops.jsonl
+.refact/buddy/runtime_queue.jsonl
+.refact/buddy/state.json
+.refact/buddy/chats/workflows/
+.refact/tasks/index.json
+
 # ── OS artefacts ─────────────────────────────────────────────
 .DS_Store
 ehthumbs.db
