@@ -20,10 +20,10 @@ namespace AcingIU.Identity.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            // Standard Auth mock with security-first JWT generation
+            // Mock response payload for API-shape demonstration only
             return Ok(new {
-                AccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1pY2siLCJhZG1pbiI6dHJ1ZX0...",
-                RefreshToken = Guid.NewGuid().ToString(),
+                AccessToken = "mock",
+                RefreshToken = "mock",
                 MfaRequired = false,
                 ExpiresIn = 900
             });

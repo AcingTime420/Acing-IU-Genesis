@@ -1,0 +1,30 @@
+title = "Acing IU Gitleaks policy"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Legacy synthetic auth/doc examples in two historical commits."
+regexTarget = "match"
+commits = [
+  '''2b0cb1345a4d4fc309f849b86136a00463b92ce9''',
+  '''bdb3a9474b96e4bfaaab888412631b27f40756c7''',
+]
+paths = [
+  '''^acing-iu/backend/Identity/Controllers/AuthController\.cs$''',
+  '''^backend/Identity/Controllers/AuthController\.cs$''',
+  '''^acing-iu/docs/API\.md$''',
+]
+regexes = [
+  '''AccessToken\s*=\s*"[A-Za-z0-9._-]{8,}"''',
+  '''"accessToken"\s*:\s*"[A-Za-z0-9._-]{8,}"''',
+  '''"refreshToken"\s*:\s*"[0-9a-fA-F-]{36}"''',
+  '''"secretKey"\s*:\s*"[A-Z2-7]{8,}"''',
+]
+
+[[allowlists]]
+description = "Legacy Refact buddy memory artifact in historical commit 2b0cb13; not runtime configuration."
+regexTarget = "match"
+commits = ['''2b0cb1345a4d4fc309f849b86136a00463b92ce9''']
+paths = ['''^\.refact/buddy/memory_ops\.jsonl$''']
+regexes = ['''idempotency_key":"[A-Za-z0-9_-]{8,}"''']
