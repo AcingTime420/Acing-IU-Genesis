@@ -458,7 +458,11 @@ export default function DevicesPage() {
                           ? 'bg-emerald-500/10 text-[#10B981] border-emerald-500/20' 
                           : 'bg-amber-500/10 text-[#F59E0B] border-amber-500/20'
                     }`}>
-                      {dev.quarantined ? "Simulation Result: FAIL" : dev.trustScore >= 85 ? "Simulation Result: PASS" : "Simulation Result: REVIEW"}
+                      {dev.quarantined
+                        ? "Simulation Result: FAIL (Quarantined)"
+                        : dev.trustScore >= 85
+                          ? "Simulation Result: PASS (Trusted Core)"
+                          : "Simulation Result: REVIEW (Elevated State)"}
                     </span>
                   </div>
                 </div>

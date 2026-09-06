@@ -3037,7 +3037,7 @@ export default function RootMasterLab() {
         "      - 5G NR n5 (Sub-6 radio coverage): ENABLED",
         "      - 5G NR n77 (Ultra-Wideband C-band spectrum): ENABLED",
         "  - Cross-checking power thresholds against CTIA limits...",
-        "  - Maximum Radiated Signal Power limit: +23dBm [SIMULATION_RESULT_PASS]",
+        "  - Maximum Radiated Signal Power limit: +23dBm [SIMULATION RESULT: PASS]",
         " ",
         "=================================================================",
         "[COMPLETED] CP BASEBAND RE-ENGINEERING COMPLETED",
@@ -3259,8 +3259,7 @@ export default function RootMasterLab() {
                         </span>
                       </div>
                       <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION
-                        RESULT: PASS
+                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION RESULT: PASS
                       </span>
                     </div>
 
@@ -3289,8 +3288,7 @@ export default function RootMasterLab() {
                         </span>
                       </div>
                       <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION
-                        RESULT: PASS
+                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION RESULT: PASS
                       </span>
                     </div>
 
@@ -3319,8 +3317,7 @@ export default function RootMasterLab() {
                         </span>
                       </div>
                       <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION
-                        RESULT: PASS
+                        <CheckCircle2 className="h-3.5 w-3.5" /> SIMULATION RESULT: PASS
                       </span>
                     </div>
                   </div>
@@ -3425,6 +3422,12 @@ export default function RootMasterLab() {
                         Construct custom Ubuntu-Live squashfs filesystem
                         injecting your merged files & GRUB menu entry.
                       </p>
+                      <p
+                        id="build-executor-note"
+                        className="text-[10px] text-slate-500 mt-1"
+                      >
+                        Unavailable until an authoritative build executor exists.
+                      </p>
                     </div>
 
                     <button
@@ -3432,6 +3435,7 @@ export default function RootMasterLab() {
                       disabled
                       aria-disabled="true"
                       title="Unavailable until an authoritative build executor exists"
+                      aria-describedby="build-executor-note"
                       className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500"
                     >
                       {isBuildingOS ? (
@@ -3509,23 +3513,29 @@ export default function RootMasterLab() {
                       </span>
                     </div>
                   ) : (
-                    osBuildLogs.map((log, i) => (
-                      <div
-                        key={i}
-                        className={
-                          log.includes("[STAGE") || log.includes("[COMPLETED")
-                            ? "text-purple-400 font-extrabold border-y border-[#22314D] py-1.5 my-1"
-                            : log.includes("Error")
-                              ? "text-red-500 font-extrabold"
-                              : log.includes("Success") ||
-                                  log.includes("SIMULATION RESULT: PASS")
-                                ? "text-emerald-400 font-bold"
-                                : "text-slate-300"
-                        }
-                      >
-                        {log}
-                      </div>
-                    ))
+                    osBuildLogs.map((log, i) => {
+                      const normalizedLog = log.toUpperCase();
+                      return (
+                        <div
+                          key={i}
+                          className={
+                            log.includes("[STAGE") || log.includes("[COMPLETED")
+                              ? "text-purple-400 font-extrabold border-y border-[#22314D] py-1.5 my-1"
+                              : normalizedLog.includes("ERROR")
+                                ? "text-red-500 font-extrabold"
+                                : normalizedLog.includes("SUCCESS") ||
+                                    normalizedLog.includes("VERIFIED OK") ||
+                                    normalizedLog.includes(
+                                      "SIMULATION RESULT: PASS",
+                                    )
+                                  ? "text-emerald-400 font-bold"
+                                  : "text-slate-300"
+                          }
+                        >
+                          {log}
+                        </div>
+                      );
+                    })
                   )}
                   <div ref={buildTerminalEndRef} />
                 </div>
@@ -3924,16 +3934,25 @@ export default function RootMasterLab() {
                 )}
 
                 <div className="flex justify-between items-center pt-4 border-t border-[#22314D]">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                    <Info className="h-4 w-4" /> Ready to simulate and compare
-                    headers
-                  </span>
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
+                      <Info className="h-4 w-4" /> Ready to simulate and compare headers
+                    </span>
+                    <p
+                      id="firmware-executor-note"
+                      className="text-[10px] text-slate-500"
+                    >
+                      Unavailable until an authoritative firmware-analysis
+                      executor exists.
+                    </p>
+                  </div>
 
-                    <button
+                  <button
                     type="button"
                     disabled
                     aria-disabled="true"
                     title="Unavailable until an authoritative firmware-analysis executor exists"
+                    aria-describedby="firmware-executor-note"
                     className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-500"
                   >
                     {isDissecting
@@ -4365,7 +4384,10 @@ export default function RootMasterLab() {
                 </div>
 
                 <div className="flex justify-between items-center pt-4 border-t border-[#22314D]">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
+                  <span
+                    id="device-cleanup-note"
+                    className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1"
+                  >
                     <Info className="h-4 w-4" /> Device cleanup executor not implemented
                   </span>
 
@@ -4374,6 +4396,7 @@ export default function RootMasterLab() {
                     disabled
                     aria-disabled="true"
                     title="Unavailable until an authoritative device executor exists"
+                    aria-describedby="device-cleanup-note"
                     className="flex cursor-not-allowed items-center gap-2 rounded-xl bg-slate-800 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-500"
                   >
                     Cache Optimizer Unavailable
