@@ -368,7 +368,7 @@ export default function AuditPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs text-slate-400 font-bold uppercase tracking-wider">
               <Clock className="h-4 w-4 text-[#2F58CD]" />
-              <span>Compliance Period</span>
+              <span>Simulation Period</span>
             </div>
             <h3 className="text-lg font-bold text-white">
               Test Fixture Audit Analytics
@@ -391,7 +391,7 @@ export default function AuditPage() {
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#2F58CD] to-[#6C3483] hover:from-[#3a6bf0] hover:to-[#7d3f99] text-white text-xs font-bold shadow-lg shadow-[#2F58CD]/15 transition-all duration-300"
             >
               <Printer className="h-4 w-4" />
-              Generate PDF Compliance Document
+              Generate PDF Simulation Report
             </button>
           </div>
         </div>
@@ -860,7 +860,7 @@ export default function AuditPage() {
       {/* ==================================================================== */}
       <div className="print-report-container">
         <div className="print-title">
-          VERIZON SM-S938U Knox Trust & CTIA 3.8.2 Compliance Certificate
+          SIMULATED DEVICE TRUST & CTIA 3.8.2 REPORT — NOT A CERTIFICATE
         </div>
 
         <div
@@ -880,7 +880,7 @@ export default function AuditPage() {
           <div style={{ textAlign: "right" }}>
             <strong>SYSTEM CLASSIFICATION:</strong> SECRET / UNCLASSIFIED
             <br />
-            <strong>COMPLIANCE SCOPE:</strong> VRU3CXH2 BASELINE
+            <strong>SIMULATION SCOPE:</strong> VRU3CXH2 FIXTURE BASELINE
             <br />
             <strong>CURRENT CORE INTEGRITY:</strong>{" "}
             <span
@@ -913,7 +913,7 @@ export default function AuditPage() {
             <br />
             <strong>Successful Operations:</strong> {successLogs.length}
             <br />
-            <strong>Compliance Failure Rate:</strong>{" "}
+            <strong>Simulated Threshold Result:</strong>{" "}
             <span
               style={{
                 color: deniedLogs.length > 0 ? "red" : "black",
@@ -956,7 +956,7 @@ export default function AuditPage() {
         </div>
 
         <div className="print-section-title">
-          Hardware attestation & RF metrics (CTIA 3.8.2)
+          Simulated security & RF metrics (CTIA 3.8.2)
         </div>
         <div className="print-grid" style={{ marginBottom: "15px" }}>
           <div>
@@ -966,7 +966,7 @@ export default function AuditPage() {
             <br />
             <strong>TIMA Kernel Guard:</strong> Active (Passed)
             <br />
-            <strong>Bootloader status:</strong> Locked (Passed)
+            <strong>Bootloader status:</strong> Fixture value (not verified)
           </div>
           <div>
             <strong>Total Radiated Power (TRP):</strong> 23.40 dBm (Target &gt;=
@@ -1036,7 +1036,7 @@ export default function AuditPage() {
           }}
         >
           <div>
-            <em>Digitally attested by TIMA-RKP-256 Crypto Assurance Matrix</em>
+            <em>Generated from fixture data; hardware attestation was not performed</em>
           </div>
           <div>Page 1 of 1</div>
         </div>
@@ -1062,7 +1062,7 @@ export default function AuditPage() {
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              Reviewing the filtered active compliance audit logs below prior to
+              Reviewing the filtered simulated audit logs below prior to
               exporting as a formatted CSV spreadsheet:
             </p>
 

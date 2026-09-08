@@ -246,7 +246,7 @@ export default function DevicesPage() {
     }));
 
     addToast(
-      `REASSESSMENT SECURED: Re-evaluated cryptographic signatures for ${selectedIds.length} target node(s).`,
+      `SIMULATION RESULT: PASS — fixture signatures re-evaluated for ${selectedIds.length} simulated node(s); hardware attestation and device changes were not performed.`,
       'info'
     );
     setSelectedIds([]);
@@ -280,7 +280,7 @@ export default function DevicesPage() {
     const targetDevice = devices.find(d => d.id === scannerDeviceTarget);
     
     addToast(
-      `KNOX CHIP CERTIFIED: Cryptographic verification signature attested for '${targetDevice?.name || 'Device'}'.`, 
+      `SIMULATION RESULT: PASS — fixture Knox signature baseline matched for '${targetDevice?.name || 'simulated device'}'; hardware attestation was not performed.`,
       'success'
     );
 
@@ -353,10 +353,10 @@ export default function DevicesPage() {
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-3">
             <Smartphone className="h-6 w-6 text-[#2F58CD]" />
-            Device Trust and Radio Attestations
+            Device Trust and Radio Simulation
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Zero-trust inventory with full cryptographic partition hash audits and CTIA 3.8.2 RF performance telemetry.
+            Fixture-only inventory with simulated partition-hash and CTIA 3.8.2 RF telemetry; no hardware, carrier, or compliance evidence is produced.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -365,7 +365,7 @@ export default function DevicesPage() {
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-[#2F58CD]/15 hover:bg-[#2F58CD]/30 text-[#2F58CD] text-xs font-bold border border-[#2F58CD]/30 transition-all"
           >
             <QrCode className="h-4 w-4" />
-            Launch Knox Attestor
+            Run Knox Attestation Simulation
           </button>
           <span className="text-xs bg-[#10B981]/20 text-[#10B981] font-bold px-3 py-1.5 rounded-full border border-[#10B981]/30">
             Device Registry Stable
@@ -512,7 +512,7 @@ export default function DevicesPage() {
                       <div className="lg:col-span-2 space-y-3">
                         <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
                           <Activity className="h-4 w-4 text-[#10B981]" />
-                          <span>30-Day Device Trust Score Trend (Attestation Sparkline)</span>
+                          <span>30-Day Simulated Trust Score Trend (Fixture Sparkline)</span>
                         </h4>
 
                         {/* Recharts Area sparkline graph */}
@@ -567,7 +567,7 @@ export default function DevicesPage() {
                       <div className="space-y-3">
                         <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
                           <Sparkles className="h-4 w-4 text-amber-400" />
-                          <span>Firmware Integrity Checklist</span>
+                          <span>Firmware Security Research Fixture</span>
                         </h4>
 
                         <div className="bg-[#111827]/40 rounded-xl border border-[#22314D] p-3.5 space-y-2 text-[11px] font-semibold text-slate-300">
@@ -580,12 +580,12 @@ export default function DevicesPage() {
                             <span className="font-mono text-[#10B981]">VERIFIED</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span>TEE Integrity Attestation:</span>
-                            <span className="font-mono text-[#10B981]">SECURE</span>
+                            <span>TEE Integrity Simulation:</span>
+                            <span className="font-mono text-[#10B981]">SIMULATION ONLY</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span>FRP Protection Status:</span>
-                            <span className="font-mono text-slate-400">{dev.bootloader === 'Locked' ? 'ENFORCED' : 'BYPASSED'}</span>
+                            <span className="font-mono text-slate-400">{dev.bootloader === 'Locked' ? 'SIMULATED LOCK STATE' : 'SIMULATED UNLOCK STATE'}</span>
                           </div>
                         </div>
                       </div>
@@ -605,7 +605,7 @@ export default function DevicesPage() {
                       className="text-xs font-bold flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors"
                     >
                       <QrCode className="h-3.5 w-3.5 text-[#2F58CD]" />
-                      <span>Attest Knox Chip</span>
+                      <span>Simulate Knox Chip Check</span>
                     </button>
 
                     <button 
@@ -635,7 +635,7 @@ export default function DevicesPage() {
                 <p className="text-xs font-extrabold text-white">
                   {selectedIds.length} Device{selectedIds.length === 1 ? '' : 's'} Selected
                 </p>
-                <p className="text-[10px] text-slate-400 font-medium">Perform batch compliance operations on nodes</p>
+                <p className="text-[10px] text-slate-400 font-medium">Run fixture compliance simulations on nodes</p>
               </div>
             </div>
 
@@ -686,7 +686,7 @@ export default function DevicesPage() {
             <div className="flex items-center justify-between border-b border-[#22314D] pb-4">
               <div className="flex items-center gap-2.5">
                 <QrCode className="h-5 w-5 text-[#2F58CD]" />
-                <h3 className="text-base font-bold text-white uppercase tracking-wider">Acing Matrix Knox Chip Attestor</h3>
+                <h3 className="text-base font-bold text-white uppercase tracking-wider">Acing Matrix Knox Simulation</h3>
               </div>
               <button 
                 onClick={() => setShowScanner(false)} 
@@ -727,7 +727,7 @@ export default function DevicesPage() {
             {/* Selection and Simulation control */}
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Device for Attestation</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Fixture Device for Simulation</label>
                 <select 
                   value={scannerDeviceTarget}
                   onChange={(e) => setScannerDeviceTarget(e.target.value)}
@@ -764,7 +764,7 @@ export default function DevicesPage() {
       {/* ==================================================================== */}
       <div className="print-report-container">
         <div className="print-title">
-          VERIZON DEVICES INTEGRITY & SECURE ATTESTATION CERTIFICATE
+          SIMULATED DEVICE INTEGRITY REPORT — NOT A CERTIFICATE
         </div>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -775,12 +775,12 @@ export default function DevicesPage() {
           </div>
           <div style={{ textAlign: 'right' }}>
             <strong>SYSTEM CLASSIFICATION:</strong> SECRET / UNCLASSIFIED<br />
-            <strong>REGISTRY STATUS:</strong> ACTIVE SECURE<br />
+            <strong>REGISTRY STATUS:</strong> SIMULATION ONLY — NOT VERIFIED<br />
             <strong>TOTAL NODES VERIFIED:</strong> {devices.length}
           </div>
         </div>
 
-        <div className="print-section-title">Hardware attestation & RF metrics (CTIA 3.8.2)</div>
+        <div className="print-section-title">Simulated security & RF metrics (CTIA 3.8.2)</div>
         <table className="print-table">
           <thead>
             <tr>
@@ -810,7 +810,7 @@ export default function DevicesPage() {
 
         <div style={{ marginTop: '50px', borderTop: '1px solid #999', paddingTop: '10px', fontSize: '9pt', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
           <div>
-            <em>Digitally attested by TIMA-RKP-256 Crypto Assurance Matrix</em>
+            <em>Generated from fixture data; hardware attestation was not performed</em>
           </div>
           
           {/* Security Seal SVG Graphic Overlay */}
@@ -831,7 +831,7 @@ export default function DevicesPage() {
               
               <text fontSize="5.5" fontWeight="bold" fill="#000000" letterSpacing="0.4">
                 <textPath href="#printSealTextPath" startOffset="50%" textAnchor="middle">
-                  • FIRMWARE INTEGRITY VERIFIED •
+                  • FIRMWARE SECURITY SIMULATION — NOT VERIFIED •
                 </textPath>
               </text>
               
@@ -839,11 +839,11 @@ export default function DevicesPage() {
                 SECURITY SEAL
               </text>
               <text x="50" y="75" fontSize="4.5" fill="#444444" textAnchor="middle" fontFamily="monospace">
-                KNOX ATTESTED
+                KNOX SIMULATION — NOT ATTESTED
               </text>
             </svg>
             <div style={{ textAlign: 'right', fontSize: '9pt' }}>
-              <strong>CERTIFICATE SECURED</strong><br />
+              <strong>SIMULATION REPORT — NOT CERTIFICATION</strong><br />
               Page 1 of 1
             </div>
           </div>
