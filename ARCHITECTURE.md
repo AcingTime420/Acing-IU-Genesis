@@ -12,7 +12,7 @@
 ## 1. Project overview
 
 **Acing IU: Genesis** is a custom Android-based OS security platform.  
-Its primary purpose is to provide hardware-backed security, boot integrity, and a hardened administrative interface for Acing OS devices.
+Its primary purpose is to provide security architecture, boot-integrity research, and a hardened administrative interface for Acing OS devices.
 
 ---
 
@@ -48,7 +48,7 @@ Its primary purpose is to provide hardware-backed security, boot integrity, and 
 | File | Purpose |
 |---|---|
 | `system/security/guardian/boot/guardian_init.sh` | Init-sequence script; verifies AVB, starts keystore, activates IU security. |
-| `system/security/guardian/boot/acing_vault_init` | Initialises the Acing Vault (hardware-backed key store emulator). |
+| `system/security/guardian/boot/acing_vault_init` | Initialises the Acing Vault (software emulator; not production hardware evidence). |
 | `system/security/guardian/boot/acing_vault_check_tamper` | Detects runtime tampering of the vault. |
 
 ### 3.2 Interface User (IU) Security ✅ Experimental
@@ -70,7 +70,7 @@ Kotlin system service (`system/security/guardian/core/GuardianService.kt`) that 
 ### 3.4 AcingVaultEmulator 🧪 Experimental
 
 `system/security/guardian/core/AcingVaultEmulator.kt` — software emulation of hardware-backed key storage for development.  
-Production target: TrustZone / hardware Keystore.
+Future research target: TrustZone / hardware Keystore; not available or validated in the current repository.
 
 ### 3.5 Threat Engine ✅ Experimental
 
@@ -80,7 +80,7 @@ Production target: TrustZone / hardware Keystore.
 | `threat/AnomalyDetector.kt` | Behavioural anomaly detection stub. |
 | `threat/NetworkThreatMonitor.kt` | Network traffic monitoring stub. |
 
-### 3.6 Policy & Compliance Engine ✅ Experimental
+### 3.6 Policy & Compliance Research Engine ✅ Experimental (simulation/planning only)
 
 `system/security/guardian/policy/policies.json` — declarative security policies (boot integrity, keystore init, tamper detection, biometric auth, secure workspace).
 
@@ -123,7 +123,7 @@ See `SECURITY.md` and `THREAT_MODEL.md` for full detail.
 
 Key design principles:
 
-1. **Hardware root of trust** — Acing Vault (TrustZone target) is the root of all key operations.
+1. **Future hardware-root-of-trust research** — Acing Vault (TrustZone target) is a future target; the current implementation is software emulation and is not evidence of production hardware.
 2. **Verified boot** — every boot image is AVB-verified before execution.
 3. **Least privilege** — IU Security mounts and protects only the surfaces it owns.
 4. **Defence in depth** — boot integrity + runtime threat engine + policy engine layer independently.
