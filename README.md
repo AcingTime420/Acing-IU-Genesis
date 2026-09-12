@@ -199,7 +199,7 @@ From the repository root:
 
 ```bash
 cd frontend
-npm install --package-lock=false
+npm ci
 npm run lint
 npm run build
 ```
