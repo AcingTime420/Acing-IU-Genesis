@@ -265,11 +265,11 @@ export default function DevicesPage() {
     // Update the device in the local state
     setDevices(prev => prev.map(dev => {
       if (dev.id === scannerDeviceTarget) {
-        // Boost score / attest device
+        // Fixture-only score update; no device attestation
         const isCompromised = dev.id === 'dev-rooted-938';
         return {
           ...dev,
-          trustScore: isCompromised ? 15 : 100, // Tripped warranty still gets penalty but attests chip presence
+          trustScore: isCompromised ? 15 : 100, // Tripped warranty still gets penalty in the fixture simulation
           timaRkp: "Active",
           selinux: "Enforcing"
         };
@@ -443,7 +443,7 @@ export default function DevicesPage() {
                   {/* Score indicators */}
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Acing Trust Score</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Acing Trust Score (Fixture)</p>
                       <p className={`text-lg font-extrabold ${
                         dev.trustScore >= 85 ? 'text-[#10B981]' : dev.trustScore >= 50 ? 'text-[#F59E0B]' : 'text-red-500'
                       }`}>
@@ -458,7 +458,11 @@ export default function DevicesPage() {
                           ? 'bg-emerald-500/10 text-[#10B981] border-emerald-500/20' 
                           : 'bg-amber-500/10 text-[#F59E0B] border-amber-500/20'
                     }`}>
-                      {dev.quarantined ? "Quarantined" : dev.trustScore >= 85 ? "Trusted Core" : "Elevated State"}
+                      {dev.quarantined
+                        ? "Simulation Result: FAIL (Quarantined)"
+                        : dev.trustScore >= 85
+                          ? "Simulation Result: PASS (Trusted Core)"
+                          : "Simulation Result: REVIEW (Elevated State)"}
                     </span>
                   </div>
                 </div>
@@ -588,8 +592,8 @@ export default function DevicesPage() {
                             <span className="font-mono text-[#10B981]">FIXTURE_SECURE</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span>FRP Protection Status:</span>
-                            <span className="font-mono text-slate-400">{dev.bootloader === 'Locked' ? 'ENFORCED' : 'BYPASSED'}</span>
+                            <span>FRP Protection Fixture:</span>
+                            <span className="font-mono text-slate-400">{dev.bootloader === 'Locked' ? 'FIXTURE_LOCKED' : 'FIXTURE_BYPASSED'}</span>
                           </div>
                         </div>
                       </div>
@@ -655,7 +659,7 @@ export default function DevicesPage() {
               
               <button 
                 disabled
-                title="Unavailable until a verified device-policy executor exists"
+                title="Unavailable until an authoritative device-policy executor exists"
                 className="cursor-not-allowed rounded-xl border border-slate-600/20 bg-slate-700/10 px-3.5 py-2 text-xs font-bold text-slate-600"
               >
                 Clear Quarantine Unavailable
@@ -663,7 +667,7 @@ export default function DevicesPage() {
 
               <button 
                 disabled
-                title="Unavailable until a verified device-policy executor exists"
+                title="Unavailable until an authoritative device-policy executor exists"
                 className="flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-slate-600/20 bg-slate-700/10 px-3.5 py-2 text-xs font-bold text-slate-600"
               >
                 <ShieldAlert className="h-3.5 w-3.5" />
@@ -830,7 +834,7 @@ export default function DevicesPage() {
               {/* Star graphics inside seal */}
               <path d="M50 22 L52.5 30 L61 30 L54 35 L56.5 43 L50 38 L43.5 43 L46 35 L39 30 L47.5 30 Z" fill="#000000" opacity="0.12" />
               
-              {/* Checkmark in the center certifying integrity */}
+              {/* Checkmark in the center indicating fixture result */}
               <path d="M41 51 L47 57 L59 43" fill="none" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
               
               {/* Curved assurance text path definition */}
