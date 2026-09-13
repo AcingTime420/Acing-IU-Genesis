@@ -14,10 +14,11 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
+  // All values below are local demonstration fixtures only.
   const stats = [
-    { name: 'S938U Knox Trust', value: 'Fixture 100 / 100', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No device attestation' },
-    { name: 'Active Policies', value: '4 Demo Rules', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'Not enforced' },
-    { name: 'CTIA 3.8.2 RF Signal', value: 'Fixture 23.40 dBm', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No RF validation' },
+    { name: 'S938U Trust Score (fixture)', value: 'Fixture 100 / 100', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No device attestation' },
+    { name: 'Active Policies (demo)', value: '4 Demo Rules', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'Not enforced' },
+    { name: 'RF Signal (fixture)', value: 'Fixture 23.40 dBm', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No RF validation' },
     { name: 'Security Quarantine', value: 'Fixture 0 Devices', status: 'Simulator', color: 'text-[#F59E0B]', desc: 'No live monitoring' }
   ];
 
@@ -27,10 +28,12 @@ export default function Dashboard() {
       <div className="relative p-8 rounded-3xl overflow-hidden border border-[#22314D] bg-gradient-to-r from-[#111827] via-[#151D30] to-[#111827] glow-blue">
         <div className="relative z-10 space-y-2">
           <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            Acing Matrix Security Operations
+            Acing Matrix Security Operations (Simulator)
           </h1>
           <p className="max-w-2xl text-sm font-medium text-slate-400">
-            Simulator dashboard for planned firmware, Knox, policy, RF, and quarantine workflows. All displayed values are fixtures; no live device state is read, verified, monitored, or enforced.
+            Simulator dashboard for planned firmware, policy, RF, and quarantine workflows.
+            All displayed values are fixtures; no live device state is read, verified, monitored, or enforced.
+            No hardware attestation or third-party certification is claimed or performed.
           </p>
         </div>
         {/* Dynamic decorative backdrop circles */}
@@ -61,16 +64,17 @@ export default function Dashboard() {
           <div className="flex items-center justify-between border-b border-[#22314D] pb-4">
             <div className="flex items-center gap-3">
               <Layers className="h-5 w-5 text-[#2F58CD]" />
-              <h3 className="text-base font-bold text-white">S938U super.img Partition Schema (VZW)</h3>
+              <h3 className="text-base font-bold text-white">S938U super.img Partition Schema (Fixture)</h3>
             </div>
             <span className="text-xs bg-[#2F58CD]/20 text-[#2F58CD] font-bold px-2.5 py-1 rounded-full border border-[#2F58CD]/30">
-              Approved Baseline VRU3CXH2
+              Demo Baseline Only
             </span>
           </div>
 
           <div className="space-y-4">
             <p className="text-xs text-slate-400 leading-relaxed font-medium">
-              Simulator data illustrates a planned SHA-256 partition comparison workflow. These values are fixtures only; no device, firmware image, or Knox integrity state has been verified.
+              Simulator data illustrates a planned SHA-256 partition comparison workflow.
+              These values are fixtures only; no device, firmware image, or hardware integrity state has been verified.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -84,7 +88,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
                   <span>Size: 3,420,540,210 Bytes</span>
-                  <span>Approved Hash: 3c59a35e...</span>
+                  <span>Demo Hash: 3c59a35e...</span>
                 </div>
               </div>
 
@@ -98,7 +102,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
                   <span>Size: 950,230,112 Bytes</span>
-                  <span>Approved Hash: a5732f98...</span>
+                  <span>Demo Hash: a5732f98...</span>
                 </div>
               </div>
 
@@ -112,7 +116,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
                   <span>Size: 1,850,302,510 Bytes</span>
-                  <span>Approved Hash: b5722f98...</span>
+                  <span>Demo Hash: b5722f98...</span>
                 </div>
               </div>
 
@@ -126,7 +130,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
                   <span>Size: 240,430,900 Bytes</span>
-                  <span>Approved Hash: c44cb89a...</span>
+                  <span>Demo Hash: c44cb89a...</span>
                 </div>
               </div>
             </div>
@@ -138,7 +142,7 @@ export default function Dashboard() {
           <div className="space-y-4">
             <div className="flex items-center gap-3 border-b border-[#22314D] pb-4">
               <Lock className="h-5 w-5 text-[#6C3483]" />
-              <h3 className="text-base font-bold text-white">Acing Matrix Policies</h3>
+              <h3 className="text-base font-bold text-white">Acing Matrix Policies (Demo)</h3>
             </div>
 
             <div className="space-y-3.5">
@@ -146,7 +150,7 @@ export default function Dashboard() {
                 <CheckCircle2 className="h-4.5 w-4.5 text-[#10B981] shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-xs font-bold text-white">System Modification Policy</h4>
-                  <p className="text-[10px] text-slate-400">Requires Trust {`>=`} 80, MFA verified, Admin/Operator roles.</p>
+                  <p className="text-[10px] text-slate-400">Planned: Trust {`>=`} 80, MFA verified, Admin/Operator roles. Not enforced here.</p>
                 </div>
               </div>
 
@@ -154,7 +158,7 @@ export default function Dashboard() {
                 <CheckCircle2 className="h-4.5 w-4.5 text-[#10B981] shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-xs font-bold text-white">Partition Wipe Protection</h4>
-                  <p className="text-[10px] text-slate-400">Requires Trust {`>=`} 90, MFA verified, Admin only.</p>
+                  <p className="text-[10px] text-slate-400">Planned: Trust {`>=`} 90, MFA verified, Admin only. Not enforced here.</p>
                 </div>
               </div>
 
@@ -162,7 +166,7 @@ export default function Dashboard() {
                 <CheckCircle2 className="h-4.5 w-4.5 text-[#10B981] shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-xs font-bold text-white">Firmware Update Flash Limit</h4>
-                  <p className="text-[10px] text-slate-400">Requires Trust {`>=`} 85, MFA verified, Admin/Operator roles.</p>
+                  <p className="text-[10px] text-slate-400">Planned: Trust {`>=`} 85, MFA verified, Admin/Operator roles. Not enforced here.</p>
                 </div>
               </div>
             </div>
@@ -170,12 +174,12 @@ export default function Dashboard() {
 
           <div className="bg-[#111827]/40 p-4 rounded-xl border border-[#22314D] space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-300">CTIA RF Validation</span>
+              <span className="font-bold text-slate-300">RF Validation (fixture)</span>
               <span className="text-[#F59E0B] font-bold">Fixture Example</span>
             </div>
             <p className="text-[10px] text-slate-400 leading-relaxed">
               Simulator example: TRP baseline target {`>=`} 23.0 dBm with a
-              fixture value of 23.40 dBm. No RF measurement or CTIA validation
+              fixture value of 23.40 dBm. No RF measurement or external validation
               was performed.
             </p>
           </div>
