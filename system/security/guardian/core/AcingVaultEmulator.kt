@@ -9,6 +9,9 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * It provides methods for securely storing, retrieving, and erasing sensitive data,
  * and includes a basic mechanism to simulate tamper detection.
+ *
+ * IMPORTANT: This is a pure software emulator. It does not provide hardware-backed
+ * isolation, attestation, or certification of any kind.
  */
 object AcingVaultEmulator {
 
@@ -20,13 +23,12 @@ object AcingVaultEmulator {
     /**
      * Initializes the Acing Vault Emulator.
      * In a real vault, this would involve hardware self-checks and secure boot.
+     * This software path is deterministic: no random failure is injected.
      */
     fun initialize() {
-        println("[AcingVaultEmulator] Initializing Acing Vault Emulator...")
-        // Simulate hardware checks
-        if (Math.random() < 0.01) { // 1% chance of simulated tamper on init
-            simulateTamper()
-        }
+        println("[AcingVaultEmulator] Initializing Acing Vault Emulator (software simulation only)...")
+        // Deterministic init — do not inject random tamper.
+        // Call simulateTamper() explicitly from tests when a tampered state is required.
         println("[AcingVaultEmulator] Acing Vault Emulator initialized. Tamper status: ${if (tamperDetected) "DETECTED" else "CLEAN"}")
     }
 
@@ -85,6 +87,7 @@ object AcingVaultEmulator {
     /**
      * Simulates a tamper event. This would be triggered by hardware sensors in a real vault.
      * Upon tamper detection, all secrets are immediately erased to prevent compromise.
+     * Call this explicitly from tests; it is never invoked automatically on initialize.
      */
     fun simulateTamper() {
         println("[AcingVaultEmulator] CRITICAL: Simulating tamper event! Erasing all secrets.")
@@ -117,13 +120,14 @@ object AcingVaultEmulator {
     /**
      * Simulates a hardware-backed attestation process.
      * In a real vault, this would involve generating a cryptographic attestation certificate.
+     * This software path returns a non-cryptographic placeholder only.
      */
     fun performAttestation(challenge: ByteArray): ByteArray? {
         if (tamperDetected) {
             println("[AcingVaultEmulator] WARNING: Tamper detected. Cannot perform attestation.")
             return null
         }
-        println("[AcingVaultEmulator] Performing simulated attestation...")
+        println("[AcingVaultEmulator] Performing simulated (non-cryptographic) attestation...")
         // Simulate a signed response to the challenge
         val response = "AcingVaultAttestationResponse:${String(challenge)}".toByteArray()
         // In a real scenario, this would be cryptographically signed by a vault-resident key.
