@@ -4,57 +4,63 @@ import React from 'react';
 import { Users, Shield, UserCheck, Key, ShieldAlert } from 'lucide-react';
 
 export default function UsersPage() {
+  // All records below are local demonstration fixtures only.
+  // No live identity, MFA, or hardware attestation is performed.
   const users = [
     { 
       id: "usr-4927-aa31", 
-      email: "mick.hart@verizon.com", 
+      email: "admin.fixture@example.invalid", 
       role: "Admin", 
       mfaEnabled: true, 
       status: "Active", 
-      clearance: "L4 Global Security",
-      keySignature: "SIG-KNOX-8501-A2"
+      clearance: "L4 Demo Clearance (fixture)",
+      keySignature: "SIG-FIXTURE-8501-A2"
     },
     { 
       id: "usr-8821-ff56", 
-      email: "operator.s938u@aistudio.build", 
+      email: "operator.fixture@example.invalid", 
       role: "Operator", 
       mfaEnabled: true, 
       status: "Active", 
-      clearance: "L3 Hardware Attestation",
-      keySignature: "SIG-KNOX-3942-F1"
+      clearance: "L3 Demo Clearance (fixture)",
+      keySignature: "SIG-FIXTURE-3942-F1"
     },
     { 
       id: "usr-1102-cc90", 
-      email: "micki.hart10041991@gmail.com", 
+      email: "user.fixture@example.invalid", 
       role: "User", 
       mfaEnabled: false, 
       status: "Active", 
-      clearance: "L1 Telemetry Read",
-      keySignature: "SIG-KNOX-0041-C0"
+      clearance: "L1 Demo Clearance (fixture)",
+      keySignature: "SIG-FIXTURE-0041-C0"
     }
   ];
 
   return (
     <div className="space-y-8 animate-fadeIn">
+      <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100">
+        <strong>Simulator fixture only.</strong> All personnel records, clearances, and signature IDs on this page are demonstration data. No live authentication, MFA enrollment, or hardware attestation is performed.
+      </div>
+
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[#22314D] pb-6">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-3">
             <Users className="h-6 w-6 text-[#2F58CD]" />
-            Operator Access and Credentials
+            Operator Access and Credentials (Fixture)
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Manage administrative roles, multi-factor keys, and security clearance logs for system-level actions.
+            Demonstration roles and clearance labels only. No system-level actions are authorized from this page.
           </p>
         </div>
         <span className="text-xs bg-[#6C3483]/20 text-[#6C3483] font-bold px-3 py-1.5 rounded-full border border-[#6C3483]/30">
-          3 Personnel Loaded
+          3 Fixture Records
         </span>
       </div>
 
       {/* Main Personnel Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {users.map((user, i) => (
+        {users.map((user) => (
           <div key={user.id} className="glass-card rounded-2xl p-6 hover:border-[#6C3483]/50 transition-all duration-300 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               {/* Header card info */}
@@ -81,13 +87,13 @@ export default function UsersPage() {
               {/* Key signatures */}
               <div className="p-3 bg-[#111827]/40 rounded-xl border border-[#22314D] font-mono text-[10px] text-slate-400 space-y-1">
                 <div className="flex justify-between items-center">
-                  <span>Sign ID:</span>
+                  <span>Sign ID (fixture):</span>
                   <span className="text-white font-bold">{user.keySignature}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>MFA Status:</span>
+                  <span>MFA Status (fixture):</span>
                   <span className={user.mfaEnabled ? "text-[#10B981] font-bold" : "text-[#EF4444] font-bold"}>
-                    {user.mfaEnabled ? "VERIFIED_SECRET" : "NOT_ENROLLED"}
+                    {user.mfaEnabled ? "FIXTURE_VERIFIED" : "FIXTURE_NOT_ENROLLED"}
                   </span>
                 </div>
               </div>
@@ -99,8 +105,8 @@ export default function UsersPage() {
                 <span className="h-1.5 w-1.5 bg-[#10B981] rounded-full"></span>
                 {user.status}
               </span>
-              <button className="text-slate-400 hover:text-white font-bold transition-colors">
-                Audit Actions
+              <button className="text-slate-400 hover:text-white font-bold transition-colors" disabled title="Fixture only — no audit actions">
+                Audit Actions (disabled)
               </button>
             </div>
           </div>
@@ -111,9 +117,10 @@ export default function UsersPage() {
       <div className="p-4 rounded-xl border border-[#22314D] bg-[#111827]/30 flex items-start gap-3.5">
         <ShieldAlert className="h-5 w-5 text-[#EF4444] shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <h4 className="text-xs font-bold text-slate-300">Administrative Safeguards</h4>
+          <h4 className="text-xs font-bold text-slate-300">Administrative Safeguards (Planned)</h4>
           <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-            System modifications require BOTH an Admin role with verified hardware multi-factor tokens and a compliant device trust score exceeding 85. Standard users are restricted from executing partitions wipes or security certificate key rotations.
+            Production system modifications will require verified multi-factor tokens and a compliant device trust score.
+            This page displays fixture data only and does not authorize any partition, certificate, or security-key operations.
           </p>
         </div>
       </div>
