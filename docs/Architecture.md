@@ -1,6 +1,11 @@
 # Acing IU — Architectural Specifications
 
-This document outlines the system architecture for **Acing IU**, a security-first platform modeled after a Knox-style zero-trust trust architecture. All interactions are centralized, authenticated, authorized, policy-checked, and thoroughly audited before granting resource access.
+> **Claim status (issue #63):** This document describes *target architecture*
+> and *design inspiration*. References to Knox, CTIA, or carrier certification
+> are **not** claims that those products or certifications are implemented,
+> integrated, or certified in this repository today.
+
+This document outlines the system architecture for **Acing IU**, a security-first platform modeled after industry zero-trust device-trust patterns (design inspiration includes concepts popularized by platforms such as Samsung Knox). All interactions are intended to be centralized, authenticated, authorized, policy-checked, and thoroughly audited before granting resource access.
 
 ---
 
@@ -68,9 +73,9 @@ Protects endpoints and specific features by:
 *   Consulting the Attribute-Based Access Control (ABAC) engine to consider operational variables (e.g., source IP, time-of-day).
 
 ### 2.4 Device Trust Engine
-Enforces hardware and platform health compliance:
+Enforces hardware and platform health compliance *when signals are available*:
 *   Enrolls and identifies devices using unique digital signatures.
-*   Calculates a dynamic **Device Trust Score** (0-100) based on platform version, security patches, app version, jailbreak status, and attestation.
+*   Calculates a dynamic **Device Trust Score** (0-100) based on platform version, security patches, app version, jailbreak status, and attestation *when present*.
 *   Grants access only to devices with acceptable trust tiers:
     *   **90 - 100**: Trusted
     *   **70 - 89**: Elevated
@@ -90,36 +95,36 @@ The immutable compliance recorder:
 
 ---
 
-## 3. The Acing Matrix Trust Chain
+## 3. The Acing Matrix Trust Chain (target design)
 
-To guarantee complete zero-trust access control, Acing IU implements the **Acing Matrix Trust Chain** for SM-S938U Verizon endpoints. Access is only authorized when each tier of the trust chain is validated continuously in real-time.
+The following chain is the **target** model for high-assurance endpoints (e.g., SM-S938U research profile). Tiers below that require vendor hardware or carrier evidence are **not implemented as live integrations** in the current codebase; software simulators and fixtures stand in for development.
 
 ```text
-  [Tier 1: SM-S938U Hardware RoT]
+  [Tier 1: Hardware Root of Trust — target]
                 |
-                v  (Hardware-backed key signing & boot status)
-  [Tier 2: Knox Vault Isolation]
+                v  (Hardware-backed key signing & boot status when available)
+  [Tier 2: Isolated Vault — target / currently emulated]
                 |
-                v  (TIMA, RKP, and SELinux Enforcing checks)
-  [Tier 3: Knox Attestation API]
+                v  (Kernel integrity & SELinux checks when signals exist)
+  [Tier 3: Device attestation — target]
                 |
-                v  (Odin AP/BL/CP/CSC certified partition checks)
-  [Tier 4: Carrier Firmware Asset Verification]
+                v  (Partition baseline checks when inventory exists)
+  [Tier 4: Firmware asset verification — target]
                 |
-                v  (CTIA OTA 3.8.2 RF TRP/TIS connection checks)
-  [Tier 5: Secure Radio Transport]
+                v  (Radio quality metrics — research only, not certification)
+  [Tier 5: Secure transport signals — research]
                 |
                 v  (Acing Device Trust Service validation)
   [Tier 6: Policy Evaluator decision payload]
 ```
 
-### 3.1 Trust Chain Verification Mechanics
-1.  **Tier 1: Hardware Root of Trust**: The S25 Ultra Qualcomm Snapdragon 8 Elite hardware-backed RoT verifies primary system image signatures during the boot stage.
-2.  **Tier 2: Knox Vault Isolation**: Knox Vault isolated security hardware securely signs attestations using private keys generated in-chip, ensuring the trust state cannot be spoofed.
-3.  **Tier 3: Knox Attestation**: The system invokes the Knox Attestation API, validating that TrustZone-based TIMA, RKP, and SELinux are fully functional and in `Enforcing` mode.
-4.  **Tier 4: Carrier Firmware Asset Verification**: Partitions uploaded through Odin (AP system binary, BL bootloader, CP radio modem, CSC Verizon config) are evaluated. The MD5/SHA-256 hashes must strictly match the authorized Verizon SM-S938U baseline version.
-5.  **Tier 5: Secure Radio Transport**: Ensures that connection to the system is established via standard Verizon bands and that the terminal conforms with **CTIA OTA Performance Test Plan v3.8.2** limits (verifying TRP, TIS, and A-GNSS metrics) to protect the link against interference or baseband spoofing.
-6.  **Tier 6: Acing Policy Evaluator**: Access is permitted only when all preceding trust tiers are successful.
+### 3.1 Trust Chain Verification Mechanics (targets vs current)
+1.  **Tier 1: Hardware Root of Trust**: *Target* — verify system image signatures during boot on supported devices. Current builds do not perform live hardware RoT validation.
+2.  **Tier 2: Isolated Vault**: *Target* — hardware-isolated key storage. Current builds use `AcingVaultEmulator` (software only).
+3.  **Tier 3: Device attestation**: *Target* — platform attestation APIs and integrity signals (e.g., TIMA/RKP/SELinux analogs when exposed). Not a third-party Knox product integration.
+4.  **Tier 4: Firmware asset verification**: *Target* — compare partition hashes to an approved baseline when a signed inventory is available.
+5.  **Tier 5: Radio transport signals**: *Research* — optional quality metrics. **Not** a claim of CTIA certification.
+6.  **Tier 6: Acing Policy Evaluator**: Access is permitted only when configured policy checks pass on available signals.
 
 ---
 
