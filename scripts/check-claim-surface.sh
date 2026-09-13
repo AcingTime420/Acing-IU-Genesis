@@ -18,25 +18,24 @@ report() {
 
 # ── 1. Operator-facing frontend: no bare product/cert claims ─────────────
 if [[ -d frontend/src ]]; then
-  # SIG-KNOX style identifiers in UI fixtures
-  while IFS= read -r -d '' f; do
+  mapfile -t FRONTEND_FILES < <(find frontend/src -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.jsx' -o -name '*.js' \) 2>/dev/null || true)
+  for f in "${FRONTEND_FILES[@]:-}"; do
+    [[ -z "$f" ]] && continue
     if grep -nE 'SIG-KNOX' "$f" >/dev/null 2>&1; then
       report "$f" "Contains SIG-KNOX identifier (use SIG-FIXTURE-* instead)"
     fi
-    # Real-looking personal/corporate emails in fixtures
     if grep -nEi '@(gmail|verizon|yahoo|hotmail|outlook)\.com' "$f" >/dev/null 2>&1; then
       report "$f" "Contains real-looking email domain in fixture data (use @example.invalid)"
     fi
-    # Operational Knox attestation / certification language without fixture framing
     if grep -nEi 'Knox (certified|attestation|warranty|fuse|vault|matrix)' "$f" >/dev/null 2>&1; then
-      # Allow only if the same line also contains fixture/simulator/not available
       while IFS= read -r line; do
+        [[ -z "$line" ]] && continue
         if ! echo "$line" | grep -qiE 'fixture|simulator|not (available|certified|operational)|design inspiration|no .+ attestation'; then
           report "$f" "Operator surface uses Knox capability language without fixture disclaimer: ${line:0:120}"
         fi
       done < <(grep -nEi 'Knox (certified|attestation|warranty|fuse|vault|matrix)' "$f" || true)
     fi
-  done < <(find frontend/src -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.jsx' -o -name '*.js' \) -print0 2>/dev/null)
+  done
 fi
 
 # ── 2. RootMaster must remain the safety-gate stub ───────────────────────
