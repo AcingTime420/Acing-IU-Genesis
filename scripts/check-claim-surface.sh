@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 # check-claim-surface.sh — Block unsupported security/certification claims (#63)
-#
-# Scans operator-facing and fixture surfaces for terms that imply live Knox,
-# Magisk, certification, or real personal data. Design-doc language is allowed
-# only when clearly framed as inspiration / not implemented.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -16,26 +12,29 @@ report() {
   FAIL=1
 }
 
-# ── 1. Operator-facing frontend: no bare product/cert claims ─────────────
+# ── 1. Operator-facing frontend ──────────────────────────────────────────
 if [[ -d frontend/src ]]; then
-  mapfile -t FRONTEND_FILES < <(find frontend/src -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.jsx' -o -name '*.js' \) 2>/dev/null || true)
-  for f in "${FRONTEND_FILES[@]:-}"; do
-    [[ -z "$f" ]] && continue
+  TMP_LIST="$(mktemp)"
+  find frontend/src -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.jsx' -o -name '*.js' \) >"$TMP_LIST" 2>/dev/null || true
+  while IFS= read -r f; do
+    [[ -z "$f" || ! -f "$f" ]] && continue
     if grep -nE 'SIG-KNOX' "$f" >/dev/null 2>&1; then
       report "$f" "Contains SIG-KNOX identifier (use SIG-FIXTURE-* instead)"
     fi
     if grep -nEi '@(gmail|verizon|yahoo|hotmail|outlook)\.com' "$f" >/dev/null 2>&1; then
       report "$f" "Contains real-looking email domain in fixture data (use @example.invalid)"
     fi
-    if grep -nEi 'Knox (certified|attestation|warranty|fuse|vault|matrix)' "$f" >/dev/null 2>&1; then
-      while IFS= read -r line; do
-        [[ -z "$line" ]] && continue
-        if ! echo "$line" | grep -qiE 'fixture|simulator|not (available|certified|operational)|design inspiration|no .+ attestation'; then
-          report "$f" "Operator surface uses Knox capability language without fixture disclaimer: ${line:0:120}"
-        fi
-      done < <(grep -nEi 'Knox (certified|attestation|warranty|fuse|vault|matrix)' "$f" || true)
-    fi
-  done
+    TMP_HITS="$(mktemp)"
+    grep -nEi 'Knox (certified|attestation|warranty|fuse|vault|matrix)' "$f" >"$TMP_HITS" 2>/dev/null || true
+    while IFS= read -r line; do
+      [[ -z "$line" ]] && continue
+      if ! echo "$line" | grep -qiE 'fixture|simulator|not (available|certified|operational)|design inspiration|no .+ attestation'; then
+        report "$f" "Operator surface uses Knox capability language without fixture disclaimer: ${line:0:120}"
+      fi
+    done <"$TMP_HITS"
+    rm -f "$TMP_HITS"
+  done <"$TMP_LIST"
+  rm -f "$TMP_LIST"
 fi
 
 # ── 2. RootMaster must remain the safety-gate stub ───────────────────────
