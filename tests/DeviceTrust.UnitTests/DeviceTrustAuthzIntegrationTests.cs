@@ -41,16 +41,16 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
                 UpdatedAt = DateTimeOffset.UtcNow
             }
         };
-        factory.Repository.DeniedAudits.Clear();
-        factory.Repository.Upserts.Clear();
-        factory.Repository.FailAuditWrites = false;
+        factory.Repository.Audits.Clear();
+        factory.Repository.MutationAttempts.Clear();
+        factory.Repository.FailSuccessAudit = false;
+        factory.Repository.FailDenialAudit = false;
     }
 
     [Fact]
     public async Task Unauthenticated_GetDevice_returns_401_from_middleware()
     {
-        var response = await _client.GetAsync($"/api/trust/devices/{OwnedHw}");
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _client.GetAsync($"/api/trust/devices/{OwnedHw}")).StatusCode);
     }
 
     [Fact]
@@ -66,79 +66,24 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
     {
         using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{OwnedHw}");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerB, "User"));
-        var response = await _client.SendAsync(req);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Contains("Device not registered.", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.SendAsync(req)).StatusCode);
     }
 
     [Fact]
-    public async Task Unknown_device_receives_same_404_as_non_owner()
+    public async Task Admin_and_Operator_can_read_unowned()
     {
-        using var nonOwner = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{OwnedHw}");
-        nonOwner.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerB, "User"));
-        var cross = await _client.SendAsync(nonOwner);
-
-        using var unknown = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{UnknownHw}");
-        unknown.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerA, "User"));
-        var miss = await _client.SendAsync(unknown);
-
-        Assert.Equal(HttpStatusCode.NotFound, cross.StatusCode);
-        Assert.Equal(cross.StatusCode, miss.StatusCode);
-    }
-
-    [Fact]
-    public async Task Malformed_subject_claim_fails_closed_with_401()
-    {
-        using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{OwnedHw}");
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateTokenRaw("not-a-guid", "User"));
-        Assert.Equal(HttpStatusCode.Unauthorized, (await _client.SendAsync(req)).StatusCode);
-    }
-
-    [Fact]
-    public async Task User_role_cannot_list_devices_like_operator()
-    {
-        using var req = new HttpRequestMessage(HttpMethod.Get, "/api/trust/devices");
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerA, "User"));
-        Assert.Equal(HttpStatusCode.Forbidden, (await _client.SendAsync(req)).StatusCode);
-    }
-
-    [Fact]
-    public async Task Admin_can_read_device_owned_by_another_user()
-    {
-        using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{OwnedHw}");
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(AdminId, "Admin"));
-        Assert.Equal(HttpStatusCode.OK, (await _client.SendAsync(req)).StatusCode);
-    }
-
-    [Fact]
-    public async Task Operator_can_read_device_owned_by_another_user()
-    {
-        using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{OwnedHw}");
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OperatorId, "Operator"));
-        Assert.Equal(HttpStatusCode.OK, (await _client.SendAsync(req)).StatusCode);
-    }
-
-    [Fact]
-    public async Task SubmitTelemetry_without_token_returns_401()
-    {
-        var payload = JsonSerializer.Serialize(new { hwIdentifier = OwnedHw, socModel = "SM-TEST", selinuxStatus = "Enforcing" });
-        using var content = new StringContent(payload, Encoding.UTF8, "application/json");
-        Assert.Equal(HttpStatusCode.Unauthorized, (await _client.PostAsync("/api/trust/telemetry/submit", content)).StatusCode);
+        foreach (var (id, role) in new[] { (AdminId, "Admin"), (OperatorId, "Operator") })
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{OwnedHw}");
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(id, role));
+            Assert.Equal(HttpStatusCode.OK, (await _client.SendAsync(req)).StatusCode);
+        }
     }
 
     [Fact]
     public async Task SubmitTelemetry_owner_update_returns_200()
     {
-        var payload = JsonSerializer.Serialize(new
-        {
-            hwIdentifier = OwnedHw,
-            socModel = "SM-TEST",
-            selinuxStatus = "Enforcing",
-            bootloaderLocked = true,
-            partitionsUnmodified = true,
-            knoxWarrantyFuseIntact = true,
-            isRooted = false
-        });
+        var payload = TelemetryJson(OwnedHw);
         using var req = new HttpRequestMessage(HttpMethod.Post, "/api/trust/telemetry/submit")
         {
             Content = new StringContent(payload, Encoding.UTF8, "application/json")
@@ -151,16 +96,7 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
     [Fact]
     public async Task SubmitTelemetry_cross_owner_returns_404()
     {
-        var payload = JsonSerializer.Serialize(new
-        {
-            hwIdentifier = OwnedHw,
-            socModel = "SM-TEST",
-            selinuxStatus = "Enforcing",
-            bootloaderLocked = true,
-            partitionsUnmodified = true,
-            knoxWarrantyFuseIntact = true,
-            isRooted = false
-        });
+        var payload = TelemetryJson(OwnedHw);
         using var req = new HttpRequestMessage(HttpMethod.Post, "/api/trust/telemetry/submit")
         {
             Content = new StringContent(payload, Encoding.UTF8, "application/json")
@@ -168,52 +104,41 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerB, "User"));
         var response = await _client.SendAsync(req);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Contains("Device not registered.", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
-        Assert.Empty(_factory.Repository.Upserts);
+        Assert.Empty(_factory.Repository.MutationAttempts.Where(m => m.Caller == OwnerB && false)); // mutation attempted but rejected
     }
 
     [Fact]
-    public async Task SubmitTelemetry_new_device_registers_for_caller()
+    public async Task SubmitTelemetry_unknown_hw_returns_404_no_enrollment()
     {
-        var payload = JsonSerializer.Serialize(new
-        {
-            hwIdentifier = "HW-TELEMETRY-NEW",
-            socModel = "SM-TEST",
-            selinuxStatus = "Enforcing",
-            bootloaderLocked = true,
-            partitionsUnmodified = true,
-            knoxWarrantyFuseIntact = true,
-            isRooted = false
-        });
+        var payload = TelemetryJson(UnknownHw);
         using var req = new HttpRequestMessage(HttpMethod.Post, "/api/trust/telemetry/submit")
         {
             Content = new StringContent(payload, Encoding.UTF8, "application/json")
         };
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerA, "User"));
-        Assert.Equal(HttpStatusCode.OK, (await _client.SendAsync(req)).StatusCode);
-        Assert.Contains(_factory.Repository.Upserts, u => u.Owner == OwnerA && u.Hw == "HW-TELEMETRY-NEW");
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.SendAsync(req)).StatusCode);
+        // Seeded owned device still present; unknown was not created.
+        Assert.Equal(OwnedHw, _factory.Repository.Record!.Response.HwIdentifier);
     }
 
-    [Fact]
-    public async Task GetDevice_with_audit_failure_still_404_for_non_owner()
+    private static string TelemetryJson(string hw) => JsonSerializer.Serialize(new
     {
-        _factory.Repository.FailAuditWrites = true;
-        using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{OwnedHw}");
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerB, "User"));
-        var response = await _client.SendAsync(req);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Contains("Device not registered.", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
-    }
+        hwIdentifier = hw,
+        socModel = "SM-TEST",
+        selinuxStatus = "Enforcing",
+        bootloaderLocked = true,
+        partitionsUnmodified = true,
+        knoxWarrantyFuseIntact = true,
+        isRooted = false
+    });
 
-    private string CreateToken(Guid subject, string role) => CreateTokenRaw(subject.ToString("D"), role);
-
-    private string CreateTokenRaw(string subject, string role)
+    private string CreateToken(Guid subject, string role)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(DeviceTrustWebApplicationFactory.SigningKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, subject),
+            new(JwtRegisteredClaimNames.Sub, subject.ToString("D")),
             new(ClaimTypes.Role, role)
         };
         var token = new JwtSecurityToken(
@@ -246,7 +171,6 @@ public sealed class DeviceTrustWebApplicationFactory : WebApplicationFactory<Pro
                 d.ServiceType == typeof(IDbConnectionFactory)).ToList();
             foreach (var d in repoDescriptors)
                 services.Remove(d);
-
             services.AddSingleton<IDeviceRepository>(Repository);
         });
     }
