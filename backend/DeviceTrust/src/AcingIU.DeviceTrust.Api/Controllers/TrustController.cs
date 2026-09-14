@@ -16,9 +16,10 @@ public sealed class TrustController : ControllerBase
     public TrustController(ITrustService trust) => _trust = trust;
 
     /// <summary>
-    /// Submit device telemetry. New devices are owned by the caller.
-    /// Existing devices: only owner or Admin/Operator may update; ownership is never reassigned here.
-    /// Cross-owner / unauthorized → 404 (anti-enumeration).
+    /// Submit telemetry for an already-enrolled device.
+    /// Does not register unknown hardware identifiers (separate enrollment workflow).
+    /// Owner or Admin/Operator may update; ownership is never reassigned.
+    /// Unknown, cross-owner, and unauthorized → 404.
     /// </summary>
     [HttpPost("telemetry/submit")]
     [Authorize]
@@ -46,7 +47,7 @@ public sealed class TrustController : ControllerBase
     /// <summary>
     /// Get trust score for a hardware identifier.
     /// Non-privileged callers may only read devices they own (AUTHZ-04).
-    /// Unauthorized and unknown devices both return 404 (anti-enumeration).
+    /// Unauthorized and unknown devices both return 404 (anti-enumeration on read).
     /// </summary>
     [HttpGet("devices/{hwId}")]
     [Authorize]
@@ -69,7 +70,6 @@ public sealed class TrustController : ControllerBase
         return Ok(access.Device);
     }
 
-    /// <summary>List recently seen devices.</summary>
     [HttpGet("devices")]
     [Authorize(Roles = "Admin,Operator")]
     [ProducesResponseType(typeof(IReadOnlyList<DeviceListItem>), StatusCodes.Status200OK)]
