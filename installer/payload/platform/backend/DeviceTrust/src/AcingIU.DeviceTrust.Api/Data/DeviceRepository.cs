@@ -28,7 +28,8 @@ public sealed class DbConnectionFactory : IDbConnectionFactory
 public interface IDeviceRepository
 {
     Task<TrustScoreResponse> UpsertTelemetryAsync(TelemetrySubmitRequest req, int score, Guid? ownerUserId, CancellationToken ct = default);
-    Task<TrustScoreResponse?> GetByHwIdAsync(string hwId, CancellationToken ct = default);
+    /// <summary>Returns device score fields and owner_user_id for authorization. Callers must enforce ownership.</summary>
+    Task<DeviceOwnershipRecord?> GetByHwIdAsync(string hwId, CancellationToken ct = default);
     Task<IReadOnlyList<DeviceListItem>> ListAsync(int limit = 50, CancellationToken ct = default);
     Task WriteAuditAsync(string eventType, string severity, string actor, string? resource, object? payload, string? traceId, CancellationToken ct = default);
     Task<int> GetTrustThresholdAsync(CancellationToken ct = default);
@@ -76,12 +77,12 @@ public sealed class DeviceRepository : IDeviceRepository
         };
     }
 
-    public async Task<TrustScoreResponse?> GetByHwIdAsync(string hwId, CancellationToken ct = default)
+    public async Task<DeviceOwnershipRecord?> GetByHwIdAsync(string hwId, CancellationToken ct = default)
     {
         await using var conn = await _db.CreateOpenConnectionAsync(ct);
         await using var cmd = new NpgsqlCommand(
             """
-            SELECT id, hw_identifier, soc_model, trust_score, updated_at
+            SELECT id, hw_identifier, soc_model, trust_score, updated_at, owner_user_id
             FROM registered_devices WHERE hw_identifier = @hw
             """, conn);
         cmd.Parameters.AddWithValue("hw", hwId);
@@ -89,13 +90,17 @@ public sealed class DeviceRepository : IDeviceRepository
         await using var reader = await cmd.ExecuteReaderAsync(ct);
         if (!await reader.ReadAsync(ct)) return null;
 
-        return new TrustScoreResponse
+        return new DeviceOwnershipRecord
         {
-            DeviceId = reader.GetGuid(0),
-            HwIdentifier = reader.GetString(1),
-            SocModel = reader.GetString(2),
-            TrustScore = reader.GetInt32(3),
-            UpdatedAt = reader.GetFieldValue<DateTimeOffset>(4)
+            Response = new TrustScoreResponse
+            {
+                DeviceId = reader.GetGuid(0),
+                HwIdentifier = reader.GetString(1),
+                SocModel = reader.GetString(2),
+                TrustScore = reader.GetInt32(3),
+                UpdatedAt = reader.GetFieldValue<DateTimeOffset>(4)
+            },
+            OwnerUserId = reader.IsDBNull(5) ? null : reader.GetGuid(5)
         };
     }
 
