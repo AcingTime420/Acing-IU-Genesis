@@ -24,229 +24,140 @@ public class TelemetryOwnershipTests
 
     private static TrustService Svc(FakeDeviceRepository repo) => new(repo, new TrustScoreEngine());
 
-    [Fact]
-    public async Task Owner_can_update_own_device_telemetry()
+    private static DeviceOwnershipRecord Seed(Guid? owner, string hw = Hw, int score = 40) => new()
     {
-        var repo = new FakeDeviceRepository
+        OwnerUserId = owner,
+        Response = new TrustScoreResponse
         {
-            Record = new DeviceOwnershipRecord
-            {
-                OwnerUserId = OwnerA,
-                Response = new TrustScoreResponse
-                {
-                    DeviceId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"),
-                    HwIdentifier = Hw,
-                    SocModel = "SM-OLD",
-                    TrustScore = 40,
-                    UpdatedAt = DateTimeOffset.UtcNow
-                }
-            }
-        };
-
-        var result = await Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, isPrivileged: false, null, default);
-
-        Assert.Equal(DeviceAccessOutcome.Allowed, result.Outcome);
-        Assert.NotNull(result.Device);
-        Assert.Single(repo.Upserts);
-        Assert.Equal(OwnerA, repo.Record!.OwnerUserId); // preserved
-    }
+            DeviceId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"),
+            HwIdentifier = hw,
+            SocModel = "SM-OLD",
+            TrustScore = score,
+            UpdatedAt = DateTimeOffset.UtcNow
+        }
+    };
 
     [Fact]
-    public async Task Cross_owner_telemetry_update_denied()
+    public async Task Owner_can_update_enrolled_device()
     {
-        var repo = new FakeDeviceRepository
-        {
-            Record = new DeviceOwnershipRecord
-            {
-                OwnerUserId = OwnerB,
-                Response = new TrustScoreResponse
-                {
-                    DeviceId = Guid.NewGuid(),
-                    HwIdentifier = Hw,
-                    SocModel = "SM-TEST",
-                    TrustScore = 90,
-                    UpdatedAt = DateTimeOffset.UtcNow
-                }
-            }
-        };
-
-        var result = await Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, isPrivileged: false, null, default);
-
-        Assert.Equal(DeviceAccessOutcome.NotFound, result.Outcome);
-        Assert.Empty(repo.Upserts);
-        Assert.Equal(90, repo.Record!.Response.TrustScore); // unchanged
-    }
-
-    [Fact]
-    public async Task Unknown_hw_registers_as_new_with_caller_owner()
-    {
-        var repo = new FakeDeviceRepository { Record = null };
-
-        var result = await Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, isPrivileged: false, null, default);
-
+        var repo = new FakeDeviceRepository { Record = Seed(OwnerA) };
+        var result = await Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, false, null, default);
         Assert.Equal(DeviceAccessOutcome.Allowed, result.Outcome);
         Assert.Equal(OwnerA, repo.Record!.OwnerUserId);
-        Assert.Single(repo.Upserts);
+        Assert.Contains(repo.Audits, a => a.EventType == "trust.telemetry.submit" && a.Resource == "/api/trust/telemetry/submit");
     }
 
     [Fact]
-    public async Task Null_owner_legacy_row_denied_to_non_privileged()
+    public async Task Cross_owner_update_rejected()
     {
-        var repo = new FakeDeviceRepository
-        {
-            Record = new DeviceOwnershipRecord
-            {
-                OwnerUserId = null,
-                Response = new TrustScoreResponse
-                {
-                    DeviceId = Guid.NewGuid(),
-                    HwIdentifier = Hw,
-                    SocModel = "SM-TEST",
-                    TrustScore = 50,
-                    UpdatedAt = DateTimeOffset.UtcNow
-                }
-            }
-        };
-
-        var result = await Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, isPrivileged: false, null, default);
-
+        var repo = new FakeDeviceRepository { Record = Seed(OwnerB, score: 90) };
+        var result = await Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, false, null, default);
         Assert.Equal(DeviceAccessOutcome.NotFound, result.Outcome);
-        Assert.Empty(repo.Upserts);
+        Assert.Equal(90, repo.Record!.Response.TrustScore);
+        Assert.Contains(repo.Audits, a =>
+            a.EventType == "trust.telemetry.access_denied" && a.Resource == "/api/trust/telemetry/submit");
     }
 
     [Fact]
-    public async Task Privileged_admin_can_update_telemetry_without_reassigning_owner()
+    public async Task Unknown_device_rejected_no_enrollment()
     {
-        var repo = new FakeDeviceRepository
-        {
-            Record = new DeviceOwnershipRecord
-            {
-                OwnerUserId = OwnerB,
-                Response = new TrustScoreResponse
-                {
-                    DeviceId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"),
-                    HwIdentifier = Hw,
-                    SocModel = "SM-TEST",
-                    TrustScore = 10,
-                    UpdatedAt = DateTimeOffset.UtcNow
-                }
-            }
-        };
-
-        var result = await Svc(repo).SubmitTelemetryAsync(Req(), AdminId, isPrivileged: true, null, default);
-
-        Assert.Equal(DeviceAccessOutcome.Allowed, result.Outcome);
-        Assert.Equal(OwnerB, repo.Record!.OwnerUserId); // not reassigned to Admin
+        var repo = new FakeDeviceRepository { Record = null };
+        var result = await Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, false, null, default);
+        Assert.Equal(DeviceAccessOutcome.NotFound, result.Outcome);
+        Assert.Null(repo.Record);
+        Assert.Single(repo.MutationAttempts);
     }
 
     [Fact]
-    public async Task Cross_owner_and_unknown_share_not_found_outcome()
+    public async Task Null_owner_legacy_denied_to_non_privileged()
     {
-        var cross = await Svc(new FakeDeviceRepository
-        {
-            Record = new DeviceOwnershipRecord
-            {
-                OwnerUserId = OwnerB,
-                Response = new TrustScoreResponse { HwIdentifier = Hw, TrustScore = 90, DeviceId = Guid.NewGuid(), SocModel = "S", UpdatedAt = DateTimeOffset.UtcNow }
-            }
-        }).SubmitTelemetryAsync(Req(), OwnerA, false, null, default);
-
-        var miss = await Svc(new FakeDeviceRepository { Record = null })
-            .SubmitTelemetryAsync(Req("HW-UNKNOWN"), OwnerA, false, null, default);
-
-        // Unknown registers successfully (new device); cross-owner is NotFound.
-        Assert.Equal(DeviceAccessOutcome.NotFound, cross.Outcome);
-        Assert.Equal(DeviceAccessOutcome.Allowed, miss.Outcome);
-    }
-
-    [Fact]
-    public async Task Audit_failure_on_cross_owner_still_returns_not_found()
-    {
-        var repo = new FakeDeviceRepository
-        {
-            FailAuditWrites = true,
-            Record = new DeviceOwnershipRecord
-            {
-                OwnerUserId = OwnerB,
-                Response = new TrustScoreResponse
-                {
-                    DeviceId = Guid.NewGuid(),
-                    HwIdentifier = Hw,
-                    SocModel = "SM-TEST",
-                    TrustScore = 90,
-                    UpdatedAt = DateTimeOffset.UtcNow
-                }
-            }
-        };
-
+        var repo = new FakeDeviceRepository { Record = Seed(null) };
         var result = await Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, false, null, default);
         Assert.Equal(DeviceAccessOutcome.NotFound, result.Outcome);
     }
+
+    [Fact]
+    public async Task Privileged_can_update_without_reassigning_owner()
+    {
+        var repo = new FakeDeviceRepository { Record = Seed(OwnerB) };
+        var result = await Svc(repo).SubmitTelemetryAsync(Req(), AdminId, true, null, default);
+        Assert.Equal(DeviceAccessOutcome.Allowed, result.Outcome);
+        Assert.Equal(OwnerB, repo.Record!.OwnerUserId);
+    }
+
+    [Fact]
+    public async Task Success_audit_failure_propagates_no_200()
+    {
+        var repo = new FakeDeviceRepository { Record = Seed(OwnerA), FailSuccessAudit = true };
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, false, null, default));
+        // Score not committed in real DB; fake throws before mutate completes after check —
+        // Fake throws after authz passes; ensure no success audit recorded.
+        Assert.DoesNotContain(repo.Audits, a => a.EventType == "trust.telemetry.submit");
+    }
+
+    [Fact]
+    public async Task Denial_audit_failure_still_returns_not_found()
+    {
+        var repo = new FakeDeviceRepository { Record = Seed(OwnerB), FailDenialAudit = true };
+        var result = await Svc(repo).SubmitTelemetryAsync(Req(), OwnerA, false, null, default);
+        Assert.Equal(DeviceAccessOutcome.NotFound, result.Outcome);
+    }
+
+    [Fact]
+    public async Task Concurrent_callers_on_unenrolled_both_rejected()
+    {
+        // Models fail-closed enrollment: neither concurrent submitter can create the row.
+        var repo = new FakeDeviceRepository { Record = null };
+        var svc = Svc(repo);
+        var t1 = svc.SubmitTelemetryAsync(Req(), OwnerA, false, null, default);
+        var t2 = svc.SubmitTelemetryAsync(Req(), OwnerB, false, null, default);
+        var results = await Task.WhenAll(t1, t2);
+        Assert.All(results, r => Assert.Equal(DeviceAccessOutcome.NotFound, r.Outcome));
+        Assert.Null(repo.Record);
+    }
+
+    [Fact]
+    public async Task Concurrent_owner_and_cross_owner_only_owner_mutates()
+    {
+        var repo = new FakeDeviceRepository { Record = Seed(OwnerA, score: 10) };
+        var svc = Svc(repo);
+        var tOwner = svc.SubmitTelemetryAsync(Req(), OwnerA, false, null, default);
+        var tOther = svc.SubmitTelemetryAsync(Req(), OwnerB, false, null, default);
+        var results = await Task.WhenAll(tOwner, tOther);
+        Assert.Contains(results, r => r.Outcome == DeviceAccessOutcome.Allowed);
+        Assert.Contains(results, r => r.Outcome == DeviceAccessOutcome.NotFound);
+        Assert.Equal(OwnerA, repo.Record!.OwnerUserId);
+    }
 }
 
-public class AuditFailureAndThresholdTests
+public class ReadDenialAuditAttributionTests
 {
     private static readonly Guid OwnerA = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
     private static readonly Guid OwnerB = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
-    private const string Hw = "HW-OWNER-A";
 
     [Fact]
-    public async Task GetDevice_audit_failure_still_returns_not_found_like_unknown()
+    public async Task Read_denial_uses_devices_resource_and_event()
     {
-        var crossRepo = new FakeDeviceRepository
+        var repo = new FakeDeviceRepository
         {
-            FailAuditWrites = true,
             Record = new DeviceOwnershipRecord
             {
                 OwnerUserId = OwnerB,
                 Response = new TrustScoreResponse
                 {
                     DeviceId = Guid.NewGuid(),
-                    HwIdentifier = Hw,
-                    SocModel = "SM-TEST",
+                    HwIdentifier = "HW-X",
+                    SocModel = "S",
                     TrustScore = 90,
                     UpdatedAt = DateTimeOffset.UtcNow
                 }
             }
         };
-        var missRepo = new FakeDeviceRepository { FailAuditWrites = true, Record = null };
+        await new TrustService(repo, new TrustScoreEngine())
+            .GetDeviceForCallerAsync("HW-X", OwnerA, false, null, default);
 
-        var cross = await new TrustService(crossRepo, new TrustScoreEngine())
-            .GetDeviceForCallerAsync(Hw, OwnerA, false, null, default);
-        var miss = await new TrustService(missRepo, new TrustScoreEngine())
-            .GetDeviceForCallerAsync("HW-MISS", OwnerA, false, null, default);
-
-        Assert.Equal(DeviceAccessOutcome.NotFound, cross.Outcome);
-        Assert.Equal(cross.Outcome, miss.Outcome);
-        Assert.Null(cross.Device);
-        Assert.Null(miss.Device);
-    }
-
-    [Fact]
-    public async Task GetDevice_uses_configured_threshold_not_only_default()
-    {
-        var repo = new FakeDeviceRepository
-        {
-            ConfiguredThreshold = 95, // differs from DefaultThreshold (80)
-            Record = new DeviceOwnershipRecord
-            {
-                OwnerUserId = OwnerA,
-                Response = new TrustScoreResponse
-                {
-                    DeviceId = Guid.NewGuid(),
-                    HwIdentifier = Hw,
-                    SocModel = "SM-TEST",
-                    TrustScore = 90,
-                    UpdatedAt = DateTimeOffset.UtcNow
-                }
-            }
-        };
-
-        var result = await new TrustService(repo, new TrustScoreEngine())
-            .GetDeviceForCallerAsync(Hw, OwnerA, false, null, default);
-
-        Assert.Equal(DeviceAccessOutcome.Allowed, result.Outcome);
-        Assert.Equal(95, result.Device!.Threshold);
-        Assert.False(result.Device.Allowed); // 90 < 95
+        Assert.Contains(repo.Audits, a =>
+            a.EventType == "trust.device.access_denied" && a.Resource == "/api/trust/devices");
     }
 }

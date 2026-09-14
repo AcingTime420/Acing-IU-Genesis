@@ -1,47 +1,43 @@
 # Authorization Matrix — Acing-IU-Genesis (Phase 4, Task 4.4)
 
-**Status:** Partial — AUTHZ-04 read + telemetry ownership remediated  
-**Version:** 1.3  
+**Status:** Partial — AUTHZ-04 + atomic telemetry ownership  
+**Version:** 1.4  
 **Last updated:** 2026-09-14  
 **Tracking:** PR #107
 
-## Hardware identifier lookup
+## Enrollment policy (security decision)
 
-Exact ordinal / SQL equality only. **No normalization.**
+`POST /api/trust/telemetry/submit` **does not register** devices.
 
-## GetDevice decision table
+| Situation | Behavior |
+|---|---|
+| Unknown hwId | **404** — fail closed; no first-writer ownership |
+| Cross-owner update | **404** |
+| Owner / Admin / Operator on enrolled device | **200** after atomic UPDATE |
 
-| Caller | Subject | Role | Device | HTTP |
-|---|---|---|---|---|
-| Unauthenticated | — | — | any | 401 |
-| Authenticated | missing/non-GUID | any | any | 401 |
-| User A | valid A | User | owned by A | 200 |
-| User A | valid A | User | owned by B | 404 |
-| User A | valid A | User | unknown | 404 |
-| Admin/Operator | valid | Admin/Operator | any existing | 200 |
+**Authorized enrollment** (assign `owner_user_id` for a new hwId) is a **separate future workflow** and is out of scope for this PR. Until that API exists, devices must be provisioned by controlled ops/DB paths only.
 
-## Telemetry submit decision table
+This intentionally avoids registration enumeration and TOCTOU races on concurrent first-insert.
 
-| Caller | Device state | HTTP | Notes |
-|---|---|---|---|
-| User A | new hwId | 200 | Owner set to A |
-| User A | owned by A | 200 | Owner preserved |
-| User A | owned by B | 404 | Anti-enum; no score update |
-| User A | null owner (legacy) | 404 | Fail-closed; no silent claim |
-| Admin/Operator | owned by other / null | 200 | Telemetry update; **owner not reassigned** |
+## Atomic telemetry mutation
 
-Ownership reassignment is a **future explicit workflow**, not ordinary telemetry.
+Ownership is enforced in the same PostgreSQL `UPDATE ... WHERE hw_identifier = @hw AND (privileged OR owner_user_id = @caller)` statement. Success path commits mutation and `trust.telemetry.submit` audit in **one transaction**; audit failure rolls back the mutation.
 
-## Audit-failure residual risk
+## Denial audit attribution
 
-Denial audits are best-effort (`TryWriteAuditAsync`). If audit storage fails, HTTP still returns the same 404 as unknown-device. **Operators must alert on `security_audit_logs` write failures / DB health** so denials are not silently unlogged.
+| Path | Event type | resource_accessed |
+|---|---|---|
+| GET device denied | `trust.device.access_denied` | `/api/trust/devices` |
+| POST telemetry denied | `trust.telemetry.access_denied` | `/api/trust/telemetry/submit` |
+
+Denial audits are best-effort (must not change 404). Success audits are mandatory.
 
 ## Installer payload
 
-Canonical security sources under `backend/DeviceTrust/...` must match `installer/payload/platform/backend/DeviceTrust/...`. CI: `scripts/check-devicetrust-payload-sync.sh`.
+Full recursive runtime tree sync via `scripts/check-devicetrust-payload-sync.sh` (excludes only Dockerfile / .dockerignore).
 
 ## Review history
 
 | Version | Date | Change |
 |---|---|---|
-| 1.3 | 2026-09-14 | Telemetry ownership; audit isolation; threshold; payload sync |
+| 1.4 | 2026-09-14 | Atomic UPDATE; fail-closed enrollment; txn success audit |

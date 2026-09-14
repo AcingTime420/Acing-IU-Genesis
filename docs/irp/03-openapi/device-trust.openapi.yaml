@@ -2,13 +2,20 @@ openapi: 3.1.0
 
 info:
   title: Acing IU Device Trust API
-  version: 1.0.0
+  version: 1.1.0
   description: |
     Genesis device-trust service for telemetry submission, device trust
     evaluation, inventory lookup, and health monitoring.
 
-    Trust scoring follows configured policy rules. Errors use RFC 9457
-    problem details with the application/problem+json media type.
+    Telemetry submission updates **already enrolled** devices only.
+    Unknown hardware identifiers are rejected (HTTP 404); enrollment is a
+    separate authorized workflow and is not performed by this operation.
+
+    Object-level authorization: non-privileged callers may only read or update
+    devices they own. Admin and Operator may act on any enrolled device without
+    reassigning ownership. Cross-owner and unknown cases return 404.
+
+    Errors use RFC 9457 problem details.
   license:
     name: Proprietary
     identifier: LicenseRef-Proprietary
@@ -26,12 +33,16 @@ tags:
 paths:
   /api/trust/telemetry/submit:
     post:
-      summary: Submit device telemetry
+      summary: Submit telemetry for an enrolled device
       operationId: submitTelemetry
       tags:
         - Trust
       security:
         - bearerAuth: []
+      description: |
+        Updates trust telemetry for a device that is already registered.
+        Does not create devices. Returns 404 when the hardware identifier is
+        unknown, owned by another user, or otherwise unauthorized for the caller.
       requestBody:
         required: true
         content:
@@ -49,8 +60,14 @@ paths:
           $ref: '#/components/responses/Problem'
         '401':
           $ref: '#/components/responses/Problem'
-        '403':
-          $ref: '#/components/responses/Problem'
+        '404':
+          description: |
+            Device not registered, not owned by the caller, or not authorized.
+            Same problem body is used for unknown and unauthorized cases.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
 
   /api/trust/devices/{hwId}:
     get:
@@ -78,8 +95,6 @@ paths:
         '400':
           $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Problem'
-        '403':
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
@@ -158,133 +173,113 @@ components:
       type: object
       additionalProperties: false
       required:
-        - hardwareId
+        - hwIdentifier
+        - socModel
+        - selinuxStatus
       properties:
-        hardwareId:
+        hwIdentifier:
           type: string
           minLength: 1
-        deviceName:
-          type:
-            - string
-            - 'null'
-        platform:
-          type:
-            - string
-            - 'null'
-        operatingSystemVersion:
-          type:
-            - string
-            - 'null'
-        rooted:
-          type: boolean
-        bootloaderUnlocked:
-          type: boolean
-        secureBootEnabled:
-          type: boolean
-        diskEncryptionEnabled:
-          type: boolean
-        knoxIntact:
-          type: boolean
-        submittedAt:
+          maxLength: 100
+        socModel:
           type: string
-          format: date-time
+          minLength: 1
+          maxLength: 100
+        selinuxStatus:
+          type: string
+          maxLength: 50
+        bootloaderLocked:
+          type: boolean
+        partitionsUnmodified:
+          type: boolean
+        knoxWarrantyFuseIntact:
+          type: boolean
+        isRooted:
+          type: boolean
 
     TrustEvaluationResponse:
       type: object
       additionalProperties: false
       required:
-        - hardwareId
+        - deviceId
+        - hwIdentifier
         - trustScore
-        - trusted
+        - allowed
+        - threshold
       properties:
-        hardwareId:
+        deviceId:
+          type: string
+          format: uuid
+        hwIdentifier:
+          type: string
+        socModel:
           type: string
         trustScore:
           type: integer
           minimum: 0
           maximum: 100
-        trusted:
+        allowed:
           type: boolean
-        evaluatedAt:
+        threshold:
+          type: integer
+        updatedAt:
           type: string
           format: date-time
-        reasons:
-          type: array
-          items:
-            type: string
+        breakdown:
+          type: object
+          additionalProperties: true
 
     DeviceDetails:
       type: object
       additionalProperties: false
       required:
-        - hardwareId
+        - deviceId
+        - hwIdentifier
         - trustScore
-        - trusted
+        - allowed
+        - threshold
       properties:
-        hardwareId:
+        deviceId:
           type: string
-        deviceName:
-          type:
-            - string
-            - 'null'
-        platform:
-          type:
-            - string
-            - 'null'
-        operatingSystemVersion:
-          type:
-            - string
-            - 'null'
+          format: uuid
+        hwIdentifier:
+          type: string
+        socModel:
+          type: string
         trustScore:
           type: integer
           minimum: 0
           maximum: 100
-        trusted:
+        allowed:
           type: boolean
-        rooted:
-          type: boolean
-        bootloaderUnlocked:
-          type: boolean
-        secureBootEnabled:
-          type: boolean
-        diskEncryptionEnabled:
-          type: boolean
-        knoxIntact:
-          type: boolean
-        firstSeenAt:
-          type:
-            - string
-            - 'null'
-          format: date-time
-        lastSeenAt:
-          type:
-            - string
-            - 'null'
+        threshold:
+          type: integer
+        updatedAt:
+          type: string
           format: date-time
 
     DeviceListItem:
       type: object
       additionalProperties: false
       required:
-        - hardwareId
+        - id
+        - hwIdentifier
         - trustScore
-        - trusted
       properties:
-        hardwareId:
+        id:
           type: string
-        deviceName:
-          type:
-            - string
-            - 'null'
-        platform:
-          type:
-            - string
-            - 'null'
+          format: uuid
+        hwIdentifier:
+          type: string
+        socModel:
+          type: string
         trustScore:
           type: integer
           minimum: 0
           maximum: 100
-        trusted:
+        selinuxStatus:
+          type: string
+        knoxWarrantyFuseBlown:
           type: boolean
         lastSeenAt:
           type:
