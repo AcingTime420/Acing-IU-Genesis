@@ -6,9 +6,10 @@ namespace AcingIU.DeviceTrust.Api.Services;
 public interface ITrustService
 {
     /// <summary>
-    /// Submit telemetry with object-level ownership. New devices are attributed to the caller.
-    /// Existing devices: owner or Admin/Operator may update telemetry; owner_user_id is never
-    /// reassigned by this path. Cross-owner and unauthorized null-owner → NotFound (anti-enum).
+    /// Submit telemetry for an already-enrolled device.
+    /// Does not register unknown hardware IDs (enrollment is a separate authorized workflow).
+    /// Ownership is enforced atomically in the repository UPDATE; owner_user_id is never reassigned.
+    /// Success requires a durable audit row in the same transaction.
     /// </summary>
     Task<TelemetrySubmitResult> SubmitTelemetryAsync(
         TelemetrySubmitRequest req,
@@ -45,50 +46,29 @@ public sealed class TrustService : ITrustService
         string? traceId,
         CancellationToken ct = default)
     {
-        var existing = await _repo.GetByHwIdAsync(req.HwIdentifier, ct);
-
-        if (existing is not null)
-        {
-            var isOwner = existing.OwnerUserId.HasValue && existing.OwnerUserId.Value == callerUserId;
-            // Null-owner legacy rows: fail-closed for non-privileged (no silent claim via telemetry).
-            // Ownership reassignment is intentionally not part of this workflow.
-            if (!isPrivileged && !isOwner)
-            {
-                await TryWriteDenialAuditAsync(
-                    callerUserId,
-                    "telemetry_ownership_or_role",
-                    traceId,
-                    ct);
-                return TelemetrySubmitResult.NotFound();
-            }
-        }
-
         var (score, breakdown) = _engine.Compute(req);
         var threshold = await _repo.GetTrustThresholdAsync(ct);
+        var scoreAllowed = score >= threshold;
 
-        // INSERT uses caller as owner for new rows. ON CONFLICT does not modify owner_user_id
-        // (preserve existing attribution). Pass null when privileged is updating a null-owner row
-        // so INSERT path is not relevant and conflict path still preserves null.
-        Guid? ownerForInsert = existing is null
-            ? callerUserId
-            : existing.OwnerUserId; // may be null; conflict branch ignores this parameter
+        // Atomic authorized UPDATE + required success audit (no service-layer check-then-write).
+        var mutation = await _repo.TryAuthorizedTelemetryUpdateWithAuditAsync(
+            req, score, callerUserId, isPrivileged, threshold, scoreAllowed, traceId, ct);
 
-        var result = await _repo.UpsertTelemetryAsync(req, score, ownerForInsert, ct);
-        result.Breakdown = breakdown;
-        result.Threshold = threshold;
-        result.Allowed = score >= threshold;
+        if (mutation.Outcome != TelemetryMutationOutcome.Updated || mutation.Device is null)
+        {
+            // Best-effort denial audit only — must not alter 404 shape.
+            await TryWriteDenialAuditAsync(
+                eventType: "trust.telemetry.access_denied",
+                resource: "/api/trust/telemetry/submit",
+                callerUserId,
+                reason: "ownership_or_unenrolled",
+                traceId,
+                ct);
+            return TelemetrySubmitResult.NotFound();
+        }
 
-        // Audit uses DeviceId (stable, non-secret) — not raw hardware identifier.
-        await TryWriteAuditAsync(
-            "trust.telemetry.submit",
-            result.Allowed ? "INFO" : "WARNING",
-            callerUserId.ToString("D"),
-            "/api/trust/telemetry/submit",
-            new { deviceId = result.DeviceId, score, threshold, result.Allowed },
-            traceId,
-            ct);
-
-        return TelemetrySubmitResult.Ok(result);
+        mutation.Device.Breakdown = breakdown;
+        return TelemetrySubmitResult.Ok(mutation.Device);
     }
 
     public async Task<DeviceAccessResult> GetDeviceForCallerAsync(
@@ -105,8 +85,13 @@ public sealed class TrustService : ITrustService
         var isOwner = record.OwnerUserId.HasValue && record.OwnerUserId.Value == callerUserId;
         if (!isPrivileged && !isOwner)
         {
-            // Anti-enumeration: same outcome as unknown. Audit failure must not change HTTP path.
-            await TryWriteDenialAuditAsync(callerUserId, "ownership_or_role", traceId, ct);
+            await TryWriteDenialAuditAsync(
+                eventType: "trust.device.access_denied",
+                resource: "/api/trust/devices",
+                callerUserId,
+                reason: "ownership_or_role",
+                traceId,
+                ct);
             return DeviceAccessResult.NotFound();
         }
 
@@ -120,32 +105,27 @@ public sealed class TrustService : ITrustService
         _repo.ListAsync(50, ct);
 
     private async Task TryWriteDenialAuditAsync(
-        Guid callerUserId, string reason, string? traceId, CancellationToken ct)
-    {
-        await TryWriteAuditAsync(
-            "trust.device.access_denied",
-            "WARNING",
-            callerUserId.ToString("D"),
-            "/api/trust/devices",
-            new { reason, privileged = false },
-            traceId,
-            ct);
-    }
-
-    /// <summary>
-    /// Best-effort audit. Failures are swallowed so denial responses stay indistinguishable
-    /// from unknown-device 404s. Operators must monitor DB health for audit table availability.
-    /// </summary>
-    private async Task TryWriteAuditAsync(
-        string eventType, string severity, string actor, string? resource, object? payload, string? traceId, CancellationToken ct)
+        string eventType,
+        string resource,
+        Guid callerUserId,
+        string reason,
+        string? traceId,
+        CancellationToken ct)
     {
         try
         {
-            await _repo.WriteAuditAsync(eventType, severity, actor, resource, payload, traceId, ct);
+            await _repo.WriteAuditAsync(
+                eventType,
+                "WARNING",
+                callerUserId.ToString("D"),
+                resource,
+                new { reason, privileged = false },
+                traceId,
+                ct);
         }
         catch
         {
-            // Residual risk: denial may go unlogged until audit storage recovers.
+            // Denial-path only: preserve indistinguishable 404 if audit storage is down.
         }
     }
 }
