@@ -78,6 +78,17 @@ public sealed class DeviceAccessResult
         new() { Outcome = DeviceAccessOutcome.Allowed, Device = device };
 }
 
+/// <summary>Telemetry submit with object-level ownership outcome (same anti-enum convention as reads).</summary>
+public sealed class TelemetrySubmitResult
+{
+    public DeviceAccessOutcome Outcome { get; init; }
+    public TrustScoreResponse? Device { get; init; }
+
+    public static TelemetrySubmitResult NotFound() => new() { Outcome = DeviceAccessOutcome.NotFound };
+    public static TelemetrySubmitResult Ok(TrustScoreResponse device) =>
+        new() { Outcome = DeviceAccessOutcome.Allowed, Device = device };
+}
+
 public sealed class ProblemBody
 {
     public string Type { get; set; } = "about:blank";
