@@ -52,6 +52,43 @@ public sealed class DeviceListItem
     public DateTimeOffset? LastSeenAt { get; set; }
 }
 
+/// <summary>
+/// Internal persistence record including ownership. Never returned to API clients as-is.
+/// </summary>
+public sealed class DeviceOwnershipRecord
+{
+    public TrustScoreResponse Response { get; set; } = new();
+    public Guid? OwnerUserId { get; set; }
+}
+
+public enum DeviceAccessOutcome
+{
+    /// <summary>Device missing or caller not authorized — controller maps both to 404.</summary>
+    NotFound,
+    Allowed
+}
+
+public sealed class DeviceAccessResult
+{
+    public DeviceAccessOutcome Outcome { get; init; }
+    public TrustScoreResponse? Device { get; init; }
+
+    public static DeviceAccessResult NotFound() => new() { Outcome = DeviceAccessOutcome.NotFound };
+    public static DeviceAccessResult Ok(TrustScoreResponse device) =>
+        new() { Outcome = DeviceAccessOutcome.Allowed, Device = device };
+}
+
+/// <summary>Telemetry submit with object-level ownership outcome (same anti-enum convention as reads).</summary>
+public sealed class TelemetrySubmitResult
+{
+    public DeviceAccessOutcome Outcome { get; init; }
+    public TrustScoreResponse? Device { get; init; }
+
+    public static TelemetrySubmitResult NotFound() => new() { Outcome = DeviceAccessOutcome.NotFound };
+    public static TelemetrySubmitResult Ok(TrustScoreResponse device) =>
+        new() { Outcome = DeviceAccessOutcome.Allowed, Device = device };
+}
+
 public sealed class ProblemBody
 {
     public string Type { get; set; } = "about:blank";
