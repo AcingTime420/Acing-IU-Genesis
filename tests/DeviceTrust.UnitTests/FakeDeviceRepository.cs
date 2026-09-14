@@ -12,21 +12,34 @@ public sealed class FakeDeviceRepository : IDeviceRepository
 {
     public DeviceOwnershipRecord? Record { get; set; }
     public List<(string EventType, string PayloadJson)> DeniedAudits { get; } = new();
-    public List<(Guid? Owner, string Hw)> Upserts { get; } = new();
+    public List<(Guid? Owner, string Hw, int Score)> Upserts { get; } = new();
+    public bool FailAuditWrites { get; set; }
+    public int ConfiguredThreshold { get; set; } = TrustScoreEngine.DefaultThreshold;
 
     public Task<TrustScoreResponse> UpsertTelemetryAsync(
         TelemetrySubmitRequest req, int score, Guid? ownerUserId, CancellationToken ct = default)
     {
-        Upserts.Add((ownerUserId, req.HwIdentifier));
+        Upserts.Add((ownerUserId, req.HwIdentifier, score));
+
+        // Simulate ON CONFLICT: preserve existing owner when row exists.
+        Guid? effectiveOwner = ownerUserId;
+        Guid deviceId = Guid.NewGuid();
+        if (Record is not null &&
+            string.Equals(Record.Response.HwIdentifier, req.HwIdentifier, StringComparison.Ordinal))
+        {
+            effectiveOwner = Record.OwnerUserId; // never reassign on ordinary upsert
+            deviceId = Record.Response.DeviceId;
+        }
+
         var response = new TrustScoreResponse
         {
-            DeviceId = Guid.NewGuid(),
+            DeviceId = deviceId,
             HwIdentifier = req.HwIdentifier,
             SocModel = req.SocModel,
             TrustScore = score,
             UpdatedAt = DateTimeOffset.UtcNow
         };
-        Record = new DeviceOwnershipRecord { Response = response, OwnerUserId = ownerUserId };
+        Record = new DeviceOwnershipRecord { Response = response, OwnerUserId = effectiveOwner };
         return Task.FromResult(response);
     }
 
@@ -35,7 +48,6 @@ public sealed class FakeDeviceRepository : IDeviceRepository
         if (Record is null)
             return Task.FromResult<DeviceOwnershipRecord?>(null);
 
-        // Exact ordinal match only — no length bypass, no case folding.
         if (!string.Equals(Record.Response.HwIdentifier, hwId, StringComparison.Ordinal))
             return Task.FromResult<DeviceOwnershipRecord?>(null);
 
@@ -48,6 +60,9 @@ public sealed class FakeDeviceRepository : IDeviceRepository
     public Task WriteAuditAsync(
         string eventType, string severity, string actor, string? resource, object? payload, string? traceId, CancellationToken ct = default)
     {
+        if (FailAuditWrites)
+            throw new InvalidOperationException("Simulated audit storage failure");
+
         if (eventType == "trust.device.access_denied")
         {
             var json = payload is null ? null : System.Text.Json.JsonSerializer.Serialize(payload);
@@ -57,5 +72,5 @@ public sealed class FakeDeviceRepository : IDeviceRepository
     }
 
     public Task<int> GetTrustThresholdAsync(CancellationToken ct = default) =>
-        Task.FromResult(TrustScoreEngine.DefaultThreshold);
+        Task.FromResult(ConfiguredThreshold);
 }
