@@ -48,7 +48,11 @@ public class DeviceOwnershipAuthorizationTests
         var repo = new FakeDeviceRepository { Record = OwnedBy(OwnerB) };
         var result = await CreateService(repo).GetDeviceForCallerAsync(OwnedHw, OwnerA, false, "t-cross", default);
         Assert.Equal(DeviceAccessOutcome.NotFound, result.Outcome);
-        Assert.Single(repo.DeniedAudits);
+
+        var audit = Assert.Single(repo.Audits);
+        Assert.Equal("trust.device.access_denied", audit.EventType);
+        Assert.Equal("/api/trust/devices", audit.Resource);
+        Assert.Contains("\"reason\":\"ownership_or_role\"", audit.PayloadJson);
     }
 
     [Fact]
