@@ -68,6 +68,8 @@ public sealed class DeviceRepository : IDeviceRepository
 
         try
         {
+            // Ownership enforced in the same statement as the mutation (no TOCTOU).
+            // owner_user_id is never modified. Unknown rows yield zero updates → Rejected.
             await using var cmd = new NpgsqlCommand(
                 """
                 UPDATE registered_devices SET
@@ -113,6 +115,7 @@ public sealed class DeviceRepository : IDeviceRepository
             };
             await reader.DisposeAsync();
 
+            // Required success audit — failure aborts the mutation.
             await using var auditCmd = new NpgsqlCommand(
                 """
                 INSERT INTO security_audit_logs (event_type, severity, actor, resource_accessed, payload, trace_id)
