@@ -129,7 +129,7 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
         bootloaderLocked = true,
         partitionsUnmodified = true,
         knoxWarrantyFuseIntact = true,
-        isRooted = falsex
+        isRooted = false
     });
 
     private string CreateToken(Guid subject, string role)
