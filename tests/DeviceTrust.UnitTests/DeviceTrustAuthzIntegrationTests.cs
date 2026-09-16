@@ -104,7 +104,7 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerB, "User"));
         var response = await _client.SendAsync(req);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Assert.Empty(_factory.Repository.MutationAttempts.Where(m => m.Caller == OwnerB && false)); // mutation attempted but rejected
+       Assert.Contains(_factory.Repository.MutationAttempts, m => m.Caller == OwnerB && m.Hw == OwnedHw); // mutation attempted but rejected
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
         bootloaderLocked = true,
         partitionsUnmodified = true,
         knoxWarrantyFuseIntact = true,
-        isRooted = false
+        isRooted = falsex
     });
 
     private string CreateToken(Guid subject, string role)
