@@ -106,6 +106,25 @@ jobs:
     name: Backend Build & Test (.NET)
     runs-on: ubuntu-latest
     needs: repo-integrity
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: acing_admin
+          POSTGRES_PASSWORD: ci_admin_password_only
+          POSTGRES_DB: acing_iu
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U acing_admin -d acing_iu"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_PASSWORD: ci_admin_password_only
+      MIGRATOR_DB_PASSWORD: ci_migrator_password_only
+      IDENTITY_DB_PASSWORD: ci_identity_password_only
+      DEVICE_TRUST_DB_PASSWORD: ci_device_trust_password_only
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -123,6 +142,21 @@ jobs:
             echo "No backend solution found — skipping"
           fi
 
+      - name: Wait for PostgreSQL readiness
+        shell: bash
+        env:
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        run: |
+          for i in $(seq 1 60); do
+            if pg_isready -h localhost -p 5432 -U acing_admin -d acing_iu >/dev/null 2>&1; then
+              echo "PostgreSQL is ready."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::PostgreSQL did not become ready in time."
+          exit 1
+
       - name: Build Backend Solution
         run: |
           if [ -f backend/AcingIU.sln ]; then
@@ -138,6 +172,9 @@ jobs:
           else
             echo "No backend solution found — skipping"
           fi
+
+      - name: Run DeviceTrust PostgreSQL integration tests
+        run: dotnet test tests/DeviceTrust.PostgresIntegrationTests/DeviceTrust.PostgresIntegrationTests.csproj --configuration Release --no-build --verbosity normal
 
   # ── Job 4: Frontend build and test (Node.js) ──────────────────────────
   frontend-build-test:
