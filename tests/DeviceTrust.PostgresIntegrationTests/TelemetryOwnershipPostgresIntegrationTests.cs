@@ -325,6 +325,8 @@ public sealed class PostgresFixture : IAsyncLifetime
             var migratorPassword = Environment.GetEnvironmentVariable("MIGRATOR_DB_PASSWORD") ?? "ci_migrator_password_only";
             var identityPassword = Environment.GetEnvironmentVariable("IDENTITY_DB_PASSWORD") ?? "ci_identity_password_only";
             var dbName = new NpgsqlConnectionStringBuilder(_adminConnectionString).Database;
+            if (string.IsNullOrWhiteSpace(dbName))
+                throw new InvalidOperationException("Admin connection string must include a database name.");
             var migratorPasswordSql = QuoteLiteral(migratorPassword);
             var identityPasswordSql = QuoteLiteral(identityPassword);
             var deviceTrustPasswordSql = QuoteLiteral(_deviceTrustPassword);
@@ -503,7 +505,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         throw new InvalidOperationException("Could not locate repository root from test execution directory.");
     }
 
-    private static string QuoteIdent(string value) => $"\"{value.Replace("\"", "\"\"")}";
+    private static string QuoteIdent(string value) => $"\"{value.Replace("\"", "\"\"")}\"";
     private static string QuoteLiteral(string value) => $"'{value.Replace("'", "''")}'";
 }
 
