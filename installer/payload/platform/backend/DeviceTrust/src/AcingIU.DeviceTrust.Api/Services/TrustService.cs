@@ -61,6 +61,7 @@ public sealed class TrustService : ITrustService
                 eventType: "trust.telemetry.access_denied",
                 resource: "/api/trust/telemetry/submit",
                 callerUserId,
+                isPrivileged,
                 reason: "ownership_or_unenrolled",
                 traceId,
                 ct);
@@ -89,6 +90,7 @@ public sealed class TrustService : ITrustService
                 eventType: "trust.device.access_denied",
                 resource: "/api/trust/devices",
                 callerUserId,
+                isPrivileged,
                 reason: "ownership_or_role",
                 traceId,
                 ct);
@@ -108,6 +110,7 @@ public sealed class TrustService : ITrustService
         string eventType,
         string resource,
         Guid callerUserId,
+        bool isPrivileged,
         string reason,
         string? traceId,
         CancellationToken ct)
@@ -119,7 +122,7 @@ public sealed class TrustService : ITrustService
                 "WARNING",
                 callerUserId.ToString("D"),
                 resource,
-                new { reason, privileged = false },
+                new { reason, privileged = isPrivileged },
                 traceId,
                 ct);
         }

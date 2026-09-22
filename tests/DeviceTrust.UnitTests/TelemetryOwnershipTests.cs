@@ -160,4 +160,30 @@ public class ReadDenialAuditAttributionTests
         Assert.Contains(repo.Audits, a =>
             a.EventType == "trust.device.access_denied" && a.Resource == "/api/trust/devices");
     }
+
+    [Fact]
+    public async Task Read_denial_audit_failure_still_returns_not_found()
+    {
+        var repo = new FakeDeviceRepository
+        {
+            FailDenialAudit = true,
+            Record = new DeviceOwnershipRecord
+            {
+                OwnerUserId = OwnerB,
+                Response = new TrustScoreResponse
+                {
+                    DeviceId = Guid.NewGuid(),
+                    HwIdentifier = "HW-Y",
+                    SocModel = "S",
+                    TrustScore = 70,
+                    UpdatedAt = DateTimeOffset.UtcNow
+                }
+            }
+        };
+
+        var result = await new TrustService(repo, new TrustScoreEngine())
+            .GetDeviceForCallerAsync("HW-Y", OwnerA, false, null, default);
+
+        Assert.Equal(DeviceAccessOutcome.NotFound, result.Outcome);
+    }
 }
