@@ -46,6 +46,12 @@ jobs:
           chmod +x scripts/check-claim-surface.sh
           bash scripts/check-claim-surface.sh
 
+      - name: DeviceTrust installer payload security sync
+        shell: bash
+        run: |
+          chmod +x scripts/check-devicetrust-payload-sync.sh
+          bash scripts/check-devicetrust-payload-sync.sh
+
   # ── Job 2: Full validate-premerge (build + conditional compose) ────────
   validate-baseline:
     name: Validate Pre-merge Baseline
@@ -74,7 +80,6 @@ jobs:
       - name: Install Kotlin compiler
         shell: bash
         run: |
-          # Install Kotlin via SDKMAN or direct download
           KOTLIN_VERSION="2.0.0"
           curl -fsSL "https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip" \
             -o /tmp/kotlin.zip
