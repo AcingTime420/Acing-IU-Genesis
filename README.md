@@ -2,7 +2,7 @@
 
 ### Security by Foundation. Personal by Choice. Engineered for Trust.
 
-> **A security-first research and engineering platform for device trust, identity, policy governance, Android security architecture, and evidence-driven system design.**
+> **A modular, security-first platform for identity, device trust, policy governance, and user-chosen computing experiences grounded in evidence-driven engineering.**
 
 ---
 
@@ -15,6 +15,8 @@
 Genesis draws from Android security architecture, Verified Boot concepts, zero-trust design, identity and access management, policy enforcement, device-trust evaluation, auditable infrastructure, and evidence-driven engineering.
 
 Genesis is **not** represented as a finished operating system, production-certified security product, or verified device-modification platform.
+
+Genesis is not merely a rooting application, a custom ROM replacement, or a Samsung Knox replacement. Android and Samsung-inspired concepts are design references, with proprietary implementations treated separately from Genesis claims.
 
 Source code, a user interface, a configuration file, or a successful build does **not** by itself establish that a capability is operational, enforced, production-ready, or verified.
 
@@ -334,6 +336,7 @@ Important rules include:
 |---|---|
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Platform architecture and component boundaries |
 | [`docs/CAPABILITY_REGISTER.md`](docs/CAPABILITY_REGISTER.md) | Authoritative capability maturity and evidence register |
+| [`docs/governance/GITHUB_NOTIFICATION_SETUP.md`](docs/governance/GITHUB_NOTIFICATION_SETUP.md) | Practical owner guide for configuring GitHub notifications |
 | [`docs/adr/`](docs/adr/README.md) | Architecture Decision Records |
 | [`docs/evidence/`](docs/evidence/) | Validation and engineering evidence |
 | [`docs/governance/`](docs/governance/) | Repository and engineering governance |
