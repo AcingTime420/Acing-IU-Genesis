@@ -461,9 +461,3 @@ The governing principle remains constant:
 License terms have not yet been finalized.
 
 See the project maintainer before redistributing or relying on the repository under assumptions about licensing.
-
----
-
-# Acing IU: Genesis
-
-### Security by Foundation. Personal by Choice. Engineered for Trust.
