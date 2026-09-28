@@ -266,8 +266,10 @@ bash scripts/validate-premerge.sh
 The Unix validator is the clean-clone reproducibility baseline. It checks
 for tracked generated artifacts, bootstraps a root `.env` from
 `.env.example` when needed, runs the recognized build entry point when the
-required tools are installed, and performs the conditional Compose
-baseline. It also supports:
+required tools are installed, and only runs Compose checks when a
+root-level `docker-compose.yml` or `compose.yaml` is present. In this
+repository, that Compose step currently skips because the tracked Compose
+file is `infrastructure/docker-compose.yml`. It also supports:
 
 ```bash
 bash scripts/validate-premerge.sh --skip-build
