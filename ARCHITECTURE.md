@@ -11,8 +11,9 @@
 
 ## 1. Project overview
 
-**Acing IU: Genesis** is a custom Android-based OS security platform.  
-Its primary purpose is to provide hardware-backed security, boot integrity, and a hardened administrative interface for Acing OS devices.
+**Acing IU: Genesis** is a modular, security-first foundation platform.
+It provides shared domains for identity, device trust, policy, audit, and governance, with Interface User (IU) experiences assembled through optional modules.
+Current implementation includes simulator and experimental paths; hardware-backed assurances and production attestations remain target work unless separately verified in the capability register.
 
 ---
 
@@ -103,10 +104,10 @@ Both paths are excluded from version control via `.gitignore`.
 
 ---
 
-## 5. Container / deployment architecture 📋 Planned
+## 5. Container / deployment architecture 📋 Planned for production hardening
 
-No Dockerfiles or Compose files exist in this repository today.  
-The planned containerisation approach will:
+Container and Compose artifacts exist in the repository, but production readiness and end-to-end operational evidence are still gated.
+The target containerisation posture remains:
 
 - Wrap each service in a minimal, non-root, read-only-root-filesystem container.
 - Use pinned base-image digests.
@@ -123,8 +124,10 @@ See `SECURITY.md` and `THREAT_MODEL.md` for full detail.
 
 Key design principles:
 
-1. **Hardware root of trust** — Acing Vault (TrustZone target) is the root of all key operations.
-2. **Verified boot** — every boot image is AVB-verified before execution.
+Status note: implementation maturity is tracked in `docs/CAPABILITY_REGISTER.md`; principles below describe target architecture intent.
+
+1. **Hardware root of trust** — hardware-backed trust anchors underpin key security operations.
+2. **Verified boot** — boot image verification precedes execution in the trusted boot path design.
 3. **Least privilege** — IU Security mounts and protects only the surfaces it owns.
 4. **Defence in depth** — boot integrity + runtime threat engine + policy engine layer independently.
 5. **Auditability** — all security events are logged (structured audit log: 📋 Planned).
