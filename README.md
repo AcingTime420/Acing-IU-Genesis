@@ -228,6 +228,12 @@ Genesis includes a fail-closed pre-merge validation pipeline.
 pwsh scripts/validate-premerge.ps1
 ```
 
+### Linux / macOS
+
+```bash
+bash scripts/validate-premerge.sh
+```
+
 The validation pipeline is designed to cover:
 
 - required development tooling
