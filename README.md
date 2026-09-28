@@ -1,6 +1,6 @@
 # Acing IU: Genesis
 
-### Security by Foundation. Personal by Choice. Engineered for Trust.
+## Security by Foundation. Personal by Choice. Engineered for Trust.
 
 > **A modular, security-first platform for identity, device trust, policy governance, and user-chosen computing experiences grounded in evidence-driven engineering.**
 
