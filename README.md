@@ -220,21 +220,29 @@ Interface output must not be interpreted as hardware measurement, attestation ev
 
 ## Local Validation
 
-Genesis includes a fail-closed pre-merge validation pipeline.
+Genesis currently includes two local validation entry points with different scopes.
 
 ### Windows / PowerShell
+
+From the repository root, create `infrastructure/.env` from the tracked
+root template before running the PowerShell validator:
+
+```powershell
+Copy-Item .env.example infrastructure/.env
+```
+
+Replace the placeholder values in `infrastructure/.env` before expecting
+the validator to pass. Step 0 requires at least `POSTGRES_USER`,
+`POSTGRES_DB`, `POSTGRES_PASSWORD`, `IDENTITY_DB_PASSWORD`,
+`DEVICE_TRUST_DB_PASSWORD`, `JWT_SIGNING_KEY`, and `REDIS_PASSWORD`.
+The later container-backed stages also depend on the other secrets and
+settings provided in `.env.example`.
 
 ```powershell
 pwsh scripts/validate-premerge.ps1
 ```
 
-### Linux / macOS
-
-```bash
-bash scripts/validate-premerge.sh
-```
-
-The validation pipeline is designed to cover:
+This is the fail-closed validator. It is designed to cover:
 
 - required development tooling
 - .NET dependency restore
@@ -249,9 +257,30 @@ The validation pipeline is designed to cover:
 - full-stack smoke testing
 - optional container vulnerability scanning
 
-Some stages require Docker, configured local environment variables, a valid `infrastructure/.env`, and supporting development tools.
+### Linux / macOS
 
-A validation script reporting success is evidence for the exact checks it executed on that revision. It does not automatically establish broader product certification or production readiness.
+```bash
+bash scripts/validate-premerge.sh
+```
+
+The Unix validator is the clean-clone reproducibility baseline. It checks
+for tracked generated artifacts, bootstraps a root `.env` from
+`.env.example` when needed, runs the recognized build entry point when the
+required tools are installed, and performs the conditional Compose
+baseline. It also supports:
+
+```bash
+bash scripts/validate-premerge.sh --skip-build
+bash scripts/validate-premerge.sh --skip-compose
+```
+
+Some stages require Docker, configured local environment variables, a
+valid `infrastructure/.env` for the PowerShell workflow, and supporting
+development tools.
+
+A validation script reporting success is evidence for the exact checks it
+executed on that revision. It does not automatically establish broader
+product certification or production readiness.
 
 ---
 
