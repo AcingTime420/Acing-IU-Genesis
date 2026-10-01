@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   database:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:075f7ba66bc9b3ce7d6b8b635208ff61cd7cf1a67d71ec530eec5d7ae0cbe571
     container_name: acing-iu-postgres
     environment:
       POSTGRES_USER: acing_admin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: acing_iu_db
     ports:
       - "5432:5432"
@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   cache:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:9702d01c1f10c3ea9f48211b4362e44f154ff02d063e6f7268eba804059f53bf
     container_name: acing-iu-redis
     ports:
       - "6379:6379"
@@ -44,7 +44,7 @@ services:
       - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=acing_iu_db;Username=acing_admin;Password=SecureAcingPassword2026!
+      - ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=acing_iu_db;Username=acing_admin;Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       - Redis__Configuration=cache:6379
     depends_on:
       database:
