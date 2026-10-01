@@ -20,11 +20,14 @@ BEGIN
     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'acing_device_trust') THEN
         CREATE ROLE acing_device_trust LOGIN;
     END IF;
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'acing_audit_reader') THEN
+        CREATE ROLE acing_audit_reader LOGIN NOINHERIT;
+    END IF;
 END
 $$;
 
 -- CONNECT on database is granted by bootstrap shell (needs concrete DB name).
-GRANT USAGE ON SCHEMA public TO acing_identity, acing_device_trust;
+GRANT USAGE ON SCHEMA public TO acing_identity, acing_device_trust, acing_audit_reader;
 GRANT USAGE, CREATE ON SCHEMA public TO acing_migrator;
 
 -- Migrator: full DDL on public schema objects

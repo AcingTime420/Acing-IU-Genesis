@@ -21,6 +21,7 @@ services:
       MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?MIGRATOR_DB_PASSWORD must be set}
       IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?IDENTITY_DB_PASSWORD must be set}
       DEVICE_TRUST_DB_PASSWORD: ${DEVICE_TRUST_DB_PASSWORD:?DEVICE_TRUST_DB_PASSWORD must be set}
+      AUDIT_DB_PASSWORD: ${AUDIT_DB_PASSWORD:?AUDIT_DB_PASSWORD must be set}
     ports:
       # Development only - localhost. Production: omit ports or use internal network only.
       - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"

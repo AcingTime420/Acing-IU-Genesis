@@ -1,45 +1,26 @@
+using AcingIU.Audit.Data;
+using AcingIU.Audit.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using AcingIU.Shared.Models;
-using AcingOS.Audit;
 
-namespace AcingIU.Audit.Controllers
+namespace AcingIU.Audit.Controllers;
+
+[ApiController]
+[Route("api/audit")]
+[Authorize(Roles = "Admin,Operator")]
+public sealed class AuditController(IAuditLogRepository auditLogRepository) : ControllerBase
 {
-    [ApiController]
-    [Route("api/audit")]
-    public class AuditController : ControllerBase
+    [HttpGet]
+    [ProducesResponseType<IReadOnlyList<AuditLogRecord>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<AuditLogRecord>>> GetAuditLogs(
+        [FromQuery] string? eventType, [FromQuery] string? severity,
+        [FromQuery] long? beforeId, [FromQuery] int limit = 100,
+        CancellationToken cancellationToken = default)
     {
-        private readonly IAuditService _auditService;
-
-        public AuditController(IAuditService auditService)
-        {
-            _auditService = auditService;
-        }
-
-        [HttpGet]
-        public IActionResult GetAuditLogs()
-        {
-            var logs = _auditService.GetAllLogs();
-            return Ok(logs);
-        }
-
-        [HttpPost]
-        public IActionResult CommitAuditLog([FromBody] AuditLogEntry entry)
-        {
-            _auditService.RecordEvent(
-                entry.UserId,
-                entry.DeviceId,
-                entry.Action,
-                entry.Status,
-                entry.DetailsJson,
-                entry.IpAddress
-            );
-
-            return CreatedAtAction(nameof(GetAuditLogs), new {
-                LogId = entry.Id,
-                Committed = true,
-                Message = "Audit log persisted securely to PostgreSQL."
-            });
-        }
+        if (limit is < 1 or > 500) return ValidationProblem("limit must be between 1 and 500.");
+        if (beforeId is <= 0) return ValidationProblem("beforeId must be a positive audit record identifier.");
+        return Ok(await auditLogRepository.GetRecentAsync(eventType, severity, beforeId, limit, cancellationToken));
     }
 }
