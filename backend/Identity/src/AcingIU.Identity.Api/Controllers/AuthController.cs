@@ -5,11 +5,13 @@ using AcingIU.Identity.Api.Options;
 using AcingIU.Identity.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace AcingIU.Identity.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting("auth-abuse")]
 [Route("api/auth")]
 [Produces("application/json")]
 public sealed class AuthController : ControllerBase
