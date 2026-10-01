@@ -34,11 +34,27 @@ BEGIN
         EXECUTE 'REVOKE ALL PRIVILEGES ON TABLE public.audit_logs FROM acing_identity';
         EXECUTE 'REVOKE ALL PRIVILEGES ON TABLE public.audit_logs FROM acing_device_trust';
         EXECUTE 'REVOKE ALL PRIVILEGES ON TABLE public.audit_logs FROM acing_audit_reader';
-        COMMENT ON TABLE audit_logs IS
-            'Legacy Genesis audit table retained only for migration/history; not an active application ledger.';
+        EXECUTE 'COMMENT ON TABLE public.audit_logs IS ''Legacy Genesis audit table retained only for migration/history; not an active application ledger.''';
     END IF;
 END
 $$;
+
+-- Remove alternate database authority left by earlier development branches.
+DROP FUNCTION IF EXISTS update_device_trust_score(UUID, INT);
+DROP FUNCTION IF EXISTS record_audit_event(TEXT, TEXT, TEXT, TEXT, JSONB, TEXT);
+DROP VIEW IF EXISTS active_device_sessions;
+DROP VIEW IF EXISTS audit_summary_by_action;
+
+-- Reserved target schemas must not be writable by runtime roles until a
+-- canonical implementation, authorization boundary, and tests exist.
+REVOKE ALL PRIVILEGES ON TABLE device_telemetry, device_attestations, device_quarantine_log
+    FROM acing_device_trust;
+REVOKE ALL PRIVILEGES ON SEQUENCE device_telemetry_id_seq, device_quarantine_log_id_seq
+    FROM acing_device_trust;
+REVOKE ALL PRIVILEGES ON TABLE mfa_encryption_keys, mfa_secrets_encrypted, mfa_recovery_codes
+    FROM acing_identity;
+REVOKE ALL PRIVILEGES ON SEQUENCE mfa_encryption_keys_id_seq, mfa_recovery_codes_id_seq
+    FROM acing_identity;
 
 -- Remove stale policy rows that appeared authoritative but were never consumed
 -- by canonical runtime code. Requirements remain documented elsewhere until
