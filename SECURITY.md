@@ -10,6 +10,17 @@
 
 The project is pre-1.0 and currently has no LTS channel.
 
+## Security requirements baseline
+
+Normative Genesis security and assurance requirements are defined in
+[`docs/GENESIS_REQUIREMENTS_BASELINE.md`](docs/GENESIS_REQUIREMENTS_BASELINE.md).
+
+The requirements baseline states what Genesis has adopted as engineering gates. It does **not**
+mean every requirement is already satisfied, and it does not create a certification or compliance
+claim. Current implementation maturity and recorded evidence remain governed by
+[`docs/CAPABILITY_REGISTER.md`](docs/CAPABILITY_REGISTER.md).
+
+
 ## Reporting a vulnerability
 
 Do not open a public issue for a suspected vulnerability.
