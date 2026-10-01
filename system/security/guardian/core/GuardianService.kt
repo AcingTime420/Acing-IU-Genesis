@@ -60,7 +60,7 @@ class GuardianService : SystemService() {
 
     private val identityService = IdentityService()
     private val deviceTrustEngine = DeviceTrustEngine()
-    private val authAvailable = AtomicBoolean(false)
+    private val identityAvailable = AtomicBoolean(false)
     private val vaultAvailable = AtomicBoolean(true)
     private val adminAccessBlocked = AtomicBoolean(false)
 
@@ -111,19 +111,8 @@ class GuardianService : SystemService() {
         // Runtime integrity checks on UI components
         IntegrityChecker.monitorPackage("com.acing.iu")
 
-        // Session-based encryption for AI Chats, Notes, Firmware uploads, using Acing Vault for key management
-        enableSecureWorkspaceForRole("ADMIN")
-
-        // Example of using Acing Vault for sensitive data
-        val sensitiveData = "MySecretAdminKey".toByteArray()
-        if (AcingVaultEmulator.storeSecret("admin_session_key", sensitiveData)) {
-            println("[GuardianService] Admin session key securely stored in Acing Vault.")
-        } else {
-            vaultAvailable.set(false)
-            handleCriticalFailure(
-                "VAULT_STORE_FAILURE",
-                "Failed to store admin session key in Acing Vault. Blocking additional admin access attempts."
-            )
+        if (!enableSecureWorkspaceForRole("ADMIN")) {
+            println("[GuardianService] Secure workspace target is unavailable; protected workflow remains disabled.")
             return
         }
 
@@ -131,13 +120,11 @@ class GuardianService : SystemService() {
     }
 
     private fun startThreatEngine() {
-        println("[GuardianService] Starting threat engine components...")
-        // Mirror Knox real-time scanning
+        println("[GuardianService] Registering threat-engine simulator placeholders...")
         MalwareScanner.start()
         AnomalyDetector.start()
-        // Behavioral analysis
         NetworkThreatMonitor.start()
-        println("[GuardianService] Threat engine components started.")
+        println("[GuardianService] No live threat-detection providers are active.")
     }
 
     // Placeholder for biometric/strong authentication requirement
@@ -148,7 +135,7 @@ class GuardianService : SystemService() {
             return false
         }
 
-        if (!authAvailable.get()) {
+        if (!identityAvailable.get()) {
             adminAccessBlocked.set(true)
             println("[GuardianService] Auth service unavailable. Denying admin access (fail-closed).")
             SecurityRepository.publishEvent("AUTH_UNAVAILABLE_FAIL_CLOSED")
@@ -162,23 +149,23 @@ class GuardianService : SystemService() {
             return false
         }
 
-        println("[GuardianService] Biometric or strong authentication required for Admin Dashboard access, potentially backed by Acing Vault.")
-        // Actual implementation would involve interacting with Android\'s BiometricPrompt or KeyguardManager
-        // and potentially using AcingVaultEmulator.performAttestation() for device trust.
-        return true
+        adminAccessBlocked.set(true)
+        println("[GuardianService] Strong-auth provider is not implemented. Denying admin access (fail-closed).")
+        SecurityRepository.publishEvent("STRONG_AUTH_PROVIDER_UNAVAILABLE")
+        return false
     }
 
     // Placeholder for secure workspace enablement
-    private fun enableSecureWorkspaceForRole(role: String) {
+    private fun enableSecureWorkspaceForRole(role: String): Boolean {
         if (!vaultAvailable.get()) {
             println("[GuardianService] Secure workspace blocked: Acing Vault is unavailable.")
             SecurityRepository.publishEvent("WORKSPACE_BLOCKED_VAULT_UNAVAILABLE")
-            return
+            return false
         }
 
-        println("[GuardianService] Enabling secure workspace for role: $role, leveraging Acing Vault for key management.")
-        // Actual implementation would involve creating an isolated environment or secure storage
-        // and using AcingVaultEmulator for managing encryption keys for the workspace.
+        println("[GuardianService] Secure workspace is a target capability, not an implemented isolation boundary. role=$role")
+        SecurityRepository.publishEvent("SECURE_WORKSPACE_UNAVAILABLE")
+        return false
     }
 
     private fun initializeIdentityLayer() {
@@ -193,24 +180,34 @@ class GuardianService : SystemService() {
             // TODO(PROD): Replace with real administrator enrollment flow and secure out-of-band credential delivery.
             val bootstrapCredential = identityService.createCredential(adminUser.id, bootstrapProbeCredential)
             identityService.revokeCredential(bootstrapCredential.id)
-            authAvailable.set(true)
+            identityAvailable.set(true)
             SecurityRepository.publishEvent("IDENTITY_SERVICE_READY")
             println("[GuardianService] Identity service initialized and admin user provisioned.")
         } catch (ex: Exception) {
-            authAvailable.set(false)
+            identityAvailable.set(false)
             adminAccessBlocked.set(true)
             handleCriticalFailure("AUTH_SERVICE_FAILURE", "Identity service initialization failed", ex)
         }
     }
 
     private fun enforceDeviceTrustForInterfaceUser(): Boolean {
-        val malwareDetected = !MalwareScanner.scanFile(INTERFACE_USER_PACKAGE_PATH)
+        val scanClean = MalwareScanner.scanFile(INTERFACE_USER_PACKAGE_PATH)
+            ?: return denyForMissingTrustEvidence("MALWARE_SCANNER_UNAVAILABLE")
         val anomalyDetected = AnomalyDetector.detectAnomaly(INTERFACE_USER_RUNTIME_ID)
+            ?: return denyForMissingTrustEvidence("ANOMALY_DETECTOR_UNAVAILABLE")
         val networkThreatDetected = NetworkThreatMonitor.analyzeConnection(INTERFACE_USER_RUNTIME_ID)
+            ?: return denyForMissingTrustEvidence("NETWORK_MONITOR_UNAVAILABLE")
+        val challenge = try {
+            AcingVaultEmulator.getSecureRandomBytes(16)
+        } catch (ex: Exception) {
+            handleCriticalFailure("VAULT_RANDOM_FAILURE", "Unable to create trust challenge", ex)
+            return false
+        }
         val attestationPassed = deviceTrustEngine.attestDevice(
             deviceId = DEFAULT_DEVICE_ID,
-            challenge = AcingVaultEmulator.getSecureRandomBytes(16)
+            challenge = challenge
         )
+        val malwareDetected = !scanClean
 
         val trustDecision = deviceTrustEngine.evaluateTrust(
             deviceId = DEFAULT_DEVICE_ID,
@@ -231,6 +228,13 @@ class GuardianService : SystemService() {
         }
 
         return true
+    }
+
+    private fun denyForMissingTrustEvidence(eventCode: String): Boolean {
+        println("[GuardianService] Required trust evidence unavailable: $eventCode. Denying protected access.")
+        SecurityRepository.publishEvent(eventCode)
+        adminAccessBlocked.set(true)
+        return false
     }
 
     private fun handleCriticalFailure(eventCode: String, message: String, ex: Exception? = null) {

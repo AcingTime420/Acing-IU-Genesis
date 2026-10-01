@@ -2,15 +2,12 @@ package com.acing.guardian
 
 object NetworkThreatMonitor {
     fun start() {
-        println("[NetworkThreatMonitor] Initializing network threat monitoring...")
-        // Placeholder for actual network threat monitoring logic
-        // This would involve monitoring network traffic, identifying suspicious connections, etc.
-        println("[NetworkThreatMonitor] Network threat monitoring started.")
+        println("[NetworkThreatMonitor] Simulator placeholder registered; no live network monitor is running.")
     }
 
-    fun analyzeConnection(connectionInfo: String): Boolean {
-        println("[NetworkThreatMonitor] Analyzing network connection: $connectionInfo")
-        // Simulate network threat analysis result
-        return false // Assume no threat for now
+    /** null means no network-threat evidence is available. */
+    fun analyzeConnection(connectionInfo: String): Boolean? {
+        println("[NetworkThreatMonitor] No live network provider for: $connectionInfo")
+        return null
     }
 }

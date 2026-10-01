@@ -28,16 +28,9 @@ data class DeviceTelemetrySnapshot(
     val observedAt: Instant = Instant.now()
 )
 
-enum class EnforcementAction {
-    FULL_ACCESS,
-    RESTRICTED_MODE,
-    MINIMAL_IU,
-    DENY_ACCESS
-}
+enum class EnforcementAction { FULL_ACCESS, RESTRICTED_MODE, MINIMAL_IU, DENY_ACCESS }
 
-class DeviceTrustEngine(
-    private val thresholds: TrustThresholds = TrustThresholds()
-) {
+class DeviceTrustEngine(private val thresholds: TrustThresholds = TrustThresholds()) {
     fun evaluateTrust(deviceId: String, signal: TrustSignal): TrustDecision {
         val telemetry = DeviceTelemetrySnapshot(deviceId = deviceId, signal = signal)
         val score = computeTrustScore(telemetry.signal)
@@ -50,33 +43,32 @@ class DeviceTrustEngine(
         }
 
         val reason = when (action) {
-            EnforcementAction.DENY_ACCESS -> "Attestation failed; deny access."
+            EnforcementAction.DENY_ACCESS -> "Required attestation evidence is unavailable or failed; deny access."
             EnforcementAction.MINIMAL_IU -> "Trust score below ${thresholds.minimalAccessThreshold}; restrict to minimal IU."
             EnforcementAction.RESTRICTED_MODE -> "Trust score below ${thresholds.restrictedAccessThreshold}; enable restricted mode."
             EnforcementAction.FULL_ACCESS -> "Trust score acceptable for full access."
         }
-
-        return TrustDecision(trustScore = score, reason = reason, enforcementAction = action)
+        return TrustDecision(score, reason, action)
     }
 
+    /**
+     * Hardware-backed attestation is not implemented in the current repository.
+     * Simulator evidence is intentionally incapable of satisfying this gate.
+     */
     fun attestDevice(deviceId: String, challenge: ByteArray): Boolean {
-        // TODO(PROD): Replace emulator attestation with Play Integrity / SafetyNet provider.
-        // TODO(PROD): Define telemetry boundaries and minimum-data collection for trust workflows.
-        // TODO(PROD): Add GDPR-compliant retention and deletion policy for trust signal history.
-        val result = AcingVaultEmulator.performAttestation(challenge) != null
-        println("[DeviceTrustEngine] Attestation result for $deviceId: $result")
-        return result
+        val simulatorEvidenceAvailable = AcingVaultEmulator.performAttestation(challenge) != null
+        println(
+            "[DeviceTrustEngine] Hardware-backed attestation unavailable for $deviceId; " +
+                "simulatorEvidence=$simulatorEvidenceAvailable; enforcementResult=false"
+        )
+        return false
     }
 
     private fun computeTrustScore(signal: TrustSignal): Int {
-        val malwareWeight = 0.50
-        val anomalyWeight = 0.30
-        val networkWeight = 0.20
-
-        val weightedRisk = (signal.malwareRisk * malwareWeight) +
-            (signal.anomalyScore * anomalyWeight) +
-            (signal.networkRisk * networkWeight)
-
+        val weightedRisk =
+            signal.malwareRisk * 0.50 +
+            signal.anomalyScore * 0.30 +
+            signal.networkRisk * 0.20
         return (100 - weightedRisk.roundToInt()).coerceIn(0, 100)
     }
 }
