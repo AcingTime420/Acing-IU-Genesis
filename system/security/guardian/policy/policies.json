@@ -1,59 +1,66 @@
 {
-  "version": "1.0",
+  "version": "1.1",
+  "evidence_model": "Policies marked Target are design intent only and are disabled until implementation and validation evidence exists.",
   "policies": [
     {
       "id": "boot_integrity_check",
-      "description": "Enforce verified boot integrity using AVB.",
-      "enabled": true,
+      "description": "Target: verified boot integrity enforcement using a supported platform integration.",
+      "enabled": false,
+      "maturity": "Target",
       "action_on_failure": "LOCKDOWN",
       "parameters": {
-        "tool": "avbtool",
-        "command": "verify_image",
-        "target": "/dev/block/by-name/boot"
+        "provider": "unavailable"
       }
     },
     {
       "id": "hardware_keystore_init",
-      "description": "Ensure hardware-backed keystore is initialized.",
-      "enabled": true,
-      "action_on_failure": "WARN",
+      "description": "Target: hardware-backed keystore initialization.",
+      "enabled": false,
+      "maturity": "Target",
+      "action_on_failure": "DENY_ACCESS",
       "parameters": {
-        "service": "guardian_hardware_init"
+        "provider": "unavailable"
       }
     },
     {
       "id": "iu_tamper_detection",
-      "description": "Detect tampering with Interface User security components.",
-      "enabled": true,
+      "description": "Target: authoritative tamper evidence for Interface User security components.",
+      "enabled": false,
+      "maturity": "Target",
       "action_on_failure": "RESTRICTED_MODE",
       "parameters": {
-        "check_file": "/data/acing/tamper_detected"
+        "provider": "unavailable"
       }
     },
     {
       "id": "admin_biometric_auth",
-      "description": "Require biometric or strong authentication for admin dashboard access.",
-      "enabled": true,
+      "description": "Target: require biometric or strong authentication for admin dashboard access.",
+      "enabled": false,
+      "maturity": "Target",
       "action_on_failure": "DENY_ACCESS",
       "parameters": {
-        "target_app": "com.acing.iu.admin",
-        "auth_type": "BIOMETRIC_OR_STRONG"
+        "provider": "unavailable"
       }
     },
     {
       "id": "secure_workspace_encryption",
-      "description": "Enforce session-based encryption for sensitive admin operations.",
-      "enabled": true,
+      "description": "Target: isolated, encrypted workspace for approved sensitive operations.",
+      "enabled": false,
+      "maturity": "Target",
       "action_on_failure": "BLOCK_OPERATION",
       "parameters": {
-        "roles": ["ADMIN"],
-        "sensitive_operations": ["AI_CHAT", "NOTES", "FIRMWARE_UPLOAD"]
+        "provider": "unavailable",
+        "roles": [
+          "ADMIN"
+        ]
       }
     },
     {
       "id": "device_trust_thresholds",
-      "description": "Apply trust-based access thresholds for Interface User capabilities.",
+      "description": "Simulator-only trust thresholds. They do not prove device attestation or production authorization.",
       "enabled": true,
+      "maturity": "Simulator",
+      "enforcement_scope": "simulation-only",
       "action_on_failure": "RESTRICTED_MODE",
       "parameters": {
         "minimal_access_threshold": 40,
@@ -62,8 +69,10 @@
     },
     {
       "id": "device_trust_minimal_iu_enforcement",
-      "description": "Restrict users to minimal IU when trust score is below threshold.",
+      "description": "Simulator-only representation of low-trust UI restriction.",
       "enabled": true,
+      "maturity": "Simulator",
+      "enforcement_scope": "simulation-only",
       "action_on_failure": "MINIMAL_IU",
       "parameters": {
         "trust_score_operator": "<",
