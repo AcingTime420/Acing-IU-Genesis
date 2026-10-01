@@ -108,10 +108,14 @@ function Import-DotEnv {
     "POSTGRES_USER",
     "POSTGRES_DB",
     "POSTGRES_PASSWORD",
+    "MIGRATOR_DB_PASSWORD",
     "IDENTITY_DB_PASSWORD",
     "DEVICE_TRUST_DB_PASSWORD",
+    "AUDIT_DB_PASSWORD",
     "JWT_SIGNING_KEY",
-    "REDIS_PASSWORD"
+    "REDIS_PASSWORD",
+    "MFA_SECRET_PROTECTION_ACTIVE_KEY_ID",
+    "MFA_SECRET_PROTECTION_KEY_MFA_V1"
   )
 
   $seen = @{}
@@ -166,9 +170,13 @@ function Import-DotEnv {
     if ([string]::IsNullOrWhiteSpace($value)) {
       throw "Required variable is blank in .env: $key"
     }
+
+    if ($value -match '^placeholder(?:_|$)') {
+      throw "Required variable still contains a placeholder value in .env: $key"
+    }
   }
 
-  Write-Host "Loaded required variables from infrastructure/.env (values not shown)"
+  Write-Host "Loaded required non-placeholder variables from infrastructure/.env (values not shown)"
 }
 
 

@@ -6,6 +6,7 @@
 |---------|------|--------|-------------|
 | **Identity** | 8080 | S2 | Register, login, refresh, logout, MFA TOTP, profile |
 | **Device Trust** | 8081 | S3 | Telemetry submit, trust score, device registry |
+| **Audit** | internal | Stabilization | Privileged read-only access to the PostgreSQL security audit ledger |
 | **SharedKernel** | — | — | Result monad, RFC 9457 problem details |
 
 ## Identity API
@@ -37,7 +38,7 @@
 | SELinux Enforcing | +40 |
 | Locked bootloader | +30 |
 | Unmodified partitions | +20 |
-| Knox fuse intact | +10 |
+| Warranty / integrity fixture signal | +10 |
 | Rooted | score forced to 0 |
 
 Threshold default: **80** (from `policy_configurations`).
@@ -58,5 +59,7 @@ backend/
 ├── AcingIU.sln
 ├── SharedKernel/src/AcingIU.SharedKernel/
 ├── Identity/src/AcingIU.Identity.Api/
-└── DeviceTrust/src/AcingIU.DeviceTrust.Api/
+├── DeviceTrust/src/AcingIU.DeviceTrust.Api/
+├── Audit/
+└── SharedKernel/src/AcingIU.SharedKernel/
 ```

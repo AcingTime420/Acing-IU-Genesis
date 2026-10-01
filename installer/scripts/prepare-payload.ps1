@@ -79,17 +79,28 @@ $BackendDest = Join-Path $PlatformDest "backend"
 if (Test-Path $BackendSrc) {
     if (Test-Path $BackendDest) { Remove-Item $BackendDest -Recurse -Force }
     New-Item -ItemType Directory -Force -Path $BackendDest | Out-Null
-    Copy-Item (Join-Path $BackendSrc "Identity") $BackendDest -Recurse -Force
-    Copy-Item (Join-Path $BackendSrc "DeviceTrust") $BackendDest -Recurse -Force
-    Write-Host "  + platform\backend\Identity, DeviceTrust"
+    $backendComponents = @("SharedKernel", "Identity", "DeviceTrust", "Audit")
+    foreach ($component in $backendComponents) {
+        $componentPath = Join-Path $BackendSrc $component
+        if (-not (Test-Path $componentPath)) {
+            throw "Required backend component is missing: $componentPath"
+        }
+        Copy-Item $componentPath $BackendDest -Recurse -Force
+    }
+    Write-Host "  + platform\backend\SharedKernel, Identity, DeviceTrust, Audit"
 }
 
 # Fix compose build contexts for installed layout
 $ComposeFile = Join-Path $PlatformDest "docker-compose.yml"
 if (Test-Path $ComposeFile) {
     $c = Get-Content $ComposeFile -Raw
-    $c = $c -replace 'context: \.\./backend/Identity/src/AcingIU\.Identity\.Api', 'context: ./backend/Identity/src/AcingIU.Identity.Api'
-    $c = $c -replace 'context: \.\./backend/DeviceTrust/src/AcingIU\.DeviceTrust\.Api', 'context: ./backend/DeviceTrust/src/AcingIU.DeviceTrust.Api'
+    # The API Dockerfiles COPY SharedKernel and service projects from the repository root.
+    # In the installed payload, platform/ is that build-context root.
+    $c = $c -replace '(?m)^(\s*)context:\s+\.\.\s*
+    Set-Content $ComposeFile -Value $c -Encoding UTF8
+    Write-Host "  ~ docker-compose.yml build contexts adjusted for installer layout"
+}
+, '$1context: .'
     Set-Content $ComposeFile -Value $c -Encoding UTF8
     Write-Host "  ~ docker-compose.yml build contexts adjusted for installer layout"
 }

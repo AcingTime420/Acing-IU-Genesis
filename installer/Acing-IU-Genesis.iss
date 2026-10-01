@@ -12,7 +12,7 @@
 #define MyAppName "Acing IU: Genesis"
 #define MyAppVersion "0.1.0"
 #define MyAppPublisher "Acing IU"
-#define MyAppURL "https://github.com/Acing-IU-Matrix/Acing-IU"
+#define MyAppURL "https://github.com/AcingTime420/Acing-IU-Genesis"
 #define MyAppExeName "Launch-Acing-IU-Genesis.cmd"
 
 [Setup]
