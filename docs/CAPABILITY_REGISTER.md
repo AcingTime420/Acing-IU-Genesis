@@ -5,6 +5,17 @@
 **Last claim-surface update:** 2026-09-13 (issue #63)
 **Evidence standard:** A capability is not production-verified merely because source code, a UI, or a build manifest exists. “Verified” requires the linked automated evidence to pass at a recorded commit.
 
+## Requirements Baseline Relationship
+
+`docs/GENESIS_REQUIREMENTS_BASELINE.md` defines what Genesis has adopted as engineering and assurance requirements. This Capability Register defines what the repository can currently prove.
+
+- **Adopted requirement != implemented capability.**
+- **Implemented capability != Verified capability.**
+- A requirement may remain unsatisfied without changing a capability's label unless the evidence or claim changes.
+- Capability reclassification still requires reproducible evidence at a recorded commit.
+- Referencing NIST, OWASP, CISA, IETF, W3C, or another external standard does not create a compliance or certification claim.
+
+
 ## Maturity Labels
 
 | Label | Meaning |
