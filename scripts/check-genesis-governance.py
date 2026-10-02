@@ -22,6 +22,7 @@ REQUIRED = [
     ROOT / "docs/governance/GENESIS_CONSTITUTION.md",
     ROOT / "docs/governance/OWNER_LAW.md",
     ROOT / "config/genesis/owner-law.json",
+    ROOT / "schemas/genesis-human-authorization-request.schema.json",
     ROOT / "schemas/genesis-human-authorization-receipt.schema.json",
 ]
 
