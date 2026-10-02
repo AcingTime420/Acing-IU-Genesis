@@ -11,6 +11,21 @@ This skill operationalizes the Genesis rule:
 
 It is designed for the primary Genesis agent but may be used by another agent only within that agent's delegated authority.
 
+## Owner-requested project-wide mandate
+
+When this skill is invoked for a complete Genesis review, the operational mandate is:
+
+> **Reevaluate, assess, analyze, debug, and resolve all discoverable issues, errors, problems, and conflicting code within the entire Genesis project. Once finished with the permitted remediation and validation, produce a detailed “next course of logical actions” for the Being.**
+
+The workflow SHALL continue across subsystem boundaries when evidence shows that a defect is caused by another layer. A frontend symptom may require backend, API, database, CI, installer, policy, or documentation analysis; a passing unit test does not terminate the review when other required evidence remains red or contradictory.
+
+Completion requires either:
+
+1. the discovered defect is repaired and independently re-proven; or
+2. the defect is explicitly recorded as unresolved with its blocker, risk, required authority/evidence, and exact next action.
+
+The skill never converts lack of access, lack of evidence, or an L5 authorization boundary into a false “resolved” state.
+
 ## Non-negotiable boundaries
 
 - Canonical truth comes from current authoritative repository paths and reproducible evidence, not issue labels or historical branch claims.
