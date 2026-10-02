@@ -204,7 +204,7 @@ components:
         - deviceId
         - hwIdentifier
         - trustScore
-        - allowed
+        - meetsThreshold
         - threshold
       properties:
         deviceId:
@@ -218,8 +218,9 @@ components:
           type: integer
           minimum: 0
           maximum: 100
-        allowed:
+        meetsThreshold:
           type: boolean
+          description: Posture-only result; true means the score meets the configured threshold and does not authorize an operation.
         threshold:
           type: integer
         updatedAt:
@@ -236,7 +237,7 @@ components:
         - deviceId
         - hwIdentifier
         - trustScore
-        - allowed
+        - meetsThreshold
         - threshold
       properties:
         deviceId:
@@ -250,8 +251,9 @@ components:
           type: integer
           minimum: 0
           maximum: 100
-        allowed:
+        meetsThreshold:
           type: boolean
+          description: Posture-only result; true means the score meets the configured threshold and does not authorize an operation.
         threshold:
           type: integer
         updatedAt:
