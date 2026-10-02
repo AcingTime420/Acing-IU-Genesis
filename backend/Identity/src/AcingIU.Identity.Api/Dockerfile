@@ -24,8 +24,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:b288317d8ed45bb763fa95dbc
 
 WORKDIR /app
 
-# Alpine includes BusyBox wget; verify the health-check dependency during build.
-RUN wget --help >/dev/null 2>&1
+# Apply current Alpine security fixes from the pinned runtime repository, then verify the health-check dependency.
+RUN apk upgrade --no-cache \
+    && wget --help >/dev/null 2>&1
 
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
