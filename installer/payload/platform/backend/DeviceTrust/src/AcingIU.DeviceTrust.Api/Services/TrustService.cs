@@ -48,11 +48,11 @@ public sealed class TrustService : ITrustService
     {
         var (score, breakdown) = _engine.Compute(req);
         var threshold = await _repo.GetTrustThresholdAsync(ct);
-        var scoreAllowed = score >= threshold;
+        var meetsThreshold = score >= threshold;
 
         // Atomic authorized UPDATE + required success audit (no service-layer check-then-write).
         var mutation = await _repo.TryAuthorizedTelemetryUpdateWithAuditAsync(
-            req, score, callerUserId, isPrivileged, threshold, scoreAllowed, traceId, ct);
+            req, score, callerUserId, isPrivileged, threshold, meetsThreshold, traceId, ct);
 
         if (mutation.Outcome != TelemetryMutationOutcome.Updated || mutation.Device is null)
         {
@@ -99,7 +99,7 @@ public sealed class TrustService : ITrustService
 
         var threshold = await _repo.GetTrustThresholdAsync(ct);
         record.Response.Threshold = threshold;
-        record.Response.Allowed = record.Response.TrustScore >= threshold;
+        record.Response.MeetsThreshold = record.Response.TrustScore >= threshold;
         return DeviceAccessResult.Ok(record.Response);
     }
 
