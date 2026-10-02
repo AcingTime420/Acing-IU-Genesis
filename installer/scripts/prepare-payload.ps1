@@ -32,7 +32,6 @@ New-Item -ItemType Directory -Force -Path $PlatformDest, $DocsDest, $BrandingDes
 # Copy compose stack (exclude heavy/runtime-only paths if any)
 $copyItems = @(
     "docker-compose.yml",
-    ".env.example",
     "README.md",
     "nginx",
     "redis",
@@ -50,6 +49,15 @@ foreach ($item in $copyItems) {
     } else {
         Write-Warning "Missing: $src"
     }
+}
+
+# Runtime configuration template lives at repository root, not infrastructure/.
+$RootEnvExample = Join-Path $RepoRoot ".env.example"
+if (Test-Path $RootEnvExample) {
+    Copy-Item $RootEnvExample (Join-Path $PlatformDest ".env.example") -Force
+    Write-Host "  + platform\.env.example"
+} else {
+    Write-Error ".env.example not found at $RootEnvExample"
 }
 
 # Backend README into documentation
