@@ -224,7 +224,7 @@ public sealed class TelemetryOwnershipPostgresIntegrationTests : IClassFixture<P
             callerUserId,
             isPrivileged,
             Threshold,
-            scoreAllowed: score >= Threshold,
+            meetsThreshold: score >= Threshold,
             traceId,
             ct);
     }
