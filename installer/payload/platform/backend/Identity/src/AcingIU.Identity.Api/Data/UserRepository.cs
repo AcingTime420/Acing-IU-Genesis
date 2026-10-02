@@ -11,7 +11,7 @@ public interface IUserRepository
     Task InsertRefreshTokenAsync(Guid userId, string tokenHash, Guid familyId, DateTimeOffset expiresAt, string? userAgent, string? ip, CancellationToken ct = default);
     Task<(Guid UserId, Guid FamilyId, bool Revoked)?> FindRefreshTokenAsync(string tokenHash, CancellationToken ct = default);
     Task RevokeRefreshFamilyAsync(Guid familyId, CancellationToken ct = default);
-    Task RevokeRefreshTokenAsync(string tokenHash, Guid? replacedBy, CancellationToken ct = default);
+    Task RevokeRefreshTokenAsync(string tokenHash, long? replacedBy, CancellationToken ct = default);
     Task SetMfaSecretAsync(Guid userId, string secretBase32, CancellationToken ct = default);
     Task EnableMfaAsync(Guid userId, CancellationToken ct = default);
     Task<string?> GetMfaSecretAsync(Guid userId, CancellationToken ct = default);
@@ -155,7 +155,7 @@ public sealed class UserRepository : IUserRepository
         await cmd.ExecuteNonQueryAsync(ct);
     }
 
-    public async Task RevokeRefreshTokenAsync(string tokenHash, Guid? replacedBy, CancellationToken ct = default)
+    public async Task RevokeRefreshTokenAsync(string tokenHash, long? replacedBy, CancellationToken ct = default)
     {
         await using var conn = await _db.CreateOpenConnectionAsync(ct);
         await using var cmd = new NpgsqlCommand(
