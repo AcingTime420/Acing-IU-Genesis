@@ -13,8 +13,9 @@ public sealed class DbConnectionFactory : IDbConnectionFactory
     private readonly string _cs;
     public DbConnectionFactory(IConfiguration config)
     {
-        _cs = config.GetConnectionString("Default")
-            ?? throw new InvalidOperationException("ConnectionStrings:Default is required.");
+        _cs = config.GetConnectionString("Default") ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(_cs))
+            throw new InvalidOperationException("ConnectionStrings:Default is required.");
     }
 
     public async Task<NpgsqlConnection> CreateOpenConnectionAsync(CancellationToken ct = default)
