@@ -20,18 +20,20 @@ RUN dotnet publish backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Ap
     -o /app/publish \
     --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0@sha256:149d139eb6f11b9be8bc99c4d8cbd14f662d64d83359079ebb59e5f4a97bbefe AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:b288317d8ed45bb763fa95dbc807cf9d36e3bf9373ec2fac6b6548675f1f4b23 AS runtime
 
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget \
-    && rm -rf /var/lib/apt/lists/*
+# Alpine includes BusyBox wget; verify the health-check dependency during build.
+RUN wget --help >/dev/null 2>&1
 
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 COPY --from=build /app/publish .
+
+# .NET 8 images include the unprivileged 'app' user.
+USER app
 
 EXPOSE 8080
 
