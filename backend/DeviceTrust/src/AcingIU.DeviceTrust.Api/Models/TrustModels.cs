@@ -25,7 +25,7 @@ public sealed class TrustScoreResponse
     public string HwIdentifier { get; set; } = string.Empty;
     public string SocModel { get; set; } = string.Empty;
     public int TrustScore { get; set; }
-    public bool Allowed { get; set; }
+    public bool MeetsThreshold { get; set; }
     public int Threshold { get; set; }
     public TrustBreakdown Breakdown { get; set; } = new();
     public DateTimeOffset UpdatedAt { get; set; }
