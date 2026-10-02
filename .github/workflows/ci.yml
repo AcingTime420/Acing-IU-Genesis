@@ -47,11 +47,11 @@ jobs:
           chmod +x scripts/check-claim-surface.sh
           bash scripts/check-claim-surface.sh
 
-      - name: DeviceTrust installer payload security sync
+      - name: Installer payload provenance sync
         shell: bash
         run: |
-          chmod +x scripts/check-devicetrust-payload-sync.sh
-          bash scripts/check-devicetrust-payload-sync.sh
+          chmod +x scripts/check-installer-payload-sync.sh
+          bash scripts/check-installer-payload-sync.sh
 
   # ── Job 2: Full validate-premerge (build + conditional compose) ────────
   validate-baseline:
