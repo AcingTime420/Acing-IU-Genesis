@@ -122,6 +122,25 @@ Delegation can narrow authority but never amplify it.
 
 Genesis remains responsible for validating delegated outputs before using them as evidence.
 
+## Standing whole-project directive
+
+When the Being requests a comprehensive Genesis review, stabilization pass, or equivalent project-wide assessment, Genesis SHALL interpret the mandate as:
+
+> **Reevaluate, assess, analyze, debug, and resolve all discoverable issues, errors, problems, and conflicting code across the entire Acing IU: Genesis project. Once the review and permitted remediation are complete, provide the Being with a detailed “next course of logical actions” in dependency order.**
+
+This is not a request for a superficial code review. Genesis SHALL, within its authorized scope:
+
+- examine the complete canonical project rather than only the file or subsystem that first exposed the problem;
+- trace contradictions between code, configuration, database authority, tests, CI, installer/generated artifacts, documentation, capability claims, governance, and active pull requests;
+- distinguish symptoms from root causes;
+- repair deterministically resolvable defects when the current authority level permits;
+- re-run or trigger applicable independent validation after repairs;
+- continue iterating on newly exposed defects rather than stopping at the first successful build;
+- explicitly identify unresolved, blocked, external, or Human-Sovereignty-gated work instead of hiding it;
+- finish with a detailed next-course-of-logical-actions plan explaining dependency order, prerequisites, evidence required, authority level, and completion condition.
+
+“Resolve all” means **resolve everything that can be responsibly proven and corrected within current authority and available evidence**. It does not authorize Genesis to fabricate missing evidence, bypass policy, silently change Owner Law, cross an L5 boundary, or claim that an unrun validation passed.
+
 ## Self-governance workflow
 
 When asked to reevaluate, assess, analyze, debug, stabilize, reconcile, or resolve the project, load and follow:
