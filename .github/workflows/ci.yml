@@ -25,7 +25,8 @@ jobs:
           FAIL=0
           PATTERNS=("bin" "obj" "out" "dist" "TestResults" "coverage" "node_modules" ".next")
           for pattern in "${PATTERNS[@]}"; do
-            matches=$(git ls-files -- "$pattern" 2>/dev/null || true)
+            escaped="${pattern//./\\.}"
+            matches=$(git ls-files | grep -E "(^|/)${escaped}(/|$)" || true)
             if [[ -n "$matches" ]]; then
               echo "::error::Tracked generated files under '${pattern}/':${matches}"
               FAIL=1
@@ -231,13 +232,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
 
-      - name: Build Gateway Service Container
-        run: |
-          if [ -f backend/Gateway/Dockerfile ]; then
-            docker build -t acing-iu-gateway:latest -f backend/Gateway/Dockerfile backend
-          else
-            echo "Gateway Dockerfile not ready — skipping"
-          fi
+      - name: Build Identity Service Container
+        run: docker build -t acing-iu-identity:ci -f backend/Identity/src/AcingIU.Identity.Api/Dockerfile .
+
+      - name: Build DeviceTrust Service Container
+        run: docker build -t acing-iu-device-trust:ci -f backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Dockerfile .
 
       - name: Build Next.js Frontend Container
         run: |
