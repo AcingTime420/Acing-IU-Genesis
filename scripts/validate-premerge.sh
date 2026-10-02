@@ -66,7 +66,8 @@ ARTIFACT_PATTERNS=(
 
 ARTIFACT_FOUND=false
 for pattern in "${ARTIFACT_PATTERNS[@]}"; do
-  matches=$(git ls-files -- "$pattern" 2>/dev/null || true)
+  escaped="${pattern//./\\.}"
+  matches=$(git ls-files | grep -E "(^|/)${escaped}(/|$)" || true)
   if [[ -n "$matches" ]]; then
     echo "    Tracked generated files under '${pattern}/':"
     echo "$matches" | sed 's/^/      /'
@@ -124,34 +125,44 @@ step "4/5  Docker Compose"
 
 if $SKIP_COMPOSE; then
   skip "Compose skipped via --skip-compose"
-elif [[ -f "docker-compose.yml" ]] || [[ -f "compose.yaml" ]]; then
+elif [[ -f "infrastructure/docker-compose.yml" ]]; then
   if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
     echo "    Building Compose services..."
-    docker compose build \
+    docker compose -f infrastructure/docker-compose.yml --env-file .env build \
       && ok "Compose build succeeded" \
       || fail "Compose build failed"
 
     echo "    Starting Compose services..."
-    docker compose up -d \
+    docker compose -f infrastructure/docker-compose.yml --env-file .env up -d \
       && ok "Compose services started" \
       || fail "Compose up failed"
 
     sleep 5
 
     echo "    Stopping Compose services..."
-    docker compose down \
+    docker compose -f infrastructure/docker-compose.yml --env-file .env down \
       && ok "Compose services stopped cleanly" \
       || fail "Compose down failed"
   else
     skip "docker/compose not available — skipping Compose checks"
   fi
 else
-  skip "No docker-compose.yml / compose.yaml found — container baseline is planned (see ARCHITECTURE.md)"
+  fail "Canonical infrastructure/docker-compose.yml is missing"
 fi
 
 # ── 5. Readiness / health checks ──────────────────────────────────────────
 step "5/5  Readiness / health checks"
-skip "No HTTP endpoints configured yet — health checks are planned (see docs/adr/ADR-001)"
+if $SKIP_COMPOSE; then
+  skip "Health checks skipped with Compose"
+else
+  if command -v curl >/dev/null 2>&1; then
+    curl --fail --silent --show-error "http://127.0.0.1:${GATEWAY_PORT:-8080}/health/live" >/dev/null \
+      && ok "Gateway liveness endpoint responded" \
+      || fail "Gateway liveness endpoint failed"
+  else
+    skip "curl not available — health endpoint probe skipped"
+  fi
+fi
 
 # ── Summary ───────────────────────────────────────────────────────────────
 echo ""
