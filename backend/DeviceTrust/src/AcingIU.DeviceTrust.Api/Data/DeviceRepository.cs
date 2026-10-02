@@ -38,7 +38,7 @@ public interface IDeviceRepository
         Guid callerUserId,
         bool isPrivileged,
         int threshold,
-        bool scoreAllowed,
+        bool meetsThreshold,
         string? traceId,
         CancellationToken ct = default);
 
@@ -59,7 +59,7 @@ public sealed class DeviceRepository : IDeviceRepository
         Guid callerUserId,
         bool isPrivileged,
         int threshold,
-        bool scoreAllowed,
+        bool meetsThreshold,
         string? traceId,
         CancellationToken ct = default)
     {
@@ -111,7 +111,7 @@ public sealed class DeviceRepository : IDeviceRepository
                 TrustScore = reader.GetInt32(3),
                 UpdatedAt = reader.GetFieldValue<DateTimeOffset>(4),
                 Threshold = threshold,
-                Allowed = scoreAllowed
+                MeetsThreshold = meetsThreshold
             };
             await reader.DisposeAsync();
 
@@ -127,11 +127,11 @@ public sealed class DeviceRepository : IDeviceRepository
                 deviceId = device.DeviceId,
                 score,
                 threshold,
-                allowed = scoreAllowed
+                meetsThreshold
             });
 
             auditCmd.Parameters.AddWithValue("type", "trust.telemetry.submit");
-            auditCmd.Parameters.AddWithValue("sev", scoreAllowed ? "INFO" : "WARNING");
+            auditCmd.Parameters.AddWithValue("sev", meetsThreshold ? "INFO" : "WARNING");
             auditCmd.Parameters.AddWithValue("actor", callerUserId.ToString("D"));
             auditCmd.Parameters.AddWithValue("resource", "/api/trust/telemetry/submit");
             auditCmd.Parameters.AddWithValue("payload", payloadJson);
