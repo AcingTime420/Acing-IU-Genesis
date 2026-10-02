@@ -22,7 +22,7 @@ public sealed class FakeDeviceRepository : IDeviceRepository
         Guid callerUserId,
         bool isPrivileged,
         int threshold,
-        bool scoreAllowed,
+        bool meetsThreshold,
         string? traceId,
         CancellationToken ct = default)
     {
@@ -47,11 +47,11 @@ public sealed class FakeDeviceRepository : IDeviceRepository
         Record.Response.TrustScore = score;
         Record.Response.UpdatedAt = DateTimeOffset.UtcNow;
         Record.Response.Threshold = threshold;
-        Record.Response.Allowed = scoreAllowed;
+        Record.Response.MeetsThreshold = meetsThreshold;
         // Owner never reassigned.
 
         Audits.Add(("trust.telemetry.submit", "/api/trust/telemetry/submit",
-            System.Text.Json.JsonSerializer.Serialize(new { deviceId = Record.Response.DeviceId, score, threshold, allowed = scoreAllowed })));
+            System.Text.Json.JsonSerializer.Serialize(new { deviceId = Record.Response.DeviceId, score, threshold, meetsThreshold })));
 
         return Task.FromResult(TelemetryMutationResult.Updated(new TrustScoreResponse
         {
@@ -60,7 +60,7 @@ public sealed class FakeDeviceRepository : IDeviceRepository
             SocModel = Record.Response.SocModel,
             TrustScore = Record.Response.TrustScore,
             Threshold = threshold,
-            Allowed = scoreAllowed,
+            MeetsThreshold = meetsThreshold,
             UpdatedAt = Record.Response.UpdatedAt
         }));
     }
