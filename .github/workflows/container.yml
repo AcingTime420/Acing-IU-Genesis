@@ -3,6 +3,12 @@ name: Containers
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
+    paths:
+      - "backend/**"
+      - "infrastructure/**"
+      - ".github/workflows/container.yml"
   workflow_dispatch:
 
 concurrency:
@@ -11,7 +17,6 @@ concurrency:
 
 permissions:
   contents: read
-  # No packages:write on PR — this workflow does not run on pull_request
 
 jobs:
   build-scan:
