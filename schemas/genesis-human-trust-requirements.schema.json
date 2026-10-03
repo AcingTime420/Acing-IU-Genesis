@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acing.iu/schemas/genesis-human-trust-requirements.schema.json",
+  "title": "Genesis Human Trust Requirements",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "framework",
+    "project",
+    "alignmentDisclaimer",
+    "principles",
+    "maturityLabels",
+    "externalAlignments",
+    "questions"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "framework": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "name",
+        "repository",
+        "governancePrincipal"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "governancePrincipal": {
+          "type": "object",
+          "required": [
+            "github",
+            "scope",
+            "legalOwnershipClaim"
+          ],
+          "properties": {
+            "github": {
+              "type": "string"
+            },
+            "scope": {
+              "type": "string"
+            },
+            "legalOwnershipClaim": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "alignmentDisclaimer": {
+      "type": "string",
+      "minLength": 20
+    },
+    "principles": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "maturityLabels": {
+      "type": "object"
+    },
+    "externalAlignments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "reference",
+          "scope"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string",
+            "format": "uri"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "question",
+          "plainLanguageAnswer",
+          "status",
+          "currentTruth",
+          "peopleImpact",
+          "risk",
+          "controls",
+          "evidencePaths",
+          "validationPaths",
+          "externalAlignmentIds",
+          "completionCondition",
+          "nonClaims"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^HTQ-[0-9]{3}$"
+          },
+          "question": {
+            "type": "string",
+            "minLength": 5
+          },
+          "plainLanguageAnswer": {
+            "type": "string",
+            "minLength": 10
+          },
+          "status": {
+            "enum": [
+              "Verified",
+              "Tested",
+              "Implemented",
+              "Target",
+              "Not available"
+            ]
+          },
+          "currentTruth": {
+            "type": "string",
+            "minLength": 10
+          },
+          "peopleImpact": {
+            "type": "string",
+            "minLength": 10
+          },
+          "risk": {
+            "type": "string",
+            "minLength": 10
+          },
+          "controls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "evidencePaths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "validationPaths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "externalAlignmentIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "completionCondition": {
+            "type": "string",
+            "minLength": 10
+          },
+          "nonClaims": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 5
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

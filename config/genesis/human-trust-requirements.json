@@ -1,0 +1,493 @@
+{
+  "schemaVersion": "1.0.0",
+  "framework": "Genesis Human Trust Validation",
+  "project": {
+    "name": "Acing IU: Genesis",
+    "repository": "AcingTime420/Acing-IU-Genesis",
+    "governancePrincipal": {
+      "github": "AcingTime420",
+      "scope": "repository-and-project-governance",
+      "legalOwnershipClaim": "not-established-by-this-file"
+    }
+  },
+  "alignmentDisclaimer": "External standards and frameworks are alignment references only. They do not establish certification, conformance, regulatory compliance, or third-party endorsement.",
+  "principles": [
+    "People remain the final authority for protected actions.",
+    "Capability does not create authority.",
+    "Claims follow current evidence.",
+    "Simulation stays visibly simulated.",
+    "Security and privacy controls fail closed where authority is uncertain.",
+    "Consequential actions must be attributable and auditable.",
+    "Understanding Genesis and its trust status must not depend on technical expertise or payment."
+  ],
+  "maturityLabels": {
+    "Verified": "Current implementation plus reproducible evidence demonstrates the complete claim within its stated scope.",
+    "Tested": "Relevant implementation and automated validation exist, but the broader end-to-end claim is not fully verified.",
+    "Implemented": "The control or governance rule exists, but current automated evidence does not prove the complete public claim.",
+    "Target": "Required architecture or behavior is defined but not sufficiently implemented and evidenced.",
+    "Not available": "The capability is intentionally unavailable until its required safety and evidence gates pass."
+  },
+  "externalAlignments": [
+    {
+      "id": "NIST-AI-RMF",
+      "title": "NIST AI Risk Management Framework",
+      "reference": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "scope": "risk management, trustworthiness, governance, measurement and management"
+    },
+    {
+      "id": "NIST-AI-600-1",
+      "title": "NIST AI RMF Generative AI Profile",
+      "reference": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "scope": "generative-AI risk identification and lifecycle risk management"
+    },
+    {
+      "id": "NIST-NCCOE-AGENT-IAM-2026",
+      "title": "NCCoE Software and AI Agent Identity and Authorization",
+      "reference": "https://www.nccoe.nist.gov/projects/software-and-ai-agent-identity-and-authorization",
+      "scope": "agent identification, authentication, authorization, auditing, non-repudiation and prompt-injection risk"
+    },
+    {
+      "id": "NIST-TEVV-ATHLON",
+      "title": "NIST TEVV-Athlon Framework for Evaluating AI Systems",
+      "reference": "https://www.nist.gov/artificial-intelligence/ai-research/tevv-athlon-framework-evaluating-ai-systems",
+      "scope": "test, evaluation, verification and validation for AI systems including agentic systems"
+    },
+    {
+      "id": "W3C-WEBAUTHN-L3",
+      "title": "W3C Web Authentication Level 3",
+      "reference": "https://www.w3.org/TR/2026/REC-webauthn-3-20260825/",
+      "scope": "strong public-key authentication, user consent and user verification"
+    },
+    {
+      "id": "OWASP-LLM-TOP10-2025",
+      "title": "OWASP Top 10 for LLM and Generative AI Applications 2025",
+      "reference": "https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/",
+      "scope": "prompt injection, sensitive information disclosure, excessive agency, misinformation and related application risks"
+    },
+    {
+      "id": "C2PA",
+      "title": "C2PA Content Credentials Specifications",
+      "reference": "https://spec.c2pa.org/specifications/",
+      "scope": "digital-content source and provenance"
+    }
+  ],
+  "questions": [
+    {
+      "id": "HTQ-001",
+      "question": "Who is ultimately in control: the human or Genesis?",
+      "plainLanguageAnswer": "For protected actions, the human is the final project authority. Genesis may analyze, recommend and prepare actions, but it may not create its own permission.",
+      "status": "Implemented",
+      "currentTruth": "Owner Law and the Genesis Constitution establish human sovereignty. Cryptographic L5 enforcement is still a Target.",
+      "peopleImpact": "A person must not lose authority merely because an AI is technically capable of acting.",
+      "risk": "Unchecked autonomy can turn model capability into unauthorized real-world action.",
+      "controls": [
+        "docs/governance/OWNER_LAW.md",
+        "docs/governance/GENESIS_CONSTITUTION.md",
+        ".github/agents/genesis.agent.md",
+        "config/genesis/owner-law.json"
+      ],
+      "evidencePaths": [
+        "docs/governance/OWNER_LAW.md",
+        "config/genesis/owner-law.json"
+      ],
+      "validationPaths": [
+        "scripts/check-genesis-governance.py",
+        ".github/workflows/genesis-self-governance.yml"
+      ],
+      "externalAlignmentIds": [
+        "NIST-AI-RMF",
+        "NIST-NCCOE-AGENT-IAM-2026"
+      ],
+      "completionCondition": "A trusted runtime independently verifies protected-action authorization and denies execution when valid human proof is absent.",
+      "nonClaims": [
+        "Genesis does not yet claim cryptographically enforced L5 Human Sovereignty at runtime."
+      ]
+    },
+    {
+      "id": "HTQ-002",
+      "question": "Can Genesis give itself more power?",
+      "plainLanguageAnswer": "Genesis is governed by a no-self-escalation rule: it cannot legitimately grant itself permissions, credentials, roles, policy exceptions or trusted-device status.",
+      "status": "Implemented",
+      "currentTruth": "The rule is encoded in Owner Law, agent instructions and machine-readable governance. Runtime enforcement across every future tool boundary remains to be proven.",
+      "peopleImpact": "AI authority should not expand just because the AI requests it.",
+      "risk": "Self-escalation can bypass human intent and least-privilege boundaries.",
+      "controls": [
+        "docs/governance/OWNER_LAW.md",
+        ".github/agents/genesis.agent.md",
+        "config/genesis/owner-law.json"
+      ],
+      "evidencePaths": [
+        "config/genesis/owner-law.json"
+      ],
+      "validationPaths": [
+        "scripts/check-genesis-governance.py"
+      ],
+      "externalAlignmentIds": [
+        "NIST-NCCOE-AGENT-IAM-2026",
+        "OWASP-LLM-TOP10-2025"
+      ],
+      "completionCondition": "Every operational tool and delegated-agent path enforces non-amplifying authority and has negative tests for self-escalation.",
+      "nonClaims": [
+        "Policy text alone is not proof that every future integration is enforcement-safe."
+      ]
+    },
+    {
+      "id": "HTQ-003",
+      "question": "Can Genesis perform a high-risk action without me knowing or approving it?",
+      "plainLanguageAnswer": "The intended answer is no. L5 actions are designed to require a fresh, action-bound human authorization before execution.",
+      "status": "Target",
+      "currentTruth": "Authorization request and receipt contracts exist, but the trusted WebAuthn and device-bound verifier is not implemented.",
+      "peopleImpact": "People should see and approve consequential actions before they happen.",
+      "risk": "Broad or reusable consent can be transformed into authority for a different or more dangerous action.",
+      "controls": [
+        "schemas/genesis-human-authorization-request.schema.json",
+        "schemas/genesis-human-authorization-receipt.schema.json",
+        "scripts/genesis-create-authorization-request.py"
+      ],
+      "evidencePaths": [
+        "schemas/genesis-human-authorization-request.schema.json",
+        "schemas/genesis-human-authorization-receipt.schema.json"
+      ],
+      "validationPaths": [
+        "scripts/check-genesis-governance.py"
+      ],
+      "externalAlignmentIds": [
+        "W3C-WEBAUTHN-L3",
+        "NIST-NCCOE-AGENT-IAM-2026"
+      ],
+      "completionCondition": "WebAuthn user verification plus a recognized device-bound approval key is verified against the exact action digest, nonce and expiry before L5 execution.",
+      "nonClaims": [
+        "A chat message, checkbox, JSON field or AI statement is not valid L5 approval."
+      ]
+    },
+    {
+      "id": "HTQ-004",
+      "question": "Can I stop Genesis or revoke its authority?",
+      "plainLanguageAnswer": "Genesis is designed so a human can revoke delegated authority and protected operations fail closed when required authorization is unavailable.",
+      "status": "Target",
+      "currentTruth": "Revocation is constitutional law and part of the authorization design; a complete runtime revocation service is not yet evidenced.",
+      "peopleImpact": "Consent that cannot be withdrawn is not meaningful control.",
+      "risk": "Persistent credentials or standing authority can outlive the person's intent.",
+      "controls": [
+        "docs/governance/OWNER_LAW.md",
+        "docs/governance/GENESIS_CONSTITUTION.md",
+        "config/genesis/owner-law.json"
+      ],
+      "evidencePaths": [
+        "docs/governance/OWNER_LAW.md"
+      ],
+      "validationPaths": [
+        "scripts/check-genesis-governance.py"
+      ],
+      "externalAlignmentIds": [
+        "NIST-NCCOE-AGENT-IAM-2026",
+        "NIST-AI-RMF"
+      ],
+      "completionCondition": "Revocation, expiry, verifier-unavailable and emergency-stop tests all prove protected actions are denied after authority is withdrawn.",
+      "nonClaims": [
+        "Runtime revocation is not yet Verified."
+      ]
+    },
+    {
+      "id": "HTQ-005",
+      "question": "How do I know Genesis is not exaggerating what it can do?",
+      "plainLanguageAnswer": "Genesis uses explicit maturity labels and requires claims to follow evidence. Planned, simulated and unavailable capabilities must not be presented as verified.",
+      "status": "Tested",
+      "currentTruth": "The capability register, claim-surface regression guard and CI checks exist and are exercised in the current stabilization stack.",
+      "peopleImpact": "A non-technical person should be able to tell the difference between a working capability, a prototype and a future goal.",
+      "risk": "Unsupported security claims create false confidence and can cause unsafe decisions.",
+      "controls": [
+        "docs/CAPABILITY_REGISTER.md",
+        "scripts/check-claim-surface.sh"
+      ],
+      "evidencePaths": [
+        "docs/CAPABILITY_REGISTER.md"
+      ],
+      "validationPaths": [
+        "scripts/check-claim-surface.sh",
+        ".github/workflows/ci.yml"
+      ],
+      "externalAlignmentIds": [
+        "NIST-AI-RMF",
+        "NIST-TEVV-ATHLON"
+      ],
+      "completionCondition": "Every public operational claim maps to current reproducible evidence and CI rejects unsupported maturity promotion.",
+      "nonClaims": [
+        "Passing claim-surface checks is not a certification of the whole platform."
+      ]
+    },
+    {
+      "id": "HTQ-006",
+      "question": "How can I know what Genesis actually did?",
+      "plainLanguageAnswer": "Consequential operations should produce attributable audit evidence. Current backend runtime roles can append to the canonical audit ledger but cannot update or delete it.",
+      "status": "Tested",
+      "currentTruth": "Database migrations and CI privilege probes test append-only runtime-role behavior. End-to-end signed agent authorization receipts remain a Target.",
+      "peopleImpact": "People need a readable record of what acted, under whose authority, on what resource and with what result.",
+      "risk": "Without durable audit evidence, failures and abuse can be denied or misattributed.",
+      "controls": [
+        "infrastructure/postgres/init/008_audit_immutable_grants.sql",
+        "tests/database/constraint_tests.sql"
+      ],
+      "evidencePaths": [
+        "infrastructure/postgres/init/008_audit_immutable_grants.sql"
+      ],
+      "validationPaths": [
+        "tests/database/constraint_tests.sql",
+        ".github/workflows/database.yml"
+      ],
+      "externalAlignmentIds": [
+        "NIST-NCCOE-AGENT-IAM-2026",
+        "NIST-AI-RMF"
+      ],
+      "completionCondition": "Protected agent actions create verifiable, action-bound receipts and audit records whose integrity, access controls and retention are independently tested.",
+      "nonClaims": [
+        "The current database control is not a claim of cryptographic non-repudiation or full tamper-evidence."
+      ]
+    },
+    {
+      "id": "HTQ-007",
+      "question": "How does Genesis know who a person, device or agent really is?",
+      "plainLanguageAnswer": "Identity must be established separately from authorization. Genesis has a canonical human Identity service and DeviceTrust service; dedicated cryptographic agent identity remains future work.",
+      "status": "Implemented",
+      "currentTruth": "Human authentication and DeviceTrust code exist. Agent identity and production WebAuthn enrollment are not yet Verified.",
+      "peopleImpact": "An action should never gain authority merely because a name or label says it came from a trusted person or agent.",
+      "risk": "Impersonation and confused identity can transfer authority to the wrong actor.",
+      "controls": [
+        "backend/Identity/src/AcingIU.Identity.Api/",
+        "backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/"
+      ],
+      "evidencePaths": [
+        "backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Api.csproj",
+        "backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/AcingIU.DeviceTrust.Api.csproj"
+      ],
+      "validationPaths": [
+        "tests/DeviceTrust.UnitTests/DeviceOwnershipAuthorizationTests.cs",
+        "tests/DeviceTrust.PostgresIntegrationTests/TelemetryOwnershipPostgresIntegrationTests.cs"
+      ],
+      "externalAlignmentIds": [
+        "NIST-NCCOE-AGENT-IAM-2026",
+        "W3C-WEBAUTHN-L3"
+      ],
+      "completionCondition": "Humans, trusted approval devices and operational agents have cryptographically verifiable identities with lifecycle, rotation and revocation tests.",
+      "nonClaims": [
+        "Device trust posture is not identity and is not authorization."
+      ]
+    },
+    {
+      "id": "HTQ-008",
+      "question": "What personal information does Genesis use, where does it go, and can I control it?",
+      "plainLanguageAnswer": "Genesis is intended to make collection, purpose, destination, retention and external sharing visible and controllable rather than hidden in technical implementation.",
+      "status": "Target",
+      "currentTruth": "Security and privacy documentation exists, but a complete user-facing data inventory, consent ledger and provider-egress enforcement layer is not yet evidenced.",
+      "peopleImpact": "People should understand data use without reading source code or a long legal document.",
+      "risk": "Unclear data flows can expose sensitive information or make consent meaningless.",
+      "controls": [
+        "PRIVACY.md",
+        "docs/adr/ADR-007-ai-provider-governance.md"
+      ],
+      "evidencePaths": [
+        "PRIVACY.md",
+        "docs/adr/ADR-007-ai-provider-governance.md"
+      ],
+      "validationPaths": [],
+      "externalAlignmentIds": [
+        "NIST-AI-RMF",
+        "NIST-AI-600-1",
+        "OWASP-LLM-TOP10-2025"
+      ],
+      "completionCondition": "Automated data-flow tests and a human-readable Trust Center disclose collection, purpose, destination, retention, deletion and model-provider use for each data class.",
+      "nonClaims": [
+        "Genesis does not yet claim complete provider-egress enforcement or training-use guarantees for external AI providers."
+      ]
+    },
+    {
+      "id": "HTQ-009",
+      "question": "What happens if malicious instructions try to manipulate Genesis?",
+      "plainLanguageAnswer": "Untrusted content must never become authority. Prompt text, retrieved documents and tool output are data unless a trusted policy boundary explicitly grants an action.",
+      "status": "Target",
+      "currentTruth": "The constitutional separation between information and authority is established, but a comprehensive prompt-injection and tool-abuse test suite is not yet present.",
+      "peopleImpact": "A webpage, email or document should not be able to trick an agent into acting with the person's privileges.",
+      "risk": "Indirect prompt injection can turn untrusted content into unauthorized tool use or data disclosure.",
+      "controls": [
+        "docs/governance/GENESIS_CONSTITUTION.md",
+        ".github/agents/genesis.agent.md"
+      ],
+      "evidencePaths": [
+        "docs/governance/GENESIS_CONSTITUTION.md"
+      ],
+      "validationPaths": [],
+      "externalAlignmentIds": [
+        "NIST-NCCOE-AGENT-IAM-2026",
+        "OWASP-LLM-TOP10-2025"
+      ],
+      "completionCondition": "Adversarial tests prove untrusted instructions cannot alter authority, bypass approval, exfiltrate protected data or broaden tool scope.",
+      "nonClaims": [
+        "Prompt-injection resistance is not yet Verified."
+      ]
+    },
+    {
+      "id": "HTQ-010",
+      "question": "How can Genesis help distinguish authentic digital content from manipulated or AI-generated content?",
+      "plainLanguageAnswer": "Genesis should prefer verifiable provenance over guessing whether content looks synthetic.",
+      "status": "Target",
+      "currentTruth": "No C2PA implementation is currently evidenced in Genesis.",
+      "peopleImpact": "People need provenance they can inspect rather than unreliable 'fake or real' guesses.",
+      "risk": "Synthetic media and missing provenance can enable impersonation, fraud and misinformation.",
+      "controls": [],
+      "evidencePaths": [],
+      "validationPaths": [],
+      "externalAlignmentIds": [
+        "C2PA",
+        "NIST-AI-RMF"
+      ],
+      "completionCondition": "Genesis can create, preserve and validate supported provenance credentials and clearly distinguish verified provenance from unknown provenance.",
+      "nonClaims": [
+        "Genesis does not claim perfect AI-content detection or universal authenticity determination."
+      ]
+    },
+    {
+      "id": "HTQ-011",
+      "question": "What happens when the AI is wrong or confidently invents an answer?",
+      "plainLanguageAnswer": "Model output is not evidence by itself. Genesis should distinguish source evidence, inference, uncertainty and unverified model statements.",
+      "status": "Implemented",
+      "currentTruth": "Claims-follow-evidence is a governance rule and capability maturity is explicit. Systematic model-quality evaluation and calibrated uncertainty testing remain a Target.",
+      "peopleImpact": "People should be able to see when an answer is supported, uncertain or unverified.",
+      "risk": "Overreliance on fluent but incorrect output can create bad technical, financial, security or personal decisions.",
+      "controls": [
+        "docs/CAPABILITY_REGISTER.md",
+        "docs/governance/GENESIS_CONSTITUTION.md"
+      ],
+      "evidencePaths": [
+        "docs/CAPABILITY_REGISTER.md"
+      ],
+      "validationPaths": [
+        "scripts/check-claim-surface.sh"
+      ],
+      "externalAlignmentIds": [
+        "NIST-AI-600-1",
+        "NIST-TEVV-ATHLON",
+        "OWASP-LLM-TOP10-2025"
+      ],
+      "completionCondition": "Defined evaluation sets measure factuality, grounding, abstention and source attribution for each model-dependent Genesis use case.",
+      "nonClaims": [
+        "Genesis does not claim that any language model is incapable of hallucination."
+      ]
+    },
+    {
+      "id": "HTQ-012",
+      "question": "Who is accountable when Genesis makes or carries out a consequential decision?",
+      "plainLanguageAnswer": "Genesis is designed to preserve the chain from human principal to policy to agent to tool to outcome instead of treating 'the AI' as an anonymous decision-maker.",
+      "status": "Implemented",
+      "currentTruth": "Governance and audit architecture exist. Complete action-bound signed receipts and production policy decisions are not yet Verified.",
+      "peopleImpact": "A person affected by an action should be able to understand who authorized it and what rule permitted it.",
+      "risk": "Opaque delegation can hide responsibility and make remediation difficult.",
+      "controls": [
+        "docs/governance/GENESIS_CONSTITUTION.md",
+        "schemas/genesis-human-authorization-receipt.schema.json",
+        "infrastructure/postgres/init/008_audit_immutable_grants.sql"
+      ],
+      "evidencePaths": [
+        "schemas/genesis-human-authorization-receipt.schema.json"
+      ],
+      "validationPaths": [
+        "scripts/check-genesis-governance.py"
+      ],
+      "externalAlignmentIds": [
+        "NIST-AI-RMF",
+        "NIST-NCCOE-AGENT-IAM-2026"
+      ],
+      "completionCondition": "Every protected action can be traced through authenticated principal, policy decision, exact request, agent/tool identity, receipt and outcome.",
+      "nonClaims": [
+        "A receipt schema is not proof that a cryptographically verified receipt was produced."
+      ]
+    },
+    {
+      "id": "HTQ-013",
+      "question": "How will Genesis detect and reduce harmful bias or unfair treatment?",
+      "plainLanguageAnswer": "Genesis should measure decisions against defined fairness and harm criteria for the specific population and use case rather than claim that an AI is simply 'unbiased'.",
+      "status": "Target",
+      "currentTruth": "No project-wide fairness evaluation suite is currently evidenced.",
+      "peopleImpact": "People affected by automated decisions need measurable safeguards and routes for correction.",
+      "risk": "Model or data bias can produce systematically harmful outcomes.",
+      "controls": [],
+      "evidencePaths": [],
+      "validationPaths": [],
+      "externalAlignmentIds": [
+        "NIST-AI-RMF",
+        "NIST-TEVV-ATHLON"
+      ],
+      "completionCondition": "Each consequential AI use case defines affected populations, fairness risks, measurable evaluation criteria, remediation thresholds and appeal/review paths.",
+      "nonClaims": [
+        "Genesis does not claim to be bias-free."
+      ]
+    },
+    {
+      "id": "HTQ-014",
+      "question": "Can a non-technical person understand what Genesis is doing and why?",
+      "plainLanguageAnswer": "Genesis is intended to expose the important decision, authority, risk and evidence in plain language, with technical detail available as a deeper layer rather than a prerequisite.",
+      "status": "Target",
+      "currentTruth": "Plain-language documentation is being developed, but formal usability and accessibility validation has not yet been recorded.",
+      "peopleImpact": "Control is not meaningful if only an engineer can understand the choice.",
+      "risk": "Technical interfaces can turn nominal consent into uninformed consent.",
+      "controls": [
+        "docs/TRUST_CENTER.md"
+      ],
+      "evidencePaths": [],
+      "validationPaths": [],
+      "externalAlignmentIds": [
+        "NIST-AI-RMF"
+      ],
+      "completionCondition": "Representative non-technical usability testing shows people can correctly identify what will happen, who authorized it, what data is used and how to decline or revoke.",
+      "nonClaims": [
+        "Documentation quality has not yet been independently usability-tested."
+      ]
+    },
+    {
+      "id": "HTQ-015",
+      "question": "Will Genesis be transparent about the resources AI consumes?",
+      "plainLanguageAnswer": "Genesis should use ordinary deterministic software when it is sufficient, use AI when it adds measurable value, and report meaningful compute or external-service use where practical.",
+      "status": "Target",
+      "currentTruth": "No project-wide compute, energy or AI-call accounting system is currently evidenced.",
+      "peopleImpact": "People and organizations should be able to understand cost and resource consequences instead of treating AI compute as invisible.",
+      "risk": "Unbounded agent loops can waste compute, money, energy and time.",
+      "controls": [],
+      "evidencePaths": [],
+      "validationPaths": [],
+      "externalAlignmentIds": [
+        "NIST-AI-RMF",
+        "OWASP-LLM-TOP10-2025"
+      ],
+      "completionCondition": "AI-dependent workflows have bounded budgets, loop limits and measurable usage reporting appropriate to the deployment.",
+      "nonClaims": [
+        "Genesis does not yet claim measured energy efficiency."
+      ]
+    },
+    {
+      "id": "HTQ-016",
+      "question": "Who controls Genesis today?",
+      "plainLanguageAnswer": "Within the current GitHub repository and Genesis governance model, AcingTime420 is the recorded human project principal. Genesis and its agents are subordinate to that human authority.",
+      "status": "Implemented",
+      "currentTruth": "The repository is under AcingTime420 and Owner Law defines human project authority. Repository governance records do not by themselves adjudicate trademarks, copyright assignments, corporate ownership or other legal title.",
+      "peopleImpact": "People should know who has project authority and should not be told that an AI owns or governs itself.",
+      "risk": "Ambiguous ownership and authority can conceal who is responsible for policy and product decisions.",
+      "controls": [
+        "docs/governance/OWNER_LAW.md",
+        "config/genesis/owner-law.json"
+      ],
+      "evidencePaths": [
+        "docs/governance/OWNER_LAW.md",
+        "config/genesis/owner-law.json"
+      ],
+      "validationPaths": [
+        "scripts/check-genesis-governance.py"
+      ],
+      "externalAlignmentIds": [
+        "NIST-AI-RMF"
+      ],
+      "completionCondition": "Project governance, legal entity/IP records where applicable, release signing authority and operational principals are documented without conflating repository control with legal ownership.",
+      "nonClaims": [
+        "This machine-readable governance record is not legal proof of intellectual-property ownership."
+      ]
+    }
+  ]
+}

@@ -161,3 +161,18 @@ For consequential work, report:
 - what was blocked by policy;
 - what requires human authorization;
 - the next logical actions in dependency order.
+
+
+## People-first trust validation
+
+When work affects a public capability claim, authority boundary, privacy behavior, AI/provider integration, audit/provenance behavior, accessibility/usability promise, or commercial trust claim, Genesis SHALL consult:
+
+- `docs/governance/GENESIS_HUMAN_TRUST_CHARTER.md`
+- `config/genesis/human-trust-requirements.json`
+- `docs/TRUST_CENTER.md`
+
+Genesis SHALL NOT promote a human-trust question to **Verified** unless its current implementation, evidence, and validation satisfy the corresponding completion condition.
+
+External standards are alignment references only. Genesis SHALL NOT convert a reference to NIST, W3C, OWASP, C2PA, or another body into a certification, endorsement, or compliance claim.
+
+Sponsorship, payment, customer importance, or schedule pressure SHALL NOT change evidence requirements, Owner Law, Human Sovereignty, or capability maturity.
