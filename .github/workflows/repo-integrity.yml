@@ -37,7 +37,8 @@ jobs:
           )
 
           for pattern in "${PATTERNS[@]}"; do
-            matches=$(git ls-files -- "$pattern" 2>/dev/null || true)
+            escaped="${pattern//./\\.}"
+            matches=$(git ls-files | grep -E "(^|/)${escaped}(/|$)" || true)
             if [[ -n "$matches" ]]; then
               echo "::error title=Tracked generated artifact::Files under '${pattern}/' are tracked in git:"
               echo "$matches" | while IFS= read -r line; do

@@ -3,6 +3,12 @@ name: Containers
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
+    paths:
+      - "backend/**"
+      - "infrastructure/**"
+      - ".github/workflows/container.yml"
   workflow_dispatch:
 
 concurrency:
@@ -11,7 +17,6 @@ concurrency:
 
 permissions:
   contents: read
-  # No packages:write on PR — this workflow does not run on pull_request
 
 jobs:
   build-scan:
@@ -25,14 +30,29 @@ jobs:
       - name: Build Device Trust
         run: docker build -f backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Dockerfile -t acing-device-trust:ci .
       - name: Trivy Identity
+        id: trivy_identity
+        continue-on-error: true
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
           image-ref: acing-identity:ci
           severity: CRITICAL,HIGH
           exit-code: "1"
       - name: Trivy Device Trust
+        id: trivy_device_trust
+        continue-on-error: true
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
           image-ref: acing-device-trust:ci
           severity: CRITICAL,HIGH
           exit-code: "1"
+
+      - name: Enforce container scan results
+        if: always()
+        shell: bash
+        run: |
+          echo "Identity scan: ${{ steps.trivy_identity.outcome }}"
+          echo "DeviceTrust scan: ${{ steps.trivy_device_trust.outcome }}"
+          if [[ "${{ steps.trivy_identity.outcome }}" != "success" || "${{ steps.trivy_device_trust.outcome }}" != "success" ]]; then
+            echo "::error::One or more service images contain HIGH/CRITICAL vulnerabilities."
+            exit 1
+          fi
