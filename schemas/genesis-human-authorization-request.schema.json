@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acing.iu/schemas/genesis-human-authorization-request.schema.json",
+  "title": "Genesis Human Sovereignty Authorization Request",
+  "description": "A pending request for L5 authorization. This document never constitutes approval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "action",
+    "governance",
+    "challenge",
+    "requiredProofs",
+    "executionAllowed",
+    "notice"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "status": {
+      "const": "pending-human-sovereignty-verification"
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actionId",
+        "kind",
+        "resources",
+        "summary",
+        "reversible",
+        "digest"
+      ],
+      "properties": {
+        "actionId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reversible": {
+          "type": "boolean"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownerLawVersion",
+        "ownerLawDigest",
+        "constitutionVersion",
+        "constitutionDigest"
+      ],
+      "properties": {
+        "ownerLawVersion": {
+          "type": "string"
+        },
+        "ownerLawDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "constitutionVersion": {
+          "type": "string"
+        },
+        "constitutionDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "challenge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nonce",
+        "issuedAt",
+        "expiresAt"
+      ],
+      "properties": {
+        "nonce": {
+          "type": "string",
+          "minLength": 16
+        },
+        "issuedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "requiredProofs": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "webauthn-user-verification",
+          "device-bound-genesis-approval-key"
+        ]
+      }
+    },
+    "executionAllowed": {
+      "const": false
+    },
+    "notice": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
