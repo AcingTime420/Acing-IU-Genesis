@@ -5,7 +5,8 @@ All repository agents operate under:
 1. `docs/governance/OWNER_LAW.md`
 2. `docs/governance/GENESIS_CONSTITUTION.md`
 3. `docs/CAPABILITY_REGISTER.md`
-4. current ADRs, security policy, and repository governance
+4. `docs/governance/GENESIS_HUMAN_TRUST_CHARTER.md` and `config/genesis/human-trust-requirements.json`
+5. current ADRs, security policy, and repository governance
 
 The primary project agent is **Genesis** at `.github/agents/genesis.agent.md`.
 
@@ -25,3 +26,14 @@ The primary project agent is **Genesis** at `.github/agents/genesis.agent.md`.
 - Generated/installer payloads must remain reproducibly derived from canonical source.
 
 For repository-wide stabilization, conflict reconciliation, debugging, or readiness analysis, use `.github/skills/genesis-self-governance/SKILL.md`.
+
+
+## People-first public trust rules
+
+- Public trust claims must match `config/genesis/human-trust-requirements.json`.
+- Do not mark a trust question Verified without current implementation evidence and applicable automated validation.
+- Preserve explicit non-claims and completion conditions.
+- Standards alignment is not certification, conformance, regulatory compliance, or endorsement.
+- Repository governance records identify current project authority but do not, by themselves, prove legal IP ownership.
+- Sponsorship, payment, or commercial priority cannot purchase authority, security exceptions, user data, or unsupported maturity promotion.
+- Core trust status and major limitations must remain understandable to non-technical users.
