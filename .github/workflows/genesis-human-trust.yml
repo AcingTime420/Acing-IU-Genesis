@@ -1,0 +1,49 @@
+name: Genesis Human Trust Validation
+
+on:
+  pull_request:
+    paths:
+      - "config/genesis/human-trust-requirements.json"
+      - "schemas/genesis-human-trust-requirements.schema.json"
+      - "docs/TRUST_CENTER.md"
+      - "docs/governance/GENESIS_HUMAN_TRUST_CHARTER.md"
+      - "docs/adr/ADR-010-human-trust-validation-framework.md"
+      - "scripts/check-genesis-human-trust.py"
+      - ".github/workflows/genesis-human-trust.yml"
+  push:
+    branches: [master]
+    paths:
+      - "config/genesis/human-trust-requirements.json"
+      - "schemas/genesis-human-trust-requirements.schema.json"
+      - "docs/TRUST_CENTER.md"
+      - "docs/governance/GENESIS_HUMAN_TRUST_CHARTER.md"
+      - "docs/adr/ADR-010-human-trust-validation-framework.md"
+      - "scripts/check-genesis-human-trust.py"
+      - ".github/workflows/genesis-human-trust.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trust-requirements:
+    name: People-First Trust Requirements
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Validate JSON syntax
+        run: python3 -m json.tool config/genesis/human-trust-requirements.json >/dev/null
+
+      - name: Validate schema JSON syntax
+        run: python3 -m json.tool schemas/genesis-human-trust-requirements.schema.json >/dev/null
+
+      - name: Validate trust claims against repository evidence
+        run: python3 scripts/check-genesis-human-trust.py
+
+      - name: Re-run constitutional governance gate
+        run: python3 scripts/check-genesis-governance.py
+
+      - name: Re-run public claim-surface gate
+        run: bash scripts/check-claim-surface.sh
