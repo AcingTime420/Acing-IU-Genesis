@@ -19,6 +19,9 @@ public sealed class TrustController : ControllerBase
     [HttpPost("telemetry/submit")]
     [Authorize]
     [ProducesResponseType(typeof(TrustScoreResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemBody), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemBody), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemBody), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SubmitTelemetry([FromBody] TelemetrySubmitRequest request, CancellationToken ct)
     {
         if (!ModelState.IsValid)
@@ -38,6 +41,8 @@ public sealed class TrustController : ControllerBase
     [HttpGet("devices/{hwId}")]
     [Authorize]
     [ProducesResponseType(typeof(TrustScoreResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemBody), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemBody), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDevice(string hwId, CancellationToken ct)
     {
         if (!TryGetCallerUserId(out var callerId))
@@ -61,8 +66,9 @@ public sealed class TrustController : ControllerBase
         return Ok(list);
     }
 
-    private ObjectResult ProblemResult(int status, string title, string detail) =>
-        StatusCode(status, new ProblemBody
+    private ObjectResult ProblemResult(int status, string title, string detail)
+    {
+        var result = StatusCode(status, new ProblemBody
         {
             Type = $"https://acing.iu/problems/{status}",
             Title = title,
@@ -70,6 +76,9 @@ public sealed class TrustController : ControllerBase
             Detail = detail,
             TraceId = HttpContext.TraceIdentifier
         });
+        result.ContentTypes.Add("application/problem+json");
+        return result;
+    }
 
     private bool TryGetCallerUserId(out Guid userId)
     {

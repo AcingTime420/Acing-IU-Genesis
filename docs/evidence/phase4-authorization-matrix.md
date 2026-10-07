@@ -1,8 +1,8 @@
 # Authorization Matrix — Acing-IU-Genesis (Phase 4, Task 4.4)
 
-**Status:** Reviewed baseline (policy + current enforcement gaps documented)  
-**Version:** 1.0  
-**Last updated:** 2026-09-13  
+**Status:** Partial — AUTHZ-04 enforcement and PostgreSQL tests added; CI evidence pending
+**Version:** 1.1
+**Last updated:** 2026-10-07
 **Tracking:** [#58](https://github.com/AcingTime420/Acing-IU-Genesis/issues/58) · related [#61](https://github.com/AcingTime420/Acing-IU-Genesis/issues/61)  
 **Related:** `docs/evidence/phase4-threat-model.md`, `backend/Identity/.../AuthController.cs`, `backend/DeviceTrust/.../TrustController.cs`
 
@@ -27,7 +27,7 @@ Trust boundaries (from threat model): **TB1** browser↔gateway, **TB2** gateway
 | Role | Intended scope |
 |---|---|
 | **Anonymous** | Register, login, refresh, logout only |
-| **User** | Own profile; own device telemetry submit; own device read (when ownership enforced) |
+| **User** | Own profile; own enrolled-device telemetry submit and read |
 | **Operator** | User scope + list devices; operational device inventory |
 | **Admin** | Operator scope + policy administration (target); full inventory |
 
@@ -53,8 +53,8 @@ Legend: **Allow** = authorized success path · **Deny** = must return 401/403 (o
 
 | Operation | Method | Anon | User | Operator | Admin | Enforcement today | Notes |
 |---|---|---|---|---|---|---|---|
-| Submit telemetry | POST | Deny | Allow (own hw) | Allow | Allow | `[Authorize]`; passes `owner` from `sub` into upsert | Ownership on write path |
-| Get device by hwId | GET | Deny | Allow **only if owner** (policy) | Allow | Allow | `[Authorize]` only; **GetDevice does not filter by caller** | **Gap** vs #61 intent — any authenticated user who knows hwId can read score |
+| Submit telemetry | POST | Deny | Allow (own enrolled hw) | Allow | Allow | `[Authorize]`; validates subject; conditional SQL UPDATE enforces owner or privileged role; success mutation and audit share a transaction | Unknown hwId returns 404 and is not enrolled |
+| Get device by hwId | GET | Deny | Allow only if owner | Allow | Allow | `[Authorize]`; service validates subject, owner, and role; unknown and denied results are 404 | PostgreSQL-backed read tests added |
 | List devices | GET | Deny | Deny | Allow | Allow | `[Authorize(Roles = "Admin,Operator")]` | Role gate present |
 
 ### 3.3 Audit (legacy surface)
@@ -79,7 +79,7 @@ Not wired as a global filter on all APIs yet — treat as **target** for high-as
 | Resource | Attribute check | Deny behavior |
 |---|---|---|
 | User profile | `resource.userId == token.sub` | 401 invalid sub / 404 not found |
-| Device record | `resource.ownerUserId == token.sub` **OR** role ∈ {Admin, Operator} | **403** without confirming existence preferred; or safe 404 |
+| Device record | `resource.ownerUserId == token.sub` **OR** role ∈ {Admin, Operator} | Same safe 404 for unknown and unauthorized |
 | Device list | role ∈ {Admin, Operator} | 403 for User |
 | Audit query | role ∈ {Admin, Operator} + tenant scope (target) | 401/403 |
 
@@ -90,12 +90,12 @@ Not wired as a global filter on all APIs yet — treat as **target** for high-as
 | AUTHZ-01 | Unauthenticated GET `/api/trust/devices/{hwId}` | 401 |
 | AUTHZ-02 | Unauthenticated POST `/api/trust/telemetry/submit` | 401 |
 | AUTHZ-03 | User role GET `/api/trust/devices` (list) | 403 |
-| AUTHZ-04 | User A GET device owned by User B | 403 or safe 404 |
+| AUTHZ-04 | User A GET device owned by User B | Safe 404; same response as unknown device |
 | AUTHZ-05 | Operator GET list devices | 200 |
 | AUTHZ-06 | Authenticated User GET `/api/auth/me` | 200 self only |
 | AUTHZ-07 | Cross-user MFA enroll (forged sub) | 401/403 |
 
-**Status:** #61 closed with remediation intent; **GetDevice ownership filter still absent in current `TrustController`** — AUTHZ-04 is the residual gap. Integration tests for AUTHZ-01–07 should be added or linked before claiming full 4.4 closure.
+**Status:** AUTHZ-04 service enforcement and PostgreSQL tests are included. Read authorization is evaluated in the application service after retrieval; query-level filtering is not an established policy requirement. CI execution evidence is required before calling this verified. Other AUTHZ IDs remain open.
 
 ## 6. STRIDE linkage
 
@@ -108,13 +108,14 @@ Not wired as a global filter on all APIs yet — treat as **target** for high-as
 
 ## 7. Residual gaps (honest)
 
-1. **`GetDevice` lacks caller ownership check** — highest priority authz fix.  
+1. Ownership transfer is not an application workflow; concurrent transfer/read semantics are unspecified.
 2. **Legacy AuditController** unauthenticated — ensure only durable authenticated audit path is exposed in compose.  
-3. **Automated deny-path suite** not yet committed as named integration tests.  
+3. Other AUTHZ IDs still need automated deny-path evidence.
 4. **Policy engine** not on the global request path for all services.
 
 ## 8. Review history
 
 | Version | Date | Change |
 |---|---|---|
+| 1.1 | 2026-10-07 | Document AUTHZ-04 service enforcement, no-enrollment policy, and PostgreSQL test expectations |
 | 1.0 | 2026-09-13 | Initial matrix from live controllers + Zero Trust / STRIDE mapping |

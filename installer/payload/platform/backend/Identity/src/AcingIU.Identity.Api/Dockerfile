@@ -1,22 +1,31 @@
-# =============================================================================
-# Acing IU — Identity API (S2)
-# Multi-stage build: restore → publish → runtime
+﻿# =============================================================================
+# Acing IU - Identity API
+# Repository-root Docker build context
 # =============================================================================
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
 WORKDIR /src
 
-COPY AcingIU.Identity.Api.csproj .
-RUN dotnet restore
+COPY backend/SharedKernel/src/AcingIU.SharedKernel/AcingIU.SharedKernel.csproj backend/SharedKernel/src/AcingIU.SharedKernel/
+COPY backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Api.csproj backend/Identity/src/AcingIU.Identity.Api/
 
-COPY . .
-RUN dotnet publish -c Release -o /app/publish --no-restore
+RUN dotnet restore backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Api.csproj
 
-# ---------------------------------------------------------------------------
+COPY backend/SharedKernel/src/AcingIU.SharedKernel/ backend/SharedKernel/src/AcingIU.SharedKernel/
+COPY backend/Identity/src/AcingIU.Identity.Api/ backend/Identity/src/AcingIU.Identity.Api/
+
+RUN dotnet publish backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Api.csproj \
+    -c Release \
+    -o /app/publish \
+    --no-restore
+
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends wget \
     && rm -rf /var/lib/apt/lists/*
 
 ENV ASPNETCORE_URLS=http://+:8080
