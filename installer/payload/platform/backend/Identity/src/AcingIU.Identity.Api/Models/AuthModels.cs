@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace AcingIU.Identity.Api.Models;
 
@@ -54,7 +54,7 @@ public sealed class ProblemDetailsBody
     public string? TraceId { get; set; }
 }
 
-internal sealed class UserRecord
+public sealed class UserRecord
 {
     public Guid Id { get; set; }
     public string Email { get; set; } = string.Empty;

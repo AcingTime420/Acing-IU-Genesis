@@ -1,7 +1,8 @@
-# Acing IU — Platform Foundation Stack (S1–S3)
-# Required secrets (fail closed — no insecure defaults):
+# Acing IU - Platform Foundation Stack (S1-S3)
+# Required secrets (fail closed - no insecure defaults):
 #   POSTGRES_PASSWORD, MIGRATOR_DB_PASSWORD, IDENTITY_DB_PASSWORD,
-#   DEVICE_TRUST_DB_PASSWORD, REDIS_PASSWORD, JWT_SIGNING_KEY
+#   DEVICE_TRUST_DB_PASSWORD, REDIS_PASSWORD, JWT_SIGNING_KEY,
+#   MFA_SECRET_PROTECTION_ACTIVE_KEY_ID, MFA_SECRET_PROTECTION_KEY_MFA_V1
 #
 # Dev host ports bind to 127.0.0.1 only. Production: do not publish 5432/6379.
 
@@ -10,19 +11,20 @@ name: acing-iu
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: acing-postgres
+    container_name: ${POSTGRES_CONTAINER_NAME:-acing-postgres}
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-acing_admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:-acing_iu}
+      SMOKE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-}
       PGDATA: /var/lib/postgresql/data/pgdata
       MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?MIGRATOR_DB_PASSWORD must be set}
       IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?IDENTITY_DB_PASSWORD must be set}
       DEVICE_TRUST_DB_PASSWORD: ${DEVICE_TRUST_DB_PASSWORD:?DEVICE_TRUST_DB_PASSWORD must be set}
     ports:
-      # Development only — localhost. Production: omit ports or use internal network only.
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      # Development only - localhost. Production: omit ports or use internal network only.
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Bootstrap only (empty volume). Upgrades: use db-migrate + migrate.sh
@@ -44,19 +46,20 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: acing-redis
+    container_name: ${REDIS_CONTAINER_NAME:-acing-redis}
     restart: unless-stopped
-    command: >
-      redis-server
-      /usr/local/etc/redis/redis.conf
-      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    command:
+      - redis-server
+      - /usr/local/etc/redis/redis.conf
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"${REDIS_PASSWORD:?REDIS_PASSWORD must be set}\" ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -74,7 +77,7 @@ services:
 
   gateway:
     image: nginx:1.27-alpine
-    container_name: acing-gateway
+    container_name: ${GATEWAY_CONTAINER_NAME:-acing-gateway}
     restart: unless-stopped
     ports:
       - "${GATEWAY_PORT:-8080}:80"
@@ -87,9 +90,9 @@ services:
       redis:
         condition: service_healthy
       identity:
-        condition: service_started
+        condition: service_healthy
       device-trust:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health/live"]
       interval: 10s
@@ -106,10 +109,10 @@ services:
         tag: "{{.Name}}"
 
   identity:
+    container_name: ${IDENTITY_CONTAINER_NAME:-acing-identity}
     build:
-      context: ./backend/Identity/src/AcingIU.Identity.Api
-      dockerfile: Dockerfile
-    container_name: acing-identity
+      context: .
+      dockerfile: backend/Identity/src/AcingIU.Identity.Api/Dockerfile
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
@@ -119,6 +122,8 @@ services:
       Jwt__Issuer: ${JWT_ISSUER:-acing-iu}
       Jwt__Audience: ${JWT_AUDIENCE:-acing-iu-api}
       Jwt__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set and at least 32 characters}
+      Mfa__SecretProtection__ActiveKeyId: ${MFA_SECRET_PROTECTION_ACTIVE_KEY_ID:?MFA_SECRET_PROTECTION_ACTIVE_KEY_ID must be set}
+      Mfa__SecretProtection__Keys__mfa-v1: ${MFA_SECRET_PROTECTION_KEY_MFA_V1:?MFA_SECRET_PROTECTION_KEY_MFA_V1 must be a base64-encoded 32-byte key}
       Jwt__AccessTokenMinutes: "15"
       Jwt__RefreshTokenDays: "14"
     depends_on:
@@ -142,10 +147,10 @@ services:
         tag: "{{.Name}}"
 
   device-trust:
+    container_name: ${DEVICE_TRUST_CONTAINER_NAME:-acing-device-trust}
     build:
-      context: ./backend/DeviceTrust/src/AcingIU.DeviceTrust.Api
-      dockerfile: Dockerfile
-    container_name: acing-device-trust
+      context: .
+      dockerfile: backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Dockerfile
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
@@ -176,8 +181,8 @@ services:
 
   # Upgrade path for existing volumes (not a substitute for empty-volume init)
   db-migrate:
+    container_name: ${MIGRATOR_CONTAINER_NAME:-acing-db-migrate}
     image: postgres:16-alpine
-    container_name: acing-db-migrate
     restart: "no"
     environment:
       PGHOST: postgres
@@ -199,10 +204,10 @@ services:
 networks:
   acing-net:
     driver: bridge
-    name: acing-iu-net
+    name: ${COMPOSE_PROJECT_NAME:-acing-iu}-net
 
 volumes:
   postgres_data:
-    name: acing-postgres-data
+    name: ${POSTGRES_VOLUME_NAME:-acing-postgres-data}
   redis_data:
-    name: acing-redis-data
+    name: ${REDIS_VOLUME_NAME:-acing-redis-data}
