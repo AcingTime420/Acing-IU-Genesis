@@ -2,9 +2,33 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import { fixupConfigRules } from "@eslint/compat";
 import nextConfig from "eslint-config-next";
 import nextTypeScript from "eslint-config-next/typescript";
+import {
+  noHtmlLinkForPages,
+  noLocationAssignRelativeDestination,
+} from "./lint/next-navigation.mjs";
+
+// Keep the braces-free Next 14 dependency, restoring navigation checks locally.
+const compatibleNextConfig = nextConfig.map((config) => {
+  const plugin = config.plugins?.["@next/next"];
+  if (!plugin) return config;
+  return {
+    ...config,
+    plugins: {
+      ...config.plugins,
+      "@next/next": {
+        ...plugin,
+        rules: {
+          ...plugin.rules,
+          "no-html-link-for-pages": noHtmlLinkForPages,
+          "no-location-assign-relative-destination": noLocationAssignRelativeDestination,
+        },
+      },
+    },
+  };
+});
 
 export default defineConfig([
-  ...fixupConfigRules([...nextConfig, ...nextTypeScript]),
+  ...fixupConfigRules([...compatibleNextConfig, ...nextTypeScript]),
   {
     // The braces-free Next 14 plugin uses legacy configs; retain its Vitals rules.
     /*
@@ -15,14 +39,7 @@ export default defineConfig([
     rules: {
       "@next/next/no-html-link-for-pages": "error",
       "@next/next/no-sync-scripts": "error",
-      // Next 14's link rule only covers Pages Router; also protect App Router links.
-      "no-restricted-syntax": [
-        "error",
-        {
-          selector: "JSXOpeningElement[name.name='a'] > JSXAttribute[name.name='href'][value.value=/^\\u002F([^\\u002F]|$)/]",
-          message: "Use next/link instead of an <a> element for internal navigation.",
-        },
-      ],
+      "@next/next/no-location-assign-relative-destination": "warn",
       "@typescript-eslint/no-explicit-any": "off",
       "react-hooks/immutability": "off",
       "react-hooks/purity": "off",

@@ -178,6 +178,31 @@ The rendered GitHub HTML on **each** run states exactly: **“This workflow is a
 
 **Remaining blockers:** maintainer approval and executed final-head CI/SBOM/security checks; confirmed CodeQL/secret-scan/reviewer scope and SHA; lint downgrade trade-off review; hydration diagnosis and real desktop-hover/visual-regression evidence. No exception has been accepted, and no finding is represented as remediated on `master`. PR #143 stays draft; PR #135 was not updated.
 
+### Hydration comparison and workflow-control follow-up — 2026-10-08
+
+The follow-up started from draft PR #143 head `90bb4f4647f3defd7f927e6809f442868ec9df70`. Its complete workflow diff against base `3d22e3c20abbe9e8cd3e168b4e4a8d800d17f7c7` is empty: this PR proposes no changes to Security, CI, or SBOM workflows or permissions.
+
+The requested approval page was opened through the available browser tool, but it returned **“MCP request failed: Transport closed”** before displaying a page or approval control. No run was approved. The available GitHub tools have no workflow-approval or PR-body-update operation; attempts to use the progress description do not update the existing PR body. Maintainer approval and correction of the stale PR description remain required, not completed. The linked pending runs at this starting head are [Security 37836860790](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/37836860790), [CI 37836860393](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/37836860393), and [SBOM 37836860323](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/37836860323). No settings were changed, and the PR remains draft.
+
+For a controlled hydration comparison, the unchanged pre-migration frontend at full SHA **`fd4a4298f2fc986eaa1b4f500e0a170ced089b8e`** was extracted into `/tmp` (not another branch), installed with `npm ci`, and built with `npm run build`. Both exited 0 on **Node v22.23.3 / npm 10.9.9**; the original dependency audit still reported its historical nine package findings. The migrated frontend at starting SHA **`90bb4f4647f3defd7f927e6809f442868ec9df70`** also installed and built successfully on that runtime. A shared-directory installation overlap produced transient tar warnings during the latter install; the build succeeded, but that install is not claimed as a pristine independent final-head installation.
+
+Both production builds were served locally and navigated in the same clean **Chrome 154.0.8037.57**, 1440×1000 viewport, with timezone **America/Los_Angeles**. Runtime exception events were collected separately after each full navigation:
+
+| Source SHA | `/` dashboard | `/audit` | `/users` |
+|---|---|---|---|
+| `fd4a4298f2fc986eaa1b4f500e0a170ced089b8e` (before migration) | No captured runtime exception | React text-hydration error #418 | No captured runtime exception |
+| `90bb4f4647f3defd7f927e6809f442868ec9df70` (after migration, before this follow-up) | No captured runtime exception | React text-hydration error #418 | No captured runtime exception |
+
+Thus the audit hydration failure **predates the Tailwind migration**; no migration-caused hydration regression was demonstrated. The previously reported dashboard error was not reproduced under this controlled comparison and is not labeled fixed. The audit source in both revisions renders `new Date().toUTCString()` directly in the print report and uses local date arithmetic/default-locale month/weekday formatting for fixture heatmap dates. Those unchanged server/client-dependent values are candidate mismatch sources; a complete attribution of every mismatch remains Unverified. They are not silently suppressed or changed as an unrelated application repair. The comparison is local evidence, not CI or proof that all browser interactions are error-free.
+
+The full JSON and high-threshold audits during this follow-up again exited 0 with **zero total vulnerabilities and zero reported advisories**; the affected braces and selector-parser package paths remain absent. No dependency or audit-gate changes were required.
+
+The lint follow-up retains the existing dependency overrides but replaces the broad `no-restricted-syntax` anchor selector with a local, route-aware compatibility rule registered under `@next/next/no-html-link-for-pages`. It scans this repository's JS/TS App Router and Pages Router routes, permits non-route assets/external links, and preserves upstream download and `_blank` exemptions. A second local rule restores `@next/next/no-location-assign-relative-destination` at its original warning severity, including static destination prefixes and global/shadowed location handling. All other configured lint families, existing disables, generated-file exclusions, and Core Web Vitals severities are retained. These are compatibility implementations, not an upgrade to the Next 16 plugin; literal-only href inspection and static analysis cannot establish every runtime destination.
+
+The implementation agent validated its own working-tree changes based on `90bb4f4647f3defd7f927e6809f442868ec9df70` using **Node 22.23.3 / npm 10.9.9**: `npm run lint` exited 0 with the existing 19 warnings; 42 configured probes, 188 differential cases against the official Next 16.3.0 navigation rules, and 20 route probes passed. Those counts are session-local ESLint API checks, not a newly committed test suite or executed CI. The unchanged manifest/lockfile means no vulnerable paths were reintroduced. The production build comparison above occurred before the lint edits; lint configuration does not participate in `next build`.
+
+A final-head SHA-bound build/audit/scan/review report still requires the pending workflows. The available automated review service is unavailable; any skipped CodeQL analysis or local agent review is not recorded as completed independent final-head review evidence. A changed-file secret check before committing this follow-up is only that limited local check, not the required GitHub Gitleaks run.
+
 ## Accepted exceptions
 
 | Finding ID | Source | Component | Severity | Status | Detected | Remediated | Evidence | Owner | Exception expiry |
