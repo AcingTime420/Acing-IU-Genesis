@@ -25,6 +25,10 @@ export default defineConfig([
           message: "Use next/link instead of an <a> element for internal navigation.",
         },
       ],
+      /*
+       * Keep the React 19 compiler-oriented rules disabled until their
+       * application refactors are handled separately.
+       */
       "@typescript-eslint/no-explicit-any": "off",
       "react-hooks/immutability": "off",
       "react-hooks/purity": "off",
