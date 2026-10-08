@@ -44,30 +44,32 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom glassmorphism cards and glow styles */
-.glass-card {
-  background: rgba(21, 29, 48, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(34, 49, 77, 0.8);
-  transition: border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
+@layer components {
+  /* Custom glassmorphism cards and glow styles */
+  .glass-card {
+    background: rgba(21, 29, 48, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(34, 49, 77, 0.8);
+    transition: border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-.glass-card.selected-card {
-  border-color: rgba(47, 88, 205, 0.9) !important;
-  box-shadow: 0 10px 30px -5px rgba(47, 88, 205, 0.25), 0 4px 12px -5px rgba(47, 88, 205, 0.2);
-  background-color: rgba(21, 29, 48, 0.85);
-  transform: translateY(-2px);
-}
+  .glass-card.selected-card {
+    border-color: rgba(47, 88, 205, 0.9) !important;
+    box-shadow: 0 10px 30px -5px rgba(47, 88, 205, 0.25), 0 4px 12px -5px rgba(47, 88, 205, 0.2);
+    background-color: rgba(21, 29, 48, 0.85);
+    transform: translateY(-2px);
+  }
 
-.glow-blue {
-  box-shadow: 0 0 20px rgba(47, 88, 205, 0.15);
-}
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(47, 88, 205, 0.15);
+  }
 
-.glow-green {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  .glow-green {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  }
 }
 
 /* Print-specific media queries for generating high-fidelity PDF reports */
@@ -153,4 +155,3 @@ body {
 .print-report-container {
   display: none;
 }
-
