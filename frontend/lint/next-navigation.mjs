@@ -25,10 +25,13 @@ function routePatterns(directory, appRouter, segments = []) {
     if (appRouter && name !== "page") return [];
     const route = [...segments, ...((appRouter || name === "index") ? [] : [name])]
       .filter((segment) => !appRouter || !(segment.startsWith("@") || /^\(.*\)$/.test(segment)));
-    const pattern = route.map((segment) => segment.includes("[")
-      ? "((?!.+?\\..+?).*?)"
-      : segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("/");
-    return [new RegExp(`^/${pattern}${pattern ? "/" : ""}$`)];
+    const pattern = route.map((segment) => {
+      if (/^\[\[\.\.\..+\]\]$/.test(segment)) return "(?:/((?!.+?\\..+?).*?))?";
+      return `/${segment.includes("[")
+        ? "((?!.+?\\..+?).*?)"
+        : segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`;
+    }).join("");
+    return [new RegExp(`^${pattern}/$`)];
   });
 }
 
