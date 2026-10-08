@@ -1,9 +1,16 @@
 # Software Requirements Specification (SRS) for Acing IU
 
+> **Claim status (issue #63):** This SRS describes *target* and *research*
+> requirements. References to Knox, carrier certification, or hardware
+> attestation are **design inspiration and planned evaluation criteria**.
+> They do **not** assert that Samsung Knox, carrier certification, or
+> production hardware attestation is implemented or certified in this
+> repository today.
+
 ## 1. Introduction
 
 ### 1.1 Purpose
-This document specifies the software requirements for the **Acing IU** platform. Acing IU is a high-security, Knox-inspired enterprise platform designed to coordinate user identity, device compliance metrics, policy decisions, and audit events to protect critical workspace operations. 
+This document specifies the software requirements for the **Acing IU** platform. Acing IU is a high-security enterprise platform **inspired by industry device-trust architectures** (including concepts popularized by platforms such as Samsung Knox). It is designed to coordinate user identity, device compliance metrics, policy decisions, and audit events to protect critical workspace operations.
 
 ### 1.2 Scope
 Acing IU comprises:
@@ -14,7 +21,7 @@ Acing IU comprises:
 5.  An Immutable Auditing pipeline recording all transactional events.
 6.  An interactive Next.js-based Security Dashboard displaying analytics, telemetry, and configuration settings.
 
-This specification details the **SM-S938U Verizon baseline** (Samsung Galaxy S25 Ultra) as the primary secure endpoint reference, imposing hardware-specific Knox, carrier-locked bootloader, and radio performance constraints.
+This specification uses the **SM-S938U Verizon baseline** (Samsung Galaxy S25 Ultra) as a *reference research endpoint* for evaluating hardware-oriented trust signals (bootloader state, warranty flags, radio metrics). Those constraints are **targets for future device integration**, not claims of current certified integration.
 
 ---
 
@@ -25,9 +32,11 @@ This specification details the **SM-S938U Verizon baseline** (Samsung Galaxy S25
 *   **Platform Operator**: Enrolls devices, reviews security alerts, manages inventory, and handles quarantined devices.
 *   **End User**: Authenticates via registered devices, manages local MFA profiles, and performs standard platform operations.
 
-### 2.2 Knox-Inspired Trust Model
+### 2.2 Design-Inspired Trust Model (not a vendor product)
 Access to any protected module (e.g., AI Research, Workspace data) is decided at runtime by evaluating:
 $$\text{Access Granted} = f(\text{User Identity}, \text{MFA Completed}, \text{Device Trust Score} \ge \text{Policy Threshold})$$
+
+This model is inspired by enterprise device-trust patterns. It is **not** an implementation or certification of any third-party Knox product.
 
 ---
 
@@ -47,19 +56,19 @@ $$\text{Access Granted} = f(\text{User Identity}, \text{MFA Completed}, \text{De
     *   Multi-factor enrollment enforcement.
 *   **FR-2.3 (Quarantine Enforcement)**: If a device's trust score falls below 40, the system must immediately revoke active sessions and redirect the client to quarantine resolution guidelines.
 
-### 3.3 Device Trust & Compliance Tracking (SM-S938U Baseline)
-*   **FR-3.1 (Device Registration)**: End users must register their client devices. The registration must capture operating system, version, unique platform signature, and system integrity attestations.
+### 3.3 Device Trust & Compliance Tracking (SM-S938U research baseline)
+*   **FR-3.1 (Device Registration)**: End users must register their client devices. The registration must capture operating system, version, unique platform signature, and system integrity attestations *when available*.
 *   **FR-3.2 (Trust Assessment)**: The system must execute trust score calculation using the following guidelines:
     *   OS is updated with current patch level (+30 pts).
     *   Device is not jailbroken or rooted (+30 pts).
     *   Valid device attestation token present (+40 pts).
-*   **FR-3.3 (Hardware Attestation Enforcement)**: For the SM-S938U, the trust assessment must verify:
-    *   **Knox Warranty Void (e-fuse)**: Must read `0x0`. If blown (`0x1`), trust score drops to `0` instantly (Quarantined status).
-    *   **Qualcomm SPU (Secure Processing Unit) / Knox Vault State**: Enforce hardware-backed key storage integrity. Keys must reside strictly in Knox Vault.
-    *   **SELinux State**: Must be strictly `Enforcing`.
-    *   **TIMA / RKP Protection**: Real-time Kernel Protection status must be verified as active.
-*   **FR-3.4 (Carrier Firmware Baseline Verification)**: The system must match the SM-S938U AP, BL, CP (Modem/Baseband), and CSC hashes against the certified Verizon firmware release. Any modification (custom ROM, unlocked bootloader attempts) fails policy evaluation.
-*   **FR-3.5 (Revocation)**: Administrators must have immediate capability to revoke a device certificate, instantly isolating the associated device.
+*   **FR-3.3 (Hardware signal evaluation — target)**: For the SM-S938U research baseline, *when* hardware integration exists, trust assessment *should* evaluate:
+    *   **Warranty void flag (e-fuse analog)**: Target value `0x0`. If blown (`0x1`), trust score drops to `0` (Quarantined). *Not implemented against live hardware today.*
+    *   **Hardware-backed key storage**: Prefer keys in isolated storage (TrustZone / vendor vault when available). Current builds use a software emulator only.
+    *   **SELinux State**: Prefer `Enforcing`.
+    *   **Kernel integrity signals**: Prefer active real-time kernel protection when the platform exposes it.
+*   **FR-3.4 (Firmware baseline verification — target)**: Match AP, BL, CP, and CSC hashes against an approved baseline when a signed firmware inventory is available. Custom ROM / unlocked-bootloader states fail policy when that evidence exists.
+*   **FR-3.5 (Revocation)**: Administrators must have immediate capability to revoke a device certificate, isolating the associated device.
 
 ### 3.4 Immutable Auditing & Security Alerts
 *   **FR-4.1 (Event Interception)**: The system must hook into all authentication, authorization, policy update, and device registration calls to write an event to the audit trail.
@@ -78,10 +87,10 @@ $$\text{Access Granted} = f(\text{User Identity}, \text{MFA Completed}, \text{De
 
 ## 4. Non-Functional Requirements & Hardware Constraints
 
-### 4.1 SM-S938U Verizon Hardware Constraints
-*   **Snapdragon 8 Elite (SM8750) Integration**: Encryption routines (AES-256-GCM) must leverage hardware acceleration on the SM8750 SoC.
-*   **Carrier Lock & Verizon Radio Standards**: Devices must maintain active cellular connection on Verizon's primary LTE/5G bands (B13, B66, n2, n5, n77, n260, n261). Radio performance metrics must align with CTIA standards to ensure secure over-the-air platform connectivity.
-*   **Locked Bootloader Constraint**: Bootloader unlocking is strictly prohibited on the SM-S938U Verizon model. Firmware updates are validated through signed Verizon delta-OTAs.
+### 4.1 SM-S938U Verizon research constraints (targets)
+*   **Snapdragon 8 Elite (SM8750) Integration**: Prefer hardware-accelerated AES-256-GCM when available on target SoCs.
+*   **Carrier radio standards**: Research baseline may track CTIA-style radio metrics for connectivity quality; this is **not** a claim of CTIA certification.
+*   **Locked Bootloader Constraint**: For the Verizon research profile, unlocked bootloaders are treated as non-compliant when reliable signals exist.
 
 ### 4.2 Security
 *   All communications in transit must be protected by TLS 1.3.

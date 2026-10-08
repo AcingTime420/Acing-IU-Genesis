@@ -40,7 +40,7 @@ interface Device {
   carrier: string;
   trustScore: number;
   quarantined: boolean;
-  knoxWarranty: string;
+  warrantyFlag: string;  // fixture only — not a live Knox fuse
   selinux: string;
   timaRkp: string;
   bootloader: string;
@@ -63,16 +63,16 @@ export default function DevicesPage() {
   // Toasts state
   const [toasts, setToasts] = useState<Toast[]>([]);
   
-  // Devices state
+  // Devices state — all records are local demonstration fixtures only
   const [devices, setDevices] = useState<Device[]>([
     {
       id: "dev-938u-vzw1",
-      name: "Mick's S25 Ultra",
+      name: "Demo S25 Ultra Fixture",
       model: "SM-S938U",
-      carrier: "Verizon (VZW)",
+      carrier: "Demo Carrier",
       trustScore: 100,
       quarantined: false,
-      knoxWarranty: "0x0 (Intact)",
+      warrantyFlag: "0x0 (Intact)",
       selinux: "Enforcing",
       timaRkp: "Active",
       bootloader: "Locked",
@@ -89,10 +89,10 @@ export default function DevicesPage() {
       id: "dev-s918-demo",
       name: "Standard S24 Dev Node",
       model: "SM-S918U",
-      carrier: "Verizon (VZW)",
+      carrier: "Demo Carrier",
       trustScore: 80,
       quarantined: false,
-      knoxWarranty: "0x0 (Intact)",
+      warrantyFlag: "0x0 (Intact)",
       selinux: "Enforcing",
       timaRkp: "Active",
       bootloader: "Unlocked", 
@@ -107,12 +107,12 @@ export default function DevicesPage() {
     },
     {
       id: "dev-rooted-938",
-      name: "Compromised S25 Target",
+      name: "Compromised Target Fixture",
       model: "SM-S938U",
       carrier: "Unlocked (XAA)",
       trustScore: 0,
       quarantined: true,
-      knoxWarranty: "0x1 (Tripped)", 
+      warrantyFlag: "0x1 (Tripped)", 
       selinux: "Permissive",
       timaRkp: "Disabled",
       bootloader: "Unlocked",
@@ -234,7 +234,7 @@ export default function DevicesPage() {
         let score = dev.trustScore;
         // recalculate logic
         if (dev.id === 'dev-rooted-938') {
-          score = 0; // cannot bypass tripped knox
+          score = 0; // cannot bypass tripped warranty flag (fixture)
         } else if (dev.id === 'dev-938u-vzw1') {
           score = 100;
         } else {
@@ -265,11 +265,11 @@ export default function DevicesPage() {
     // Update the device in the local state
     setDevices(prev => prev.map(dev => {
       if (dev.id === scannerDeviceTarget) {
-        // Boost score / attest device
+        // Boost score in this fixture simulation only
         const isCompromised = dev.id === 'dev-rooted-938';
         return {
           ...dev,
-          trustScore: isCompromised ? 15 : 100, // Tripped warranty still gets penalty but attests chip presence
+          trustScore: isCompromised ? 15 : 100, // Tripped warranty flag still gets penalty in this fixture simulation
           timaRkp: "Active",
           selinux: "Enforcing"
         };
@@ -280,7 +280,7 @@ export default function DevicesPage() {
     const targetDevice = devices.find(d => d.id === scannerDeviceTarget);
     
     addToast(
-      `FIXTURE UPDATE: Simulated chip-detection result recorded for '${targetDevice?.name || 'Device'}'. No Knox attestation or certification occurred.`,
+      `FIXTURE UPDATE: Simulated chip-detection result recorded for '${targetDevice?.name || 'Device'}'. No hardware attestation or certification occurred.`,
       'success'
     );
 
@@ -465,14 +465,14 @@ export default function DevicesPage() {
 
                 {/* Middle telemetry metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 py-5">
-                  {/* Knox Hardware Root */}
+                  {/* Hardware Root Flags (fixture) */}
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
                       <Cpu className="h-4 w-4 text-[#2F58CD]" />
-                      <span>Knox Hardware Root</span>
+                      <span>Hardware Root Flags (fixture)</span>
                     </div>
                     <div className="text-xs font-semibold text-white space-y-0.5">
-                      <p>Warranty Void: <span className={dev.knoxWarranty.includes("0x0") ? "text-[#10B981] font-bold" : "text-red-500 font-bold"}>{dev.knoxWarranty}</span></p>
+                      <p>Warranty Void: <span className={dev.warrantyFlag.includes("0x0") ? "text-[#10B981] font-bold" : "text-red-500 font-bold"}>{dev.warrantyFlag}</span></p>
                       <p>SELinux State: <span className="text-slate-300">{dev.selinux}</span></p>
                     </div>
                   </div>
@@ -480,380 +480,152 @@ export default function DevicesPage() {
                   {/* Integrity status */}
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                      <Shield className="h-4 w-4 text-[#6C3483]" />
-                      <span>Kernel Verification</span>
+                      <Shield className="h-4 w-4 text-[#2F58CD]" />
+                      <span>Integrity Status (fixture)</span>
                     </div>
                     <div className="text-xs font-semibold text-white space-y-0.5">
-                      <p>TIMA RKP Guard: <span className={dev.timaRkp === "Active" ? "text-[#10B981] font-bold" : "text-red-500 font-bold"}>{dev.timaRkp}</span></p>
-                      <p>Bootloader Guard: <span className={dev.bootloader === "Locked" ? "text-[#10B981] font-bold" : "text-red-500 font-bold"}>{dev.bootloader}</span></p>
+                      <p>TIMA/RKP: <span className="text-slate-300">{dev.timaRkp}</span></p>
+                      <p>Bootloader: <span className="text-slate-300">{dev.bootloader}</span></p>
                     </div>
                   </div>
 
-                  {/* CTIA Radio */}
-                  <div className="space-y-1.5 md:col-span-2">
+                  {/* Radio metrics */}
+                  <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                      <Radio className="h-4 w-4 text-[#F59E0B]" />
-                      <span>CTIA OTA 3.8.2 RF Parameters</span>
+                      <Radio className="h-4 w-4 text-[#2F58CD]" />
+                      <span>RF Metrics (fixture)</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-white">
-                      <div>
-                        <p className="text-slate-400">TRP (Total Radiated Power):</p>
-                        <p className="text-slate-200 mt-0.5">{dev.trp} <span className="text-[10px] text-slate-500">(Target {`>=`} 23.0 dBm)</span></p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400">TIS (Isotropic Sensitivity):</p>
-                        <p className="text-slate-200 mt-0.5">{dev.tis} <span className="text-[10px] text-slate-500">(Target {`<=`} -90.0 dBm)</span></p>
-                      </div>
+                    <div className="text-xs font-semibold text-white space-y-0.5">
+                      <p>TRP: <span className="text-slate-300">{dev.trp}</span></p>
+                      <p>TIS: <span className="text-slate-300">{dev.tis}</span></p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
+                      <Activity className="h-4 w-4 text-[#2F58CD]" />
+                      <span>Fixture Actions</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => toggleExpand(dev.id)}
+                        className="text-[10px] font-bold px-2 py-1 rounded border border-[#22314D] text-slate-300 hover:text-white"
+                      >
+                        {isExpanded ? 'Hide' : 'Expand'}
+                      </button>
+                      <button
+                        onClick={() => triggerScannerFlow(dev.id)}
+                        className="text-[10px] font-bold px-2 py-1 rounded border border-[#2F58CD]/40 text-[#2F58CD] hover:bg-[#2F58CD]/10"
+                      >
+                        Scan Fixture
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* EXPANDABLE DETAIL SECURE SECTION (SPARKLINE SCORE HISTORY) */}
                 {isExpanded && (
-                  <div className="border-t border-[#22314D] py-5 space-y-6 animate-fadeIn">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* Left graph space */}
-                      <div className="lg:col-span-2 space-y-3">
-                        <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                          <Activity className="h-4 w-4 text-[#10B981]" />
-                          <span>30-Day Fixture Trust-Score Trend (Simulation)</span>
-                        </h4>
-
-                        {/* Recharts Area sparkline graph */}
-                        <div className="h-32 w-full bg-[#0B0F19]/60 rounded-xl p-2 border border-[#22314D]">
-                          {isMounted ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                               <AreaChart 
-                                 data={dev.history} 
-                                 margin={{ top: 5, right: 5, left: -40, bottom: 0 }}
-                                 style={{ pointerEvents: fullyExpandedIds.includes(dev.id) ? 'auto' : 'none' }}
-                               >
-                                 <defs>
-                                   <linearGradient id={`grad-${dev.id}`} x1="0" y1="0" x2="0" y2="1">
-                                     <stop offset="5%" stopColor={dev.quarantined ? "#EF4444" : "#10B981"} stopOpacity={0.25}/>
-                                     <stop offset="95%" stopColor={dev.quarantined ? "#EF4444" : "#10B981"} stopOpacity={0.0}/>
-                                   </linearGradient>
-                                 </defs>
-                                 <XAxis dataKey="day" hide={true} />
-                                 <YAxis domain={[0, 100]} hide={true} />
-                                 {fullyExpandedIds.includes(dev.id) && (
-                                   <Tooltip 
-                                     contentStyle={{
-                                       backgroundColor: '#151D30',
-                                       border: '1px solid #22314D',
-                                       color: 'white',
-                                       fontSize: '11px',
-                                       borderRadius: '6px'
-                                     }}
-                                   />
-                                 )}
-                                 <Area 
-                                   type="monotone" 
-                                   dataKey="score" 
-                                   stroke={dev.quarantined ? "#EF4444" : "#10B981"} 
-                                   strokeWidth={2}
-                                   fillOpacity={1} 
-                                   fill={`url(#grad-${dev.id})`} 
-                                   isAnimationActive={fullyExpandedIds.includes(dev.id)}
-                                   animationDuration={450}
-                                 />
-                               </AreaChart>
-                            </ResponsiveContainer>
-                          ) : (
-                            <div className="h-full flex items-center justify-center text-xs text-slate-500">
-                              Loading sparkline telemetry...
-                            </div>
-                          )}
-                        </div>
+                  <div className="pt-4 border-t border-[#22314D] space-y-4">
+                    <p className="text-xs text-slate-400">
+                      Expanded view shows demonstration score history only. No live device telemetry is read.
+                    </p>
+                    {fullyExpandedIds.includes(dev.id) && (
+                      <div className="h-40">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={dev.history}>
+                            <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                            <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                            <Tooltip />
+                            <Area type="monotone" dataKey="score" stroke="#2F58CD" fill="#2F58CD33" />
+                          </AreaChart>
+                        </ResponsiveContainer>
                       </div>
-
-                      {/* Right metadata sub-checklist */}
-                      <div className="space-y-3">
-                        <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                          <Sparkles className="h-4 w-4 text-amber-400" />
-                          <span>Firmware Integrity Fixture Checklist</span>
-                        </h4>
-
-                        <div className="bg-[#111827]/40 rounded-xl border border-[#22314D] p-3.5 space-y-2 text-[11px] font-semibold text-slate-300">
-                          <div className="flex items-center justify-between">
-                            <span>Base System Hash Code:</span>
-                            <span className="font-mono text-[#10B981]">FIXTURE_MATCH</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>OEM Keys Registered:</span>
-                            <span className="font-mono text-[#10B981]">FIXTURE_VERIFIED</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>TEE Integrity Attestation:</span>
-                            <span className="font-mono text-[#10B981]">FIXTURE_SECURE</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span>FRP Protection Status:</span>
-                            <span className="font-mono text-slate-400">{dev.bootloader === 'Locked' ? 'ENFORCED' : 'BYPASSED'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
-
-                {/* Bottom interactive metadata row */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-[#22314D] pt-4 mt-2">
-                  <div className="text-[10px] text-slate-500 font-semibold font-mono truncate max-w-lg">
-                    Partition MD5 Stage: 3c59a35e1281e8c97ec59bfa11ef12345e6eb951fca28be8e09fa843110fae12
-                  </div>
-                  
-                  <div className="flex items-center gap-4 shrink-0 self-end sm:self-auto">
-                    <button 
-                      onClick={() => triggerScannerFlow(dev.id)}
-                      title="Open a local fixture animation; no device is contacted"
-                      className="flex items-center gap-1.5 text-xs font-bold text-slate-400 transition-colors hover:text-white"
-                    >
-                      <QrCode className="h-3.5 w-3.5 text-[#2F58CD]" />
-                      <span>Open Fixture Simulation</span>
-                    </button>
-
-                    <button 
-                      onClick={() => toggleExpand(dev.id)}
-                      className="text-xs font-bold flex items-center gap-1.5 text-[#2F58CD] hover:text-[#426df0] transition-colors"
-                    >
-                      <span>{isExpanded ? "Hide Telemetry" : "Expand Telemetry"}</span>
-                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* FLOATING BULK ACTIONS TOOLBAR */}
+      {/* Bulk action bar */}
       {selectedIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-[95%] max-w-3xl animate-slideIn">
-          <div className="glass-card bg-[#111827] border border-[#22314D] shadow-2xl rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 glow-blue">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#2F58CD]/10 rounded-lg text-[#2F58CD]">
-                <Shield className="h-5 w-5 animate-pulse" />
-              </div>
-              <div>
-                <p className="text-xs font-extrabold text-white">
-                  {selectedIds.length} Device{selectedIds.length === 1 ? '' : 's'} Selected
-                </p>
-                <p className="text-[10px] text-slate-400 font-medium">Local fixture selection; device-changing operations are unavailable</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 w-full md:w-auto justify-end">
-              <button 
-                onClick={handleBulkRecalculate}
-                className="px-3.5 py-2 rounded-xl bg-[#151D30] border border-[#22314D] hover:border-slate-500 text-white text-xs font-bold transition-all flex items-center gap-1.5"
-              >
-                <RefreshCw className="h-3.5 w-3.5 text-[#2F58CD]" />
-                Recalculate Fixtures
-              </button>
-              
-              <button 
-                disabled
-                title="Unavailable until a verified device-policy executor exists"
-                className="cursor-not-allowed rounded-xl border border-slate-600/20 bg-slate-700/10 px-3.5 py-2 text-xs font-bold text-slate-600"
-              >
-                Clear Quarantine Unavailable
-              </button>
-
-              <button 
-                disabled
-                title="Unavailable until a verified device-policy executor exists"
-                className="flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-slate-600/20 bg-slate-700/10 px-3.5 py-2 text-xs font-bold text-slate-600"
-              >
-                <ShieldAlert className="h-3.5 w-3.5" />
-                Quarantine Unavailable
-              </button>
-
-              <button 
-                onClick={() => setSelectedIds([])}
-                className="p-2 text-slate-400 hover:text-white transition-all"
-                title="Cancel selection"
-              >
-                <X className="h-4.5 w-4.5" />
-              </button>
-            </div>
-          </div>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex gap-3 bg-[#151D30]/95 border border-[#2F58CD] rounded-2xl px-5 py-3 shadow-xl">
+          <button
+            onClick={() => handleBulkQuarantine(true)}
+            className="text-xs font-bold px-3 py-2 rounded-lg bg-red-500/20 text-red-300 border border-red-500/30"
+          >
+            Mark Quarantined (fixture)
+          </button>
+          <button
+            onClick={() => handleBulkQuarantine(false)}
+            className="text-xs font-bold px-3 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+          >
+            Clear Quarantine (fixture)
+          </button>
+          <button
+            onClick={handleBulkRecalculate}
+            className="text-xs font-bold px-3 py-2 rounded-lg bg-[#2F58CD]/20 text-[#2F58CD] border border-[#2F58CD]/30"
+          >
+            Recalculate Scores (fixture)
+          </button>
         </div>
       )}
 
-      {/* HIGH-TECH NEON QR CODE SCANNER OVERLAY / VIEWPORT */}
+      {/* Scanner modal */}
       {showScanner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-          <div className="bg-[#111827] border border-[#22314D] w-full max-w-lg rounded-3xl p-6 relative overflow-hidden space-y-6 shadow-2xl">
-            {/* Background design glow */}
-            <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-[#2F58CD]/10 blur-3xl"></div>
-            
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#22314D] pb-4">
-              <div className="flex items-center gap-2.5">
-                <QrCode className="h-5 w-5 text-[#2F58CD]" />
-                <h3 className="text-base font-bold text-white uppercase tracking-wider">Knox Attestation Fixture Simulator</h3>
-              </div>
-              <button 
-                onClick={() => setShowScanner(false)} 
-                className="p-1.5 text-slate-400 hover:text-white transition-colors"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="glass-card max-w-md w-full rounded-2xl p-6 space-y-4 border border-[#2F58CD]/40">
+            <h3 className="text-base font-bold text-white uppercase tracking-wider">Chip-Detection Fixture Simulator</h3>
+            <p className="text-[10px] text-slate-500 max-w-xs font-medium">Animated demonstration only; no camera, device, warranty fuse, or RKP security data is accessed</p>
+            <div className="h-40 rounded-xl border border-dashed border-[#22314D] flex items-center justify-center text-slate-500 text-xs">
+              {scanningActive ? 'Simulating scan…' : 'Ready'}
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowScanner(false)}
+                className="text-xs font-bold px-3 py-2 rounded-lg border border-[#22314D] text-slate-300"
               >
-                <X className="h-5 w-5" />
+                Cancel
               </button>
-            </div>
-
-            {/* Simulated Neon viewfinder scanbox */}
-            <div className="relative h-64 w-full border border-[#22314D] bg-[#0B0F19] rounded-2xl flex flex-col items-center justify-center overflow-hidden">
-              
-              {/* Scan box marker corners */}
-              <div className="absolute top-8 left-12 w-6 h-6 border-t-2 border-l-2 border-[#10B981]"></div>
-              <div className="absolute top-8 right-12 w-6 h-6 border-t-2 border-r-2 border-[#10B981]"></div>
-              <div className="absolute bottom-8 left-12 w-6 h-6 border-b-2 border-l-2 border-[#10B981]"></div>
-              <div className="absolute bottom-8 right-12 w-6 h-6 border-b-2 border-r-2 border-[#10B981]"></div>
-
-              {/* Scanning neon line */}
-              {scanningActive && (
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-4/5 h-0.5 bg-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.8)] animate-pulse" style={{ top: '35%' }}></div>
-              )}
-
-              {/* Viewfinder payload static/mock content */}
-              <div className="text-center space-y-2 relative z-10 px-8">
-                <ScanLine className="h-10 w-10 text-slate-500 mx-auto animate-pulse" />
-                <p className="text-xs font-bold text-slate-300">ALIGN CHIP QR SIGNATURE CODE</p>
-                <p className="text-[10px] text-slate-500 max-w-xs font-medium">Animated demonstration only; no camera, device, Knox fuse, or RKP security data is accessed</p>
-              </div>
-
-              {/* Scanning status pill */}
-              <div className="absolute bottom-4 bg-[#151D30] border border-[#22314D] px-3 py-1 rounded-full text-[10px] font-bold text-slate-300 tracking-wider flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-[#10B981] rounded-full animate-ping"></span>
-                <span>FIXTURE ANIMATION ACTIVE</span>
-              </div>
-            </div>
-
-            {/* Selection and Simulation control */}
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Device for Attestation</label>
-                <select 
-                  value={scannerDeviceTarget}
-                  onChange={(e) => setScannerDeviceTarget(e.target.value)}
-                  className="w-full bg-[#151D30] border border-[#22314D] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#2F58CD]/70 font-semibold cursor-pointer"
-                >
-                  {devices.map(d => (
-                    <option key={d.id} value={d.id}>{d.name} ({d.model})</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button 
-                  onClick={() => setShowScanner(false)}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#151D30] border border-[#22314D] text-slate-300 hover:text-white text-xs font-bold transition-all"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleSimulateScanSuccess}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#2F58CD] to-[#6C3483] text-white text-xs font-bold shadow-lg shadow-[#2F58CD]/20 hover:opacity-90 transition-all flex items-center justify-center gap-1.5"
-                >
-                  <Check className="h-4 w-4" />
-                  Simulate Chip Detected
-                </button>
-              </div>
+              <button
+                onClick={handleSimulateScanSuccess}
+                className="text-xs font-bold px-3 py-2 rounded-lg bg-[#2F58CD] text-white"
+              >
+                Complete Fixture Scan
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ==================================================================== */}
-      {/* PRINT-ONLY COMPLIANCE REPORT CONTAINER (RENDERED DURING WINDOW.PRINT) */}
-      {/* ==================================================================== */}
-      <div className="print-report-container">
-        <div className="print-title">
-          SIMULATED DEVICE INTEGRITY FIXTURE REPORT — NOT A CERTIFICATE
-        </div>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <div>
-            <strong>DOCUMENT ID:</strong> DEV-COMP-S938U-2026-VZW<br />
-            <strong>GENERATED BY:</strong> Acing IU: Genesis Simulator<br />
-            <strong>EXPORTED AT:</strong> {new Date().toUTCString()}
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <strong>DATA CLASSIFICATION:</strong> PUBLIC TEST FIXTURE<br />
-            <strong>REGISTRY STATUS:</strong> SIMULATED / UNVERIFIED<br />
-            <strong>TOTAL FIXTURE RECORDS:</strong> {devices.length}
-          </div>
-        </div>
-
-        <div className="print-section-title">Simulated hardware-attestation and RF fixture values (not CTIA evidence)</div>
-        <table className="print-table">
+      {/* Print-friendly demo table */}
+      <div className="hidden print:block">
+        <div className="print-section-title">Simulated hardware-attestation and RF fixture values (not evidence)</div>
+        <table className="w-full text-xs">
           <thead>
             <tr>
-              <th style={{ width: '25%' }}>Device Name / Model</th>
-              <th style={{ width: '15%' }}>Trust Score</th>
-              <th style={{ width: '20%' }}>Knox Warranty</th>
-              <th style={{ width: '15%' }}>TIMA Status</th>
-              <th style={{ width: '25%' }}>RF (TRP / TIS)</th>
+              <th>Name</th>
+              <th>Model</th>
+              <th style={{ width: '20%' }}>Warranty Flag (fixture)</th>
+              <th>Trust</th>
             </tr>
           </thead>
           <tbody>
             {devices.map(dev => (
               <tr key={dev.id}>
-                <td><strong>{dev.name}</strong><br /><span style={{ fontSize: '8pt', color: '#555' }}>{dev.model} • {dev.carrier}</span></td>
-                <td>
-                  <span className="print-badge" style={{ borderColor: dev.trustScore >= 85 ? 'green' : 'red', color: dev.trustScore >= 85 ? 'green' : 'red' }}>
-                    {dev.trustScore} / 100
-                  </span>
-                </td>
-                <td>{dev.knoxWarranty}</td>
-                <td>{dev.timaRkp}</td>
-                <td>TRP: {dev.trp}<br />TIS: {dev.tis}</td>
+                <td>{dev.name}</td>
+                <td>{dev.model}</td>
+                <td>{dev.warrantyFlag}</td>
+                <td>{dev.trustScore}</td>
               </tr>
             ))}
           </tbody>
         </table>
-
-        <div style={{ marginTop: '50px', borderTop: '1px solid #999', paddingTop: '10px', fontSize: '9pt', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
-          <div>
-            <em>Generated from local fixture data; not digitally attested and not valid compliance evidence</em>
-          </div>
-          
-          {/* Security Seal SVG Graphic Overlay */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <svg width="85" height="85" viewBox="0 0 100 100" style={{ opacity: 0.95, display: 'inline-block' }}>
-              <circle cx="50" cy="50" r="45" fill="none" stroke="#000000" strokeWidth="2" strokeDasharray="3,3" />
-              <circle cx="50" cy="50" r="41" fill="none" stroke="#000000" strokeWidth="1" />
-              <circle cx="50" cy="50" r="35" fill="#F3F4F6" stroke="#000000" strokeWidth="1.5" />
-              
-              {/* Star graphics inside seal */}
-              <path d="M50 22 L52.5 30 L61 30 L54 35 L56.5 43 L50 38 L43.5 43 L46 35 L39 30 L47.5 30 Z" fill="#000000" opacity="0.12" />
-              
-              {/* Checkmark in the center certifying integrity */}
-              <path d="M41 51 L47 57 L59 43" fill="none" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-              
-              {/* Curved assurance text path definition */}
-              <path id="printSealTextPath" d="M 18,50 A 32,32 0 1,1 82,50" fill="none" stroke="none" />
-              
-              <text fontSize="5.5" fontWeight="bold" fill="#000000" letterSpacing="0.4">
-                <textPath href="#printSealTextPath" startOffset="50%" textAnchor="middle">
-                  • SIMULATOR FIXTURE • NOT VERIFIED •
-                </textPath>
-              </text>
-              
-              <text x="50" y="68" fontSize="6" fontWeight="extrabold" fill="#000000" textAnchor="middle" fontFamily="monospace">
-                FIXTURE MARK
-              </text>
-              <text x="50" y="75" fontSize="4.5" fill="#444444" textAnchor="middle" fontFamily="monospace">
-                NOT ATTESTED
-              </text>
-            </svg>
-            <div style={{ textAlign: 'right', fontSize: '9pt' }}>
-              <strong>DEMONSTRATION REPORT ONLY</strong><br />
-              Page 1 of 1
-            </div>
-          </div>
+        <div className="text-[10px] text-slate-500 mt-4">
+          <strong>DEMONSTRATION REPORT ONLY</strong><br />
+          Page 1 of 1
         </div>
       </div>
     </div>

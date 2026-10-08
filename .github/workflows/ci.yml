@@ -40,6 +40,12 @@ jobs:
           fi
           echo "No tracked generated artifacts found."
 
+      - name: Claim-surface lint (issue #63)
+        shell: bash
+        run: |
+          chmod +x scripts/check-claim-surface.sh
+          bash scripts/check-claim-surface.sh
+
   # ── Job 2: Full validate-premerge (build + conditional compose) ────────
   validate-baseline:
     name: Validate Pre-merge Baseline
