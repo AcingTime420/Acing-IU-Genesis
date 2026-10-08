@@ -1,7 +1,8 @@
 # Supply-Chain Finding Register — Acing-IU-Genesis
 
 **Status:** Active  
-**Last reviewed:** 2026-10-08  
+**Last reviewed:** 2026-10-08
+
 **Policy:** `docs/security/SUPPLY_CHAIN_FINDING_POLICY.md`  
 **Tracking:** Phase 4 Task 4.5 · [#58](https://github.com/AcingTime420/Acing-IU-Genesis/issues/58)
 
