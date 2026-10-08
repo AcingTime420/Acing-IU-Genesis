@@ -18,7 +18,7 @@
 | SCF-2026-004 | npm audit (#135) | `brace-expansion` (both installed branches) | High | Remediated | 2026-10-07 | 2026-10-08 | Follow-up #143 only; advisory and validation details below | Maintainer | — |
 | SCF-2026-005 | npm audit (#135) | `sharp` / bundled librsvg | High | Remediated | 2026-10-07 | 2026-10-08 | Follow-up #143 only; advisory and validation details below | Maintainer | — |
 | SCF-2026-006 | npm audit (#135) | `source-map-js` | High | Remediated | 2026-10-07 | 2026-10-08 | Follow-up #143 only; advisory and validation details below | Maintainer | — |
-| SCF-2026-007 | npm audit (#135) | `braces` via Tailwind and Next ESLint | High | Open | 2026-10-07 | N/A | GHSA-vfj7-8cjw-p6xm; no published patch; migration decision below | Maintainer | — |
+| SCF-2026-007 | npm audit (#135) | `braces` via Tailwind and Next ESLint | High | Open | 2026-10-07 | N/A | [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm); no patched version; dev-only paths and upstream status below | Maintainer | — |
 | SCF-2026-008 | npm audit (#135) | `postcss-selector-parser` via Tailwind | Medium | Open | 2026-10-07 | N/A | GHSA-rj75-hqrm-r3gf; nonblocking; patched 7.1.6 is outside parent ranges | Maintainer | — |
 
 ### PR #135 npm audit investigation — 2026-10-08
@@ -78,19 +78,25 @@ Derived from original `npm explain … --json`, `npm ls … --all`, and the full
   - Shared postcss 8.5.26 also satisfies peers of direct autoprefixer 10.5.4 and Tailwind's postcss-import 15.1.0, postcss-js 4.1.0, postcss-load-config 6.0.1, and postcss-nested 6.2.0.
 - **postcss-selector-parser 6.1.4** (`node_modules/postcss-selector-parser`): frontend → tailwindcss 3.4.19 → postcss-selector-parser 6.1.4; frontend → tailwindcss 3.4.19 → postcss-nested 6.2.0 → postcss-selector-parser 6.1.4.
 
+#### Remaining `braces` finding — status and reachability
+
+As reviewed on **2026-10-08**, the [GitHub-reviewed advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) identifies `braces <= 3.0.3` as vulnerable and reports `first_patched_version: null`. The [npm registry's latest-package record](https://registry.npmjs.org/braces/latest) still resolves to 3.0.3; no official npm patch is available. Upstream [PR #72](https://github.com/micromatch/braces/pull/72) proposed a recursion-depth guard but is closed unmerged. In [issue #70](https://github.com/micromatch/braces/issues/70#issuecomment-5995348316), a package maintainer disputes the reported impact and says no fix is planned; [issue #73](https://github.com/micromatch/braces/issues/73) records downstream requests and discussion. These references document the disagreement; they do not change the published advisory or provide a patched release. No unofficial fork, override, or scanner exception is adopted.
+
+Both affected parent tools are **development dependencies**, not production dependencies (`frontend/package.json`: `eslint-config-next` and `tailwindcss` under `devDependencies`). The Tailwind paths are used by the local CSS/content build pipeline; this repository's configured content globs are local source directories (`frontend/tailwind.config.js`). The Next path is the Next ESLint plugin's `fast-glob` use for configured Next root-directory patterns. These paths can affect build/lint processes if supplied deeply nested patterns reach `braces`; no application runtime path or user-controlled pattern input was identified. The issue still blocks the full audit, which intentionally includes development dependencies.
+
 #### Compatible changes and unresolved decision
 
 Only `frontend/package-lock.json` changes: next **16.3.5 → 16.3.8**, brace-expansion **1.1.18 → 1.1.21** and **5.0.9 → 5.0.12**, sharp **0.35.4 → 0.35.5**, source-map-js **1.2.1 → 1.2.2**. Required @next/env and all @next/swc binaries follow **16.3.5 → 16.3.8**; @img/sharp binaries follow **0.35.4 → 0.35.5** and their libvips packages **1.3.3 → 1.3.4**. No unrelated package records change.
 
 All targets satisfy existing manifest/parent ranges (`next ^16.3.0`, minimatch's brace-expansion `^1.1.7` / `^5.0.8`, Next's sharp `^0.35.4`, PostCSS's source-map-js `^1.2.1`). npm 10.9.9 generated the lockfile, registry URLs and integrity values; lockfile v3 and the manifest are preserved. eslint-config-next stays 16.3.0 because alignment is not required for these fixes.
 
-**Decision required, not applied:** braces has no published patched release (latest 3.0.3; GHSA patched version is null). Tailwind **3 → 4** removes its three affected paths: published 4.0.0 already omits them, while audit recommends 4.3.3. This requires the v4 PostCSS plugin (`@tailwindcss/postcss`) and CSS/config migration, not a compatible lockfile patch. Independently, even [@next/eslint-plugin-next 16.4.0](https://registry.npmjs.org/@next/eslint-plugin-next/16.4.0) still pins fast-glob 3.3.1, so a Tailwind upgrade alone does **not** clear the audit. No fixed Next ESLint parent was verified; an upstream fix or separately approved maintained replacement is needed. The moderate selector-parser fix 7.1.6 also crosses Tailwind/postcss-nested's 6.x ranges. No forced upgrade, override, accepted exception, omitted dev dependencies, or weakened check is introduced.
+**Decision:** Keep PR #144 limited to the compatible lockfile updates and register evidence. Do not migrate Tailwind or replace the lint configuration in this PR. Tailwind **3 → 4** would require the v4 PostCSS plugin (`@tailwindcss/postcss`) and CSS/config migration. Independently, even [@next/eslint-plugin-next 16.4.0](https://registry.npmjs.org/@next/eslint-plugin-next/16.4.0) still pins fast-glob 3.3.1, so Tailwind migration alone would not clear the audit. Reconsider only after an official patched `braces` release or an authoritative advisory correction, or through a separately approved proposal that demonstrates removal of both paths and preserved checks. The moderate selector-parser fix 7.1.6 also crosses Tailwind/postcss-nested's 6.x ranges. No forced upgrade, override, accepted exception, omitted dev dependencies, or weakened check is introduced.
 
 The JSON audit instead proposes **eslint-config-next 16.3.0 → 14.2.35**, a breaking downgrade marked `isSemVerMajor: true`. Its [plugin uses glob rather than fast-glob](https://registry.npmjs.org/@next/eslint-plugin-next/14.2.35), but [the config requires ESLint 7/8](https://registry.npmjs.org/eslint-config-next/14.2.35), incompatible with this project's ESLint `^9.35.0`. This proposal was not applied and is not a compatible forward upgrade.
 
 #### Validation results
 
-Performed with Node v22.23.3 / npm 10.9.9 in the exact-head worktree after applying the patch. The follow-up lockfile is byte-for-byte identical to that validated file; frontend sources are unchanged between the two starting checkouts. Complete stdout, stderr, JSON reports, explain/ls output, and individual exit-code files were retained separately under `/tmp/pr135-reports/` for this session (temporary evidence, not committed CI artifacts).
+Performed with Node v22.23.3 / npm 10.9.9 at tested dependency-fix commit `067a2b480155cd6e7616ec319d8d32057b63a66b` after applying the patch. The PR #144 lockfile is byte-for-byte identical to that validated file; frontend sources are unchanged between the two starting checkouts. Complete stdout, stderr, JSON reports, explain/ls output, and individual exit-code files were retained separately under `/tmp/pr135-reports/` for this session (temporary evidence, not committed CI artifacts).
 
 | Command / check | Exit / result |
 |---|---|
@@ -103,6 +109,8 @@ Performed with Node v22.23.3 / npm 10.9.9 in the exact-head worktree after apply
 | `npm run build --if-present` | 0; Next 16.3.8 production build and TypeScript check succeed |
 | Updated `npm audit --json` | 1; no error object; 2 moderate / 7 high / 0 critical package entries |
 | Updated `npm audit --audit-level=high` | **1, still blocked** by GHSA-vfj7-8cjw-p6xm |
+| Updated `npm audit --omit=dev --audit-level=high` | 0; no production dependency vulnerabilities |
+| Dependency-path review (`npm ls` and lockfile) | Confirms `braces` is reachable only through Tailwind/Next ESLint development tooling |
 | Production `npm run start`, loopback requests to `/`, `/audit`, `/devices`, `/rootmaster`, `/users` | All HTTP 200 |
 | Manifest/lock root comparison, lockfile version, focused diff / whitespace check | Synchronized, v3, only targeted package families; no generated artifacts |
 | Automated review / CodeQL validator | Review binary unavailable; CodeQL found no analyzable source changes and performed no analysis |
@@ -123,4 +131,4 @@ Remaining **distinct** advisories: high GHSA-vfj7-8cjw-p6xm (`braces`, plus chok
 | Date | Reviewer | Notes |
 |---|---|---|
 | 2026-09-13 | Maintainer | Register created alongside finding policy; two remediated findings backfilled from closed blockers #62 and #63. |
-| 2026-10-08 | Contributor (#143) | Investigated #135 at its exact head; compatible partial dependency remediation validated; braces blocker and moderate selector-parser finding remain open, with breaking changes awaiting a separate decision. |
+| 2026-10-08 | Contributor (#143/#144) | Investigated #135 at its exact head; compatible partial dependency remediation validated; rechecked braces GHSA, npm latest metadata, upstream PR #72 and issue discussion; recorded development-only paths and production-audit result. PR #144 remains draft; no migration or override. |
