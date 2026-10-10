@@ -1,6 +1,36 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-royalBlue: #2f58cd;
+  --color-vividViolet: #6c3483;
+  --color-slateBorder: #e2e8f0;
+  --color-cyberDark: #0b0f19;
+  --color-cyberCard: #151d30;
+  --color-cyberBorder: #22314d;
+  --color-cyberGreen: #10b981;
+  --color-cyberRed: #ef4444;
+  --color-cyberOrange: #f59e0b;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 :root {
   --background: #0B0F19;
@@ -14,30 +44,32 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom glassmorphism cards and glow styles */
-.glass-card {
-  background: rgba(21, 29, 48, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(34, 49, 77, 0.8);
-  transition: border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
+@layer components {
+  /* Custom glassmorphism cards and glow styles */
+  .glass-card {
+    background: rgba(21, 29, 48, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(34, 49, 77, 0.8);
+    transition: border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-.glass-card.selected-card {
-  border-color: rgba(47, 88, 205, 0.9) !important;
-  box-shadow: 0 10px 30px -5px rgba(47, 88, 205, 0.25), 0 4px 12px -5px rgba(47, 88, 205, 0.2);
-  background-color: rgba(21, 29, 48, 0.85);
-  transform: translateY(-2px);
-}
+  .glass-card.selected-card {
+    border-color: rgba(47, 88, 205, 0.9) !important;
+    box-shadow: 0 10px 30px -5px rgba(47, 88, 205, 0.25), 0 4px 12px -5px rgba(47, 88, 205, 0.2);
+    background-color: rgba(21, 29, 48, 0.85);
+    transform: translateY(-2px);
+  }
 
-.glow-blue {
-  box-shadow: 0 0 20px rgba(47, 88, 205, 0.15);
-}
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(47, 88, 205, 0.15);
+  }
 
-.glow-green {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  .glow-green {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  }
 }
 
 /* Print-specific media queries for generating high-fidelity PDF reports */
@@ -123,4 +155,3 @@ body {
 .print-report-container {
   display: none;
 }
-
