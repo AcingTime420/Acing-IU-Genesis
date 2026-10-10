@@ -10,7 +10,98 @@
 
 **Current scope:** PR #143 is draft and unmerged. The executed PR workflows passed the full npm audit, lint, production build, backend tests, container builds, claim-surface validation, limited-range secret scan, and SBOM generation. These results are not remediation on `master` or in PR #135. Findings below retain the policy's **In progress** status until maintainer review and integration; removal of a dependency path is recorded separately from upstream fixes and closure.
 
-## Current implementation and evidence reconciliation — 2026-10-10
+## Completed investigation and maintainer handoff - 2026-10-10
+
+**Scope:** existing draft PR #143; no application, dependency, workflow, protection, or severity changes in this evidence update. The completed investigation used head **`7156e97be6fac248b1b23c587afed1e5aed325d6`** and base **`3d22e3c20abbe9e8cd3e168b4e4a8d800d17f7c7`**. Its full [published addendum](https://github.com/AcingTime420/Acing-IU-Genesis/pull/143#issuecomment-6100942724) and session scripts/results existed outside Git before this section was committed. This section preserves the concise findings and reproduction procedure on the branch; earlier checkpoints below retain their own source/time scope.
+
+### Implementation and compatibility decision
+
+The implementation migrates Tailwind 3.4.19 to 4.3.3, uses `@tailwindcss/postcss` and CSS theme tokens, migrates templates, and removes separate Autoprefixer/JavaScript Tailwind configuration. Next is locked to 16.3.8, sharp to 0.35.5, and source-map-js to 1.2.2; original brace-expansion branches are patched. The braces and selector-parser dependency paths are **removed**, not repaired by an unpublished upstream patch. SCF-2026-003 through SCF-2026-008 remain **In progress** pending review/integration; no finding ID or historical evidence is replaced.
+
+`eslint-config-next` stays 16.3.0 with ESLint 9, but `@next/eslint-plugin-next` is deliberately overridden to **14.2.35**, its `glob` to **10.5.0**, and legacy rules adapted with `@eslint/compat`. Two local navigation rules restore route/relative-location enforcement; Core Web Vitals severities remain explicit. This removes the detected dependency path at the cost of an older plugin and locally maintained compatibility behavior. A passing audit does not prove equivalent rule behavior or future maintenance safety.
+
+The unmatched `<a href="/devices">` fixture targets a real App Router page, without a download/new-tab/external exemption. Official 16.3.0 constructs **`^/devices$`** but normalizes the href to **`/devices/`**; the local rule consistently matches **`^/devices/$`**. Reporting this fixture is **additional valid enforcement**, not lost coverage or a false positive, under Next's [internal-navigation policy](https://nextjs.org/docs/messages/no-html-link-for-pages). Ten focused cases passed, including trailing-slash/query/fragment variants and six exemption/non-route controls. The preserved **20/21 matching diagnostic sets do not establish complete parity**. The shared named-async-export and unknown-template-destination limitations remain; exhaustive lint parity is not an enforced merge requirement.
+
+### Confirmed pre-existing UI defects and separate proposals
+
+Both exact source trees were clean-built with **Webpack**, Node **24.18.0**, npm **11.16.0**, and UTC build/server timezone. The comparison used the same Chromium **155.0.4283.45**, fresh contexts, **en-US**, **America/Los_Angeles**, device scale 1, and **1440x1000 / 390x1000** viewports. Source correspondence was checked for all 18 tracked frontend files, normalizing checkout line endings.
+
+| Finding | Confirmed cause and identical baseline comparison | Proposed separate follow-up, not implemented |
+|---|---|---|
+| `/audit` hydration #418 | Both base and head emit #418 at both widths. `new Date("2026-07-01")` parses UTC, but local `getDate`/`setDate`/`getDay` and formatting change heatmap cells from server `2Jun, 3Jun, 4Jun` to Los Angeles client `1Jun, 2Jun, 3Jun`. Independently, hidden print-report `new Date().toUTCString()` differs between static build-time markup and hydration time; hidden DOM still hydrates. | UTC calendar arithmetic and explicit locale/timezone fixture formatting; create export timestamp on the export action, with deterministic initial render, and print after state commits. Do not conceal the defect with hydration suppression. |
+| 390px shell overflow | Both base and head retain a 256px `w-64` sidebar. Main `flex: 1 1 0%` receives 134px; a 15px scrollbar leaves **119px client width**. Header 32px side padding and minimum-width flex groups yield **334px scroll width**. `overflow-y: auto` computes horizontal `auto`; `min-width: 0` alone changes nothing. Dashboard has the same measurements. | Below `md`, stack the shell, use full-width/auto-height navigation with the same five links in a horizontally scrollable row, remove vertical link spacing there, and use main `min-h-0`; retain desktop layout above the breakpoint. Separately address ledger/action-label clipping and chart sizing. |
+
+Hydration causal controls passed on **both** trees: freezing the client clock to each prerendered export timestamp while retaining Los Angeles timezone leaves #418; UTC timezone with a live clock makes all 30 cells match but leaves #418; **UTC plus the frozen clock produces matching cells/export text and zero captured page errors**. These isolate two pre-existing causes, not migration causality.
+
+The responsive proposal was simulated only with identical inline DOM styles. It preserved all five links and produced **375px main client / 375px scroll width** on both trees. This is **exploratory evidence, not an implemented or fully validated fix**. The ledger still clips internally (309px client / 350px scroll width), and some content heights differ. No demonstrated introduced defect from these probes warrants expanding this migration's application-code scope.
+
+### Source-scoped validation and reproducible procedure
+
+At investigated head `7156e97be6fac248b1b23c587afed1e5aed325d6`, required checks passed in [CI 38054728376](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/38054728376); [Integrity 38054728359](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/38054728359), [Security 38054728269](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/38054728269), and [SBOM 38054728339](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/38054728339) also passed. Their inspected checkout is merge **`62b0ca3787d53e63621d8cffe5f2d30be15bb15d`**, with parents equal to the investigated base/head. Merge and head share tree **`584f93d691175a76e87ad13f282529647f5c239f`**: source equivalence, **not identical commit identity**.
+
+Full `npm audit --audit-level=high` passed with **zero reported vulnerabilities including development dependencies**; lint passed with **19 warnings / no errors**; production build, backend tests (6/6 and 15/15), container exports, and claim-surface validation passed. Frontend `npm test --if-present` was a **no-op**; Compose/endpoints were **skipped**. Gitleaks scanned nine PR-range commits with `--no-merges --first-parent 13d32b1a1fb729a1d8aedf9aaaf5a599cacddcb7^..7156e97be6fac248b1b23c587afed1e5aed325d6`, not all history. SPDX-2.3 SBOM contains 171 packages / 15 file records: inventory, not proof of safety.
+
+Local commands actually executed: base `npm run build` passed from an empty `.next`; base/head `npm run build -- --webpack` clean builds passed; the head archive's missing-dependency attempt failed before `npm ci --no-audit --no-fund --cache ...` restored 461 packages and the build passed. The local allow-scripts policy left `unrs-resolver` postinstall unapproved. Head attempts inside Git metadata stalled under **both Turbopack and Webpack** and were stopped; the external-archive build and GitHub CI succeeded. **The stall remains unexplained**; changing location did not isolate its cause. It is neither a proven regression nor an established automatic merge gate.
+
+The following **reproduction recipe** is provided for the reviewer, not claimed as an additional execution. Use new scratch directories outside Git metadata, leaving existing outputs untouched. From the repository root in PowerShell:
+
+```powershell
+$scratch = Join-Path $env:TEMP ("pr143-review-" + [guid]::NewGuid())
+New-Item -ItemType Directory -Path $scratch | Out-Null
+$head = '7156e97be6fac248b1b23c587afed1e5aed325d6'
+$base = '3d22e3c20abbe9e8cd3e168b4e4a8d800d17f7c7'
+git archive --format=zip --output="$scratch\head.zip" $head frontend
+git archive --format=zip --output="$scratch\base.zip" $base frontend
+Expand-Archive -LiteralPath "$scratch\head.zip" -DestinationPath "$scratch\head"
+Expand-Archive -LiteralPath "$scratch\base.zip" -DestinationPath "$scratch\base"
+$env:TZ = 'UTC'
+$env:NEXT_TELEMETRY_DISABLED = '1'
+```
+
+In **each** extracted `frontend` directory run `npm ci --no-audit --no-fund`, then `npm run build -- --webpack`, stopping on errors. Run each production server in its own terminal with the same environment: head `npm run start -- -H 127.0.0.1 -p 3143`; base `npm run start -- -H 127.0.0.1 -p 3144`. Keep local install-policy warnings visible; do not equate these installations with pristine Linux CI.
+
+For the local anchor check, from the extracted head frontend:
+
+```powershell
+'export default function View() { return <a href="/devices">Devices</a>; }' |
+  .\node_modules\.bin\eslint.cmd --stdin --stdin-filename src\app\__compat_fixture__.tsx
+```
+
+Expected: the navigation rule reports an **error**, exit 1. From the extracted base frontend, check the official helper without altering the lockfile:
+
+```powershell
+node -e "const h=require('@next/eslint-plugin-next/dist/utils/url.js'); const p=h.getUrlFromAppDirectory('/',[require('path').resolve('src/app')]); console.log(require('@next/eslint-plugin-next/package.json').version,p.map(String),h.normalizeURL('/devices'),p.some(r=>r.test(h.normalizeURL('/devices'))));"
+```
+
+Expected: plugin 16.3.0, pattern `/^\/devices$/`, normalized `/devices/`, match `false`. The ten-case historical probe script is `anchor-delta.cjs`; it is session evidence, not a committed test suite.
+
+Browser reproduction: for each origin/viewport above, use separate JavaScript-disabled and enabled contexts with the **same Chromium, locale, timezone, and scale**; directly navigate to `/audit`, wait 1.5 seconds after enabled navigation, collect `pageerror`, then repeat `/` for shell measurements. Read cell text from `document.querySelector("[class~='grid-cols-5']").children` and export text from `.print-report-container`. Capture `getBoundingClientRect().width`, `clientWidth`, `scrollWidth`, and computed overflow for `aside`, `main`, and its header.
+
+For clock isolation, obtain `EXPORTED AT` from that origin's JavaScript-disabled prerendered HTML, parse it, and install this script with Playwright `context.addInitScript` **before** navigation; compare Los Angeles/frozen, UTC/live, and UTC/frozen contexts:
+
+```javascript
+({ timestamp }) => {
+  const NativeDate = Date;
+  window.Date = class extends NativeDate {
+    constructor(...args) { super(...(args.length ? args : [timestamp])); }
+    static now() { return timestamp; }
+  };
+}
+```
+
+Supply `{ timestamp: Date.parse(serverExportText) }`. This is a browser-only diagnostic, never application code. For the exploratory responsive allocation, set body `flexDirection: "column"`, sidebar width/height/flex-shrink to `100%`/`auto`/`0`, nav display/overflow-x/gap to `flex`/`auto`/`6px`, each link flex-shrink/margin to `0`/`0`, and main min-height to `0`. Verify five links remain and main client/scroll are 375/375px; do **not** infer that clipped ledger content or full mobile behavior is fixed.
+
+Raw scripts, `anchor-delta.json`, `comparison.json`, `isolation.json`, `overflow.json`, and build/server logs remain in session `cda61e95-265c-415a-a16d-ec0fadebe07a` under `files\`, not GitHub CI artifacts or committed application tests. The public addendum preserves the detailed observations independently of those local files.
+
+### Enforced requirements versus maintainer decisions
+
+Effective active ruleset **master-stabilization / 23200339** requires strict-up-to-date GitHub Actions checks **Repository Integrity (no tracked artifacts)**, **Backend Build & Test (.NET)**, and **Frontend Build & Test (Node.js)**. The investigated base is an ancestor of head. It requires one approving review, stale-approval dismissal, last-reviewable-push approval by someone other than its pusher, and review-thread resolution; extra approval for unattributed changes is enabled. No code-owner review is required by this rule. At investigation there are no submitted reviews/threads; #143 remains draft, `REVIEW_REQUIRED` / `BLOCKED`.
+
+This documentation commit creates a **new source head**: the previous passes above remain evidence for `7156e97...`, not passes for the new commit. Observe its own required checks and actual merge-checkout provenance before handoff; refresh base ancestry again. `CONTRIBUTING.md` also requires clean-clone/integrity CI, and the supply-chain policy requires detection to stay green and maintainer sign-off for register review. Automated review or a bot's report does not satisfy independent approval.
+
+The maintainer must decide whether to accept the Tailwind migration/older-plugin/local-rule maintenance tradeoff, whether the focused evidence is sufficient or specific additional checks are needed, and whether to handle the **pre-existing** hydration/responsive defects in separately owned follow-ups or explicitly hold this PR for them. Those defects, incomplete exhaustive parity, and the unexplained local stall are **advisory concerns**, not additional ruleset gates or proven introduced regressions. A maintainer-requested hold would become a real disposition blocker; no acceptance/exception is invented here. Do not require duplicate push workflows, optional CodeQL, broad browser parity, or resolution of every pre-existing defect automatically. Keep draft until maintainer disposition and qualifying independent review; preserve finding status pending integration.
+
+## Earlier implementation and evidence reconciliation checkpoint — 2026-10-10
 
 ### Inspected source and executed GitHub results
 
