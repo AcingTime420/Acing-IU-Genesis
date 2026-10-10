@@ -1,14 +1,80 @@
 # Supply-Chain Finding Register — Acing-IU-Genesis
 
 **Status:** Active  
-**Last reviewed:** 2026-10-08
+**Last reviewed:** 2026-10-10
 
 **Policy:** `docs/security/SUPPLY_CHAIN_FINDING_POLICY.md`  
 **Tracking:** Phase 4 Task 4.5 · [#58](https://github.com/AcingTime420/Acing-IU-Genesis/issues/58)
 
 > Metadata only. No secret values. Each row is a detected or accepted supply-chain finding.
 
-**Current scope:** PR #143 is draft and unmerged. Its locally validated dependency changes are not remediation on `master` or in PR #135. Findings below use the policy's **In progress** status until the pending CI, review, and integration evidence is available; local removal of a dependency path is recorded separately from closure.
+**Current scope:** PR #143 is draft and unmerged. The executed PR workflows passed the full npm audit, lint, production build, backend tests, container builds, claim-surface validation, limited-range secret scan, and SBOM generation. These results are not remediation on `master` or in PR #135. Findings below retain the policy's **In progress** status until maintainer review and integration; removal of a dependency path is recorded separately from upstream fixes and closure.
+
+## Current implementation and evidence reconciliation — 2026-10-10
+
+### Inspected source and executed GitHub results
+
+The refreshed source head is **`cc7ae5b6c3ebb413f0f0d5d10f20ac904e0bc7a3`**, unchanged from the prior local review. The refreshed base is **`3d22e3c20abbe9e8cd3e168b4e4a8d800d17f7c7`**. Source inspection confirms Tailwind **3.4.19 → 4.3.3**, the v4 PostCSS plugin, removal of separate Autoprefixer/configuration, CSS theme tokens and migrated templates. `eslint-config-next` remains 16.3.0, with the official **`@next/eslint-plugin-next@14.2.35`** compatibility override, **`glob@10.5.0`** override, `@eslint/compat`, and local navigation rules in `frontend/lint/next-navigation.mjs`. This is not a compatible lockfile-only repair or a demonstrated identical Next 16 implementation.
+
+The four PR-triggered runs below completed successfully on **attempt 2** on 2026-10-10. Their API head is the source head above, but every checkout log identifies synthetic PR merge commit **`f905537226ff5502339cac354cffd06b9654528d`**. Its parents are the refreshed base and head. Both head and merge commit have Git tree **`fee06a7635250d34163710b50736db9817daa219`**: source equivalence for these runs, not identical commit provenance.
+
+| Executed workflow | Run | Observed results |
+|---|---|---|
+| CI — Clean-Clone Baseline | [37839236330](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/37839236330/attempts/2) | `npm ci` passed (470 installed / 471 audited); `npm run lint --if-present` passed with 0 errors / 19 warnings; `npm run build --if-present` passed compilation, TypeScript and seven static pages; backend build and 6/6 plus 15/15 tests passed; Gateway and frontend container builds exported images; `bash scripts/check-claim-surface.sh` passed. |
+| Repository Integrity | [37839236592](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/37839236592/attempts/2) | No tracked generated artifacts detected. |
+| Security and Dependency Review | [37839236433](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/37839236433/attempts/2) | `npm ci` and **full `npm audit --audit-level=high` passed with zero reported vulnerabilities**, without omitting dev dependencies. Dependency review found no high-or-higher vulnerabilities; .NET audit reported no vulnerable packages from its configured sources. Gitleaks passed its PR range. |
+| Generate SBOM | [37839236597](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/37839236597/attempts/2) | Downloaded and parsed `acing-iu-genesis-sbom`: SPDX-2.3, Syft 1.42.3, 171 packages / 15 file records. Inventory generation is not proof of dependency safety or exhaustive coverage. |
+
+All executed jobs' token-permission logs report **contents read / metadata read**. Security explicitly passes `GITHUB_TOKEN` to Gitleaks. There are no OIDC, inherited secrets, or broader write permissions in these four workflow families.
+
+Important scope limits:
+
+- Frontend `npm test --if-present` was a **no-op**, not a passed frontend test suite; no test script exists.
+- `bash scripts/validate-premerge.sh --skip-compose` completed, but **Compose and endpoint checks were skipped**. It is not an executed deployment or HTTP integration test.
+- Gitleaks 8.24.3 used `--no-merges --first-parent 13d32b1a1fb729a1d8aedf9aaaf5a599cacddcb7^..cc7ae5b6c3ebb413f0f0d5d10f20ac904e0bc7a3`: eight commits / approximately 119.56 KB, no leaks. The downloaded SARIF-2.1.0 artifact has zero results. Full-history checkout did not make this a full-history scan.
+- CI and Integrity had no published artifacts; their logs were inspected. Security's SARIF and SBOM's JSON were downloaded and parsed. A green check or generated SBOM is not an unqualified safety claim.
+- Historical pending-run statements below describe their checkpoints. Separate push runs [37839228463](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/37839228463) and [37839228600](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/37839228600) still have `action_required` and no executed jobs; duplicate push runs are **not** additional merge requirements established by the effective rules.
+
+### Explicit corrections and local compatibility evidence
+
+**Withdrawn:** the unsupported Tailwind literal-only restriction and quotation. Tailwind's [Referencing other variables](https://tailwindcss.com/docs/theme#referencing-other-variables) documents `@theme inline` for variable references. The prior local generated-CSS/browser fixtures at the source head above showed working root-level runtime colors; nested alias scoping was a separate synthetic-fixture limitation, not a reproduced current application defect.
+
+**Withdrawn:** the claim that `no-async-client-component` is missing. Direct inspection and execution of the locked 14.2.35 plugin found it enabled as a warning (`[1]`) and reporting default async declarations, indirect default exports, and default-exported async arrows. A named async export produced no diagnostic in both tested 14.2.35 and 16.3.0 plugins. That is a shared limitation, not a demonstrated downgrade regression. Warnings allow normal ESLint exit 0; `--max-warnings=0` exits 1 for the default-export fixture. No replacement rule or severity change was introduced.
+
+Those prior tests used **Node 24.18.0 / npm 11.16.0 on Windows**, not GitHub CI. Commands were an isolated `npm ci --no-audit --no-fund --ignore-scripts`, `node ...\verify.cjs lint`, `node ...\verify.cjs css` (both exit 0), and `node ...\named-client-enforcement.cjs` (expected assertion failure, exit 1). Session evidence includes `verify.cjs`, `eslint-results.json`, `css-results.json`, `actual-generated.css`, `original-fixture.css`, `inline-fixture.css`, and `named-client-enforcement.cjs`. The original two-version comparison was an inline `Linter.verify` probe whose raw result is in the session conversation (shellId 26), not a separately saved original comparison file.
+
+This reconciliation executed a **controlled configuration comparison** at the same source head: original base flat configuration plus official Next plugin 16.3.0, versus current flat configuration plus 14.2.35 and local navigation rules. Other packages were held at head-lock versions; this is not a fresh installation of the complete original dependency tree. Both `node ...\compare-lint.cjs original` and `node ...\compare-lint.cjs replacement` completed with exit 0. Full effective rule maps and severities matched, including Core Web Vitals errors and the async-client warning. Of 21 representative fixtures, 20 had matching Next rule IDs/severities.
+
+**Observed behavior difference, not parity:** the local rule reported the App Router `<a href="/devices">` fixture at error severity, while the tested official 16.3.0 rule did not. Inspecting that official rule's URL helper showed `^/devices$`, while its href normalization produces `/devices/`. Thus equal effective settings do not establish equal route behavior. The shared named-export and unknown template-destination limitations remain. Earlier documented differential-probe counts below are historical agent reports, not independent proof of complete compatibility.
+
+### Current-head browser execution and focused defect proposals
+
+An isolated archive of the exact source head was installed with `npm ci --no-audit --no-fund --cache ...` (exit 0; 461 packages on Windows) and built with `npm run build` (exit 0; seven static pages), using Node 24.18.0 / npm 11.16.0. npm reported the `unrs-resolver` install script was not approved by the local allow-scripts policy; this run is not described as a pristine Linux CI installation. Local `npm run lint` passed with 19 warnings and `npm audit --audit-level=high` passed with zero vulnerabilities. A production server was checked responsive before browser execution and stopped afterward.
+
+Playwright executed fresh navigations with Chromium **154.0.4258.62**, timezone **America/Los_Angeles**, at **1440×1000 and 390×1000**:
+
+| Check | Executed observation | Limitation / proposal |
+|---|---|---|
+| `/`, `/users`, `/devices`, `/audit`, `/rootmaster` | All ten route/viewport navigations returned HTTP 200. | A route response is not complete interaction coverage; RootMaster renders its unavailable state. |
+| Hydration | `/audit` emitted React text-hydration error #418 at both widths; no captured page error on the other tested navigations. | Confirmed current defect. The earlier controlled before/after comparison documented it before migration; this turn did not rebuild the original frontend, so migration attribution remains unverified. Proposed focused follow-up: isolate the mismatch, then use deterministic/timezone-explicit fixture dates and generate export timestamps on the export action rather than during server/client rendering. No fix applied. |
+| Desktop colors and navigation | Body/sidebar `rgb(11,15,25)`, active link `rgb(47,88,205)`, glass card `rgba(21,29,48,0.7)`; hover reached `rgb(21,29,48)` / white; clicking Users navigated to `/users`. | These selected samples are not exhaustive visual parity. |
+| Runtime theming | Root `--background` / `--foreground` updates produced body `rgb(34,51,68)` / `rgb(221,238,255)`. After waiting for its transition, `--color-royalBlue` update produced active-link `rgb(18,52,86)`. | Actual current runtime token updates work; no literals substituted and no theming change applied. |
+| Responsive layout | At 390px, sidebar remained 256px; main client width 119px versus scroll width 334px, with horizontal `auto` overflow. | Confirmed narrow-main horizontal overflow, not a mobile-layout pass. The same width/layout classes exist in base source, but no baseline mobile execution occurred here. Proposed focused follow-up: compare baseline, then review breakpoint-aware sidebar/header layout and minimum widths without redesigning the UI. No fix applied. |
+
+Session-local outputs include `lint-original.json`, `lint-replacement.json`, `lint-comparison-summary.json`, `current-lint.log`, `current-audit.log`, and browser result summaries; they are **local evidence, not GitHub CI artifacts**. Full cross-browser, screenshot-diff, interaction, and causal hydration analysis remain untested.
+
+### Actual policy and effective merge requirements
+
+Authenticated `GET /repos/AcingTime420/Acing-IU-Genesis/rules/branches/master` on 2026-10-10 confirmed active **master-stabilization** ruleset **23200339**. This supersedes the earlier review's incomplete classic-branch-protection probe: a classic endpoint's 404 did **not** mean no effective rules existed.
+
+- Required status contexts are **Repository Integrity (no tracked artifacts)**, **Backend Build & Test (.NET)**, and **Frontend Build & Test (Node.js)**, from GitHub Actions, with strict up-to-date checks.
+- One approving review is required; stale approvals are dismissed on push, last-push approval and review-thread resolution are required, and extra approval for unattributed changes is enabled. No code-owner review is required by that rule. The inspected PR had no submitted reviews and no unresolved review threads; it remained `REVIEW_REQUIRED`.
+- `CONTRIBUTING.md` requires clean-clone CI and repository integrity; the supply-chain policy requires detection results to remain green and maintainer sign-off for finding review. These four PR workflow runs now provide executed baseline/security/SBOM evidence for the recorded source, not integration on `master`.
+- A documentation-only reconciliation commit will have a new head: the prior executions remain source-bound evidence, not results of the new commit. Observe the new required checks and strict base freshness before merge; do not demand duplicate push runs, optional CodeQL, SLSA target attestation, or Gemini merely because they have not executed.
+- Maintainer review must address the migration/override/local-rule trade-offs and disposition the reproduced hydration and narrow-layout concerns. No exception or risk acceptance is recorded here.
+- Gemini Dispatch remains outside this baseline review: its reusable workflows request broader write permissions, OIDC and inherited secrets. No workflow was approved; PR #143 stays draft and no merge or deployment is performed.
+
+The PR title/body is reconciled with this current section; historical statements below are preserved as explicitly checkpoint-scoped evidence, not current audit blockers.
 
 ## Open / tracked findings
 
@@ -16,12 +82,12 @@
 |---|---|---|---|---|---|---|---|---|---|
 | SCF-2026-001 | Manual review (#62) | Container base images (`mcr.microsoft.com/dotnet/*`, `postgres:16-alpine`) | High | Remediated | 2026-08-17 | 2026-08-17 | #62 closed; digest pinning + CI lint | Maintainer | — |
 | SCF-2026-002 | Manual review (#63) | Frontend Knox/certification claim language | High | Remediated | 2026-08-17 | 2026-09-13 | #63 closed; `scripts/check-claim-surface.sh` | Maintainer | — |
-| SCF-2026-003 | npm audit (#135) | `next` | Critical | In progress | 2026-10-07 | N/A | Patched to 16.3.8 in unmerged #143; local audit clean; CI pending | Maintainer | — |
-| SCF-2026-004 | npm audit (#135) | `brace-expansion` (both original branches) | High | In progress | 2026-10-07 | N/A | Original branches patched in unmerged #143; local audit clean; CI pending | Maintainer | — |
-| SCF-2026-005 | npm audit (#135) | `sharp` / bundled librsvg | High | In progress | 2026-10-07 | N/A | Patched to 0.35.5 in unmerged #143; local audit clean; CI pending | Maintainer | — |
-| SCF-2026-006 | npm audit (#135) | `source-map-js` | High | In progress | 2026-10-07 | N/A | Patched to 1.2.2 in unmerged #143; local audit clean; CI pending | Maintainer | — |
-| SCF-2026-007 | npm audit (#135) | `braces` via Tailwind and Next ESLint | High | In progress | 2026-10-07 | N/A | Both affected paths removed in unmerged #143; not an upstream braces patch; CI pending | Maintainer | — |
-| SCF-2026-008 | npm audit (#135) | `postcss-selector-parser` via Tailwind | Medium | In progress | 2026-10-07 | N/A | Affected package removed with Tailwind 4 in unmerged #143; CI pending | Maintainer | — |
+| SCF-2026-003 | npm audit (#135) | `next` | Critical | In progress | 2026-10-07 | N/A | Patched to 16.3.8 in unmerged #143; full audit run 37839236433 attempt 2 reports zero; review/integration outstanding | Maintainer | — |
+| SCF-2026-004 | npm audit (#135) | `brace-expansion` (both original branches) | High | In progress | 2026-10-07 | N/A | Original branches patched in unmerged #143; same full audit passed; review/integration outstanding | Maintainer | — |
+| SCF-2026-005 | npm audit (#135) | `sharp` / bundled librsvg | High | In progress | 2026-10-07 | N/A | Patched to 0.35.5 in unmerged #143; same full audit passed; review/integration outstanding | Maintainer | — |
+| SCF-2026-006 | npm audit (#135) | `source-map-js` | High | In progress | 2026-10-07 | N/A | Patched to 1.2.2 in unmerged #143; same full audit passed; review/integration outstanding | Maintainer | — |
+| SCF-2026-007 | npm audit (#135) | `braces` via Tailwind and Next ESLint | High | In progress | 2026-10-07 | N/A | Both paths removed in unmerged #143 through migration/plugin replacement, not an upstream patch; same full audit passed | Maintainer | — |
+| SCF-2026-008 | npm audit (#135) | `postcss-selector-parser` via Tailwind | Medium | In progress | 2026-10-07 | N/A | Path removed with Tailwind 4 in unmerged #143; same full audit passed; review/integration outstanding | Maintainer | — |
 
 ### Historical PR #135 investigation and initial partial remediation — 2026-10-08
 
@@ -228,3 +294,4 @@ A session-local read-only review of `0ebcb0816987329cf7e6c7a8bf8dcb47f890f86b` i
 | 2026-09-13 | Maintainer | Register created alongside finding policy; two remediated findings backfilled from closed blockers #62 and #63. |
 | 2026-10-08 | Contributor (#143) | Investigated #135 at its exact head; compatible partial dependency remediation validated; braces blocker and moderate selector-parser finding remain open, with breaking changes awaiting a separate decision. |
 | 2026-10-08 | Contributor (#143), final source-head reconciliation | Reproduced full audit/lint/build at `9f11d71aecdb5a171f5356fc4ddba057d92fce65` on Node 22.23.3/npm 10.9.9; zero total audit findings locally. Recorded applied migration/overrides, rendered-page limitations, exact maintainer-approval banners, and Unverified final CI/scan/review evidence. Findings remain In progress in this unmerged draft. |
+| 2026-10-10 | Contributor (#143), executed-evidence reconciliation | Inspected attempt-2 PR logs/artifacts and head/merge tree equivalence; full npm audit and baseline checks passed at `cc7ae5b6c3ebb413f0f0d5d10f20ac904e0bc7a3`. Executed controlled lint comparison and current-head browser probes; recorded one anchor diagnostic difference, reproduced audit hydration and narrow-layout concerns, corrected unsupported findings and effective-rules conclusions. No maintainer sign-off, merge or claim of remediation on `master`. |
