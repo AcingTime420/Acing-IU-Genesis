@@ -14,16 +14,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="flex h-screen bg-[#0B0F19] text-slate-100 overflow-hidden">
+      <body className="flex h-screen bg-cyberDark text-slate-100 overflow-hidden">
         {/* Persistent Sidebar Navigation */}
         <Sidebar />
 
         {/* Primary Screen Area */}
         <main className="flex-1 flex flex-col overflow-y-auto">
           {/* Top Operational Status Bar */}
-          <header className="h-16 border-b border-[#22314D] px-8 flex items-center justify-between shrink-0 bg-[#0B0F19]/90 backdrop-blur-md sticky top-0 z-10">
+          <header className="h-16 border-b border-cyberBorder px-8 flex items-center justify-between shrink-0 bg-cyberDark/90 backdrop-blur-md sticky top-0 z-10">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 bg-[#10B981] rounded-full animate-pulse"></span>
+              <span className="w-2.5 h-2.5 bg-cyberGreen rounded-full animate-pulse"></span>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
                 Acing Operations Grid — SM-S938U Baseline [VZW]
               </span>

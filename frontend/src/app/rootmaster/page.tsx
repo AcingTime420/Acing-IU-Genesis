@@ -65,7 +65,7 @@ export default function RootMasterLab() {
 
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-xs font-bold text-[#2F58CD] hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-bold text-royalBlue hover:text-white transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Return to simulator dashboard

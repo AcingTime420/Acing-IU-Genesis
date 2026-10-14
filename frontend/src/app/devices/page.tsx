@@ -307,10 +307,10 @@ export default function DevicesPage() {
       {/* Persistent Floating Selected Devices Counter */}
       {selectedIds.length > 0 && (
         <div className="fixed bottom-28 right-6 z-40 animate-slideIn">
-          <div className="bg-[#151D30]/95 backdrop-blur-md border-2 border-[#2F58CD] text-white px-4.5 py-2.5 rounded-full flex items-center gap-2.5 shadow-[0_0_25px_rgba(47,88,205,0.35)]">
+          <div className="bg-cyberCard/95 backdrop-blur-md border-2 border-royalBlue text-white px-4.5 py-2.5 rounded-full flex items-center gap-2.5 shadow-[0_0_25px_rgba(47,88,205,0.35)]">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#10B981]"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyberGreen opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyberGreen"></span>
             </span>
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-100">
               {selectedIds.length} Device{selectedIds.length === 1 ? '' : 's'} Selected
@@ -328,13 +328,13 @@ export default function DevicesPage() {
               toast.type === 'error' ? 'bg-red-950/95 border-red-500/50 text-red-100' :
               toast.type === 'warning' ? 'bg-amber-950/95 border-amber-500/50 text-amber-100' :
               toast.type === 'success' ? 'bg-emerald-950/95 border-emerald-500/50 text-emerald-100' :
-              'bg-[#151D30]/95 border-[#2F58CD]/50 text-slate-100'
+              'bg-cyberCard/95 border-royalBlue/50 text-slate-100'
             }`}
           >
             {toast.type === 'error' && <ShieldAlert className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />}
             {toast.type === 'warning' && <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />}
             {toast.type === 'success' && <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />}
-            {toast.type === 'info' && <Bell className="h-5 w-5 text-[#2F58CD] shrink-0 mt-0.5" />}
+            {toast.type === 'info' && <Bell className="h-5 w-5 text-royalBlue shrink-0 mt-0.5" />}
             
             <div className="flex-1 space-y-1">
               <p className="text-xs font-semibold leading-relaxed">{toast.message}</p>
@@ -352,10 +352,10 @@ export default function DevicesPage() {
       </div>
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[#22314D] pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-cyberBorder pb-6">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-3">
-            <Smartphone className="h-6 w-6 text-[#2F58CD]" />
+            <Smartphone className="h-6 w-6 text-royalBlue" />
             Simulated Device Trust and Radio Fixtures
           </h1>
           <p className="text-sm text-slate-400 mt-1">
@@ -366,12 +366,12 @@ export default function DevicesPage() {
           <button
             onClick={() => triggerScannerFlow(devices[0].id)}
             title="Open a local fixture animation; no device is contacted"
-            className="flex items-center gap-2 rounded-lg border border-[#2F58CD]/30 bg-[#2F58CD]/15 px-3.5 py-1.5 text-xs font-bold text-[#2F58CD] transition-all hover:bg-[#2F58CD]/30"
+            className="flex items-center gap-2 rounded-lg border border-royalBlue/30 bg-royalBlue/15 px-3.5 py-1.5 text-xs font-bold text-royalBlue transition-all hover:bg-royalBlue/30"
           >
             <QrCode className="h-4 w-4" />
             Open Fixture Scanner
           </button>
-          <span className="text-xs bg-[#10B981]/20 text-[#10B981] font-bold px-3 py-1.5 rounded-full border border-[#10B981]/30">
+          <span className="text-xs bg-cyberGreen/20 text-cyberGreen font-bold px-3 py-1.5 rounded-full border border-cyberGreen/30">
             Fixture Registry
           </span>
         </div>
@@ -386,14 +386,14 @@ export default function DevicesPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Filter by device name, carrier, id..." 
-            className="w-full bg-[#151D30] border border-[#22314D] rounded-xl py-2.5 pl-9 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#2F58CD]/70 font-semibold transition-all"
+            className="w-full bg-cyberCard border border-cyberBorder rounded-xl py-2.5 pl-9 pr-4 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-royalBlue/70 font-semibold transition-all"
           />
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto justify-end">
           <button 
             onClick={toggleSelectAll}
-            className="text-xs bg-[#151D30] text-slate-300 border border-[#22314D] px-3.5 py-2.5 rounded-xl font-bold hover:text-white transition-all"
+            className="text-xs bg-cyberCard text-slate-300 border border-cyberBorder px-3.5 py-2.5 rounded-xl font-bold hover:text-white transition-all"
           >
             {selectedIds.length === devices.length ? "Deselect All" : "Select All Devices"}
           </button>
@@ -410,7 +410,7 @@ export default function DevicesPage() {
             <div 
               key={dev.id} 
               className={`glass-card rounded-2xl p-6 border relative ${
-                isSelected ? 'selected-card border-[#2F58CD]/80 shadow-[0_0_20px_rgba(47,88,205,0.25)]' : dev.quarantined ? 'border-red-500/30 hover:border-red-500/60 bg-red-950/5' : 'hover:border-[#2F58CD]/50'
+                isSelected ? 'selected-card border-royalBlue/80 shadow-[0_0_20px_rgba(47,88,205,0.25)]' : dev.quarantined ? 'border-red-500/30 hover:border-red-500/60 bg-red-950/5' : 'hover:border-royalBlue/50'
               }`}
             >
               {/* Select Checkbox Indicator */}
@@ -419,17 +419,17 @@ export default function DevicesPage() {
                   type="checkbox" 
                   checked={isSelected}
                   onChange={() => toggleSelectOne(dev.id)}
-                  className="w-4.5 h-4.5 rounded border-[#22314D] bg-[#151D30] text-[#2F58CD] focus:ring-0 cursor-pointer"
+                  className="w-4.5 h-4.5 rounded-sm border-cyberBorder bg-cyberCard text-royalBlue focus:ring-0 cursor-pointer"
                 />
               </div>
 
               {/* Main Content Layout with spacing for Checkbox */}
               <div className="pl-8">
                 {/* Top Row Header info */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#22314D]">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-cyberBorder">
                   <div className="flex items-center gap-3.5">
-                    <div className={`p-3 rounded-xl ${dev.quarantined ? 'bg-red-500/10' : 'bg-[#2F58CD]/10'}`}>
-                      <Smartphone className={`h-5 w-5 ${dev.quarantined ? 'text-red-500' : 'text-[#2F58CD]'}`} />
+                    <div className={`p-3 rounded-xl ${dev.quarantined ? 'bg-red-500/10' : 'bg-royalBlue/10'}`}>
+                      <Smartphone className={`h-5 w-5 ${dev.quarantined ? 'text-red-500' : 'text-royalBlue'}`} />
                     </div>
                     <div>
                       <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -445,7 +445,7 @@ export default function DevicesPage() {
                     <div className="text-right">
                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Acing Trust Score</p>
                       <p className={`text-lg font-extrabold ${
-                        dev.trustScore >= 85 ? 'text-[#10B981]' : dev.trustScore >= 50 ? 'text-[#F59E0B]' : 'text-red-500'
+                        dev.trustScore >= 85 ? 'text-cyberGreen' : dev.trustScore >= 50 ? 'text-cyberOrange' : 'text-red-500'
                       }`}>
                         {dev.trustScore} / 100
                       </p>
@@ -455,8 +455,8 @@ export default function DevicesPage() {
                       dev.quarantined 
                         ? 'bg-red-500/10 text-red-500 border-red-500/20' 
                         : dev.trustScore >= 85 
-                          ? 'bg-emerald-500/10 text-[#10B981] border-emerald-500/20' 
-                          : 'bg-amber-500/10 text-[#F59E0B] border-amber-500/20'
+                          ? 'bg-emerald-500/10 text-cyberGreen border-emerald-500/20'
+                          : 'bg-amber-500/10 text-cyberOrange border-amber-500/20'
                     }`}>
                       {dev.quarantined ? "Quarantined" : dev.trustScore >= 85 ? "Trusted Core" : "Elevated State"}
                     </span>
@@ -468,11 +468,11 @@ export default function DevicesPage() {
                   {/* Hardware Root Flags (fixture) */}
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                      <Cpu className="h-4 w-4 text-[#2F58CD]" />
+                      <Cpu className="h-4 w-4 text-royalBlue" />
                       <span>Hardware Root Flags (fixture)</span>
                     </div>
                     <div className="text-xs font-semibold text-white space-y-0.5">
-                      <p>Warranty Void: <span className={dev.warrantyFlag.includes("0x0") ? "text-[#10B981] font-bold" : "text-red-500 font-bold"}>{dev.warrantyFlag}</span></p>
+                      <p>Warranty Void: <span className={dev.warrantyFlag.includes("0x0") ? "text-cyberGreen font-bold" : "text-red-500 font-bold"}>{dev.warrantyFlag}</span></p>
                       <p>SELinux State: <span className="text-slate-300">{dev.selinux}</span></p>
                     </div>
                   </div>
@@ -480,7 +480,7 @@ export default function DevicesPage() {
                   {/* Integrity status */}
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                      <Shield className="h-4 w-4 text-[#2F58CD]" />
+                      <Shield className="h-4 w-4 text-royalBlue" />
                       <span>Integrity Status (fixture)</span>
                     </div>
                     <div className="text-xs font-semibold text-white space-y-0.5">
@@ -492,7 +492,7 @@ export default function DevicesPage() {
                   {/* Radio metrics */}
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                      <Radio className="h-4 w-4 text-[#2F58CD]" />
+                      <Radio className="h-4 w-4 text-royalBlue" />
                       <span>RF Metrics (fixture)</span>
                     </div>
                     <div className="text-xs font-semibold text-white space-y-0.5">
@@ -504,19 +504,19 @@ export default function DevicesPage() {
                   {/* Actions */}
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                      <Activity className="h-4 w-4 text-[#2F58CD]" />
+                      <Activity className="h-4 w-4 text-royalBlue" />
                       <span>Fixture Actions</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => toggleExpand(dev.id)}
-                        className="text-[10px] font-bold px-2 py-1 rounded border border-[#22314D] text-slate-300 hover:text-white"
+                        className="text-[10px] font-bold px-2 py-1 rounded-sm border border-cyberBorder text-slate-300 hover:text-white"
                       >
                         {isExpanded ? 'Hide' : 'Expand'}
                       </button>
                       <button
                         onClick={() => triggerScannerFlow(dev.id)}
-                        className="text-[10px] font-bold px-2 py-1 rounded border border-[#2F58CD]/40 text-[#2F58CD] hover:bg-[#2F58CD]/10"
+                        className="text-[10px] font-bold px-2 py-1 rounded-sm border border-royalBlue/40 text-royalBlue hover:bg-royalBlue/10"
                       >
                         Scan Fixture
                       </button>
@@ -525,7 +525,7 @@ export default function DevicesPage() {
                 </div>
 
                 {isExpanded && (
-                  <div className="pt-4 border-t border-[#22314D] space-y-4">
+                  <div className="pt-4 border-t border-cyberBorder space-y-4">
                     <p className="text-xs text-slate-400">
                       Expanded view shows demonstration score history only. No live device telemetry is read.
                     </p>
@@ -551,7 +551,7 @@ export default function DevicesPage() {
 
       {/* Bulk action bar */}
       {selectedIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex gap-3 bg-[#151D30]/95 border border-[#2F58CD] rounded-2xl px-5 py-3 shadow-xl">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex gap-3 bg-cyberCard/95 border border-royalBlue rounded-2xl px-5 py-3 shadow-xl">
           <button
             onClick={() => handleBulkQuarantine(true)}
             className="text-xs font-bold px-3 py-2 rounded-lg bg-red-500/20 text-red-300 border border-red-500/30"
@@ -566,7 +566,7 @@ export default function DevicesPage() {
           </button>
           <button
             onClick={handleBulkRecalculate}
-            className="text-xs font-bold px-3 py-2 rounded-lg bg-[#2F58CD]/20 text-[#2F58CD] border border-[#2F58CD]/30"
+            className="text-xs font-bold px-3 py-2 rounded-lg bg-royalBlue/20 text-royalBlue border border-royalBlue/30"
           >
             Recalculate Scores (fixture)
           </button>
@@ -576,22 +576,22 @@ export default function DevicesPage() {
       {/* Scanner modal */}
       {showScanner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="glass-card max-w-md w-full rounded-2xl p-6 space-y-4 border border-[#2F58CD]/40">
+          <div className="glass-card max-w-md w-full rounded-2xl p-6 space-y-4 border border-royalBlue/40">
             <h3 className="text-base font-bold text-white uppercase tracking-wider">Chip-Detection Fixture Simulator</h3>
             <p className="text-[10px] text-slate-500 max-w-xs font-medium">Animated demonstration only; no camera, device, warranty fuse, or RKP security data is accessed</p>
-            <div className="h-40 rounded-xl border border-dashed border-[#22314D] flex items-center justify-center text-slate-500 text-xs">
+            <div className="h-40 rounded-xl border border-dashed border-cyberBorder flex items-center justify-center text-slate-500 text-xs">
               {scanningActive ? 'Simulating scan…' : 'Ready'}
             </div>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowScanner(false)}
-                className="text-xs font-bold px-3 py-2 rounded-lg border border-[#22314D] text-slate-300"
+                className="text-xs font-bold px-3 py-2 rounded-lg border border-cyberBorder text-slate-300"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSimulateScanSuccess}
-                className="text-xs font-bold px-3 py-2 rounded-lg bg-[#2F58CD] text-white"
+                className="text-xs font-bold px-3 py-2 rounded-lg bg-royalBlue text-white"
               >
                 Complete Fixture Scan
               </button>
