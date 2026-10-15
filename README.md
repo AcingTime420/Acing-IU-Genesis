@@ -116,6 +116,8 @@ Acing-IU-Genesis/
 | `repo-integrity.yml` | push / PR | No tracked generated artifacts |
 | `gradle-dependency-diagnostic.yml` | PR / manual | Gradle reports are artifacts only; this workflow does not submit dependency snapshots, and the explicit submission action is blocked by repository policy |
 
+The Gradle diagnostic artifact from [run 38760664503](https://github.com/AcingTime420/Acing-IU-Genesis/actions/runs/38760664503) (SHA-256 `82bc0daada013797cafc27cb7fffbeb6f1d49bd924f1b93baae8c9eef9b575b2`) confirms Robolectric 4.17 resolves Bouncy Castle to 1.85 in `debugUnitTestRuntimeClasspath`. Remaining reported dependencies are build/test-only: Bouncy Castle `bcpkix-jdk18on` and `bcprov-jdk18on` 1.79 on the AGP 9.1.1 root plugin classpath; JDOM 2.0.6 via AGP Jetifier; jose4j 0.9.5 via bundletool 1.18.3; Netty 4.1.110.Final via grpc-netty 1.69.1 in UTP emulator-control and 4.1.93.Final via grpc-netty 1.57.2 in UTP core; Commons Lang 3.16.0 and HttpClient 4.5.6 in UTP result-listener tooling. Root plugin classpath selects HttpClient 4.5.14. The debug and release application runtime reports do not contain Bouncy Castle or Netty. No AGP/UTP upgrade or build-tool constraint is selected: the runner cannot resolve Google Maven (`dl.google.com` DNS), so a stable compatible upgrade cannot be verified. The blocked submission action also means this report artifact does not update GitHub's submitted dependency snapshot.
+
 ---
 
 ## Documentation
