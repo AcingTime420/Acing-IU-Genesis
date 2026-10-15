@@ -46,12 +46,27 @@ jobs:
             fi
           }
 
+          capture_insight() {
+            local name="$1"
+            shift
+            if bash ./gradlew "$@" --no-daemon --console=plain --stacktrace \
+              > "$report_dir/$name.txt" 2>&1; then
+              printf 'completed\n' > "$report_dir/$name.status"
+            else
+              printf 'failed\n' > "$report_dir/$name.status"
+            fi
+          }
+
           capture_report root-build-environment :buildEnvironment
           capture_report app-build-environment :app:buildEnvironment
           capture_report debug-runtime :app:dependencies --configuration debugRuntimeClasspath
           capture_report release-runtime :app:dependencies --configuration releaseRuntimeClasspath
           capture_report app-dependencies :app:dependencies
           capture_report android-test-runtime :app:dependencies --configuration debugAndroidTestRuntimeClasspath
+          capture_insight unit-test-bouncycastle-insight :app:dependencyInsight \
+            --configuration debugUnitTestRuntimeClasspath --dependency org.bouncycastle:bcprov-jdk18on
+          capture_insight android-test-netty-insight :app:dependencyInsight \
+            --configuration debugAndroidTestRuntimeClasspath --dependency io.netty
 
           if (( failures > 0 )); then
             echo "One or more dependency reports could not be generated; see the report artifact."
