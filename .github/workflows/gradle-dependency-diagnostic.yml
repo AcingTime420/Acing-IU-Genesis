@@ -66,18 +66,6 @@ jobs:
           capture_report android-test-runtime :app:dependencies --configuration debugAndroidTestRuntimeClasspath
           capture_insight unit-test-bouncycastle-insight :app:dependencyInsight \
             --configuration debugUnitTestRuntimeClasspath --dependency org.bouncycastle:bcprov-jdk18on
-          capture_insight build-bcpkix-insight :dependencyInsight \
-            --configuration classpath --dependency org.bouncycastle:bcpkix-jdk18on
-          capture_insight build-bcprov-insight :dependencyInsight \
-            --configuration classpath --dependency org.bouncycastle:bcprov-jdk18on
-          capture_insight build-jdom-insight :dependencyInsight \
-            --configuration classpath --dependency org.jdom:jdom2
-          capture_insight build-jose4j-insight :dependencyInsight \
-            --configuration classpath --dependency org.bitbucket.b_c:jose4j
-          capture_insight build-commons-lang3-insight :dependencyInsight \
-            --configuration classpath --dependency org.apache.commons:commons-lang3
-          capture_insight build-httpclient-insight :dependencyInsight \
-            --configuration classpath --dependency org.apache.httpcomponents:httpclient
           capture_insight utp-emulator-netty-insight :app:dependencyInsight \
             --configuration _internal-unified-test-platform-android-test-plugin-host-emulator-control \
             --dependency io.netty:netty-codec-http2
