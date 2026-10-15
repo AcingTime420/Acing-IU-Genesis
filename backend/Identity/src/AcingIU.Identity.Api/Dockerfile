@@ -1,4 +1,4 @@
-﻿# =============================================================================
+# =============================================================================
 # Acing IU - Identity API
 # Repository-root Docker build context
 # =============================================================================
@@ -20,18 +20,18 @@ RUN dotnet publish backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Ap
     -o /app/publish \
     --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine3.23@sha256:819714070a3a11a1df9ac9daa614c280e62c6aff7b13c29d3ba5498fcfc45e57 AS runtime
 
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget \
-    && rm -rf /var/lib/apt/lists/*
+RUN wget --help >/dev/null 2>&1
 
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 COPY --from=build /app/publish .
+
+USER app
 
 EXPOSE 8080
 
