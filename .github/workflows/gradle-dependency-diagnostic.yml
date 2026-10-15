@@ -54,6 +54,7 @@ jobs:
               printf 'completed\n' > "$report_dir/$name.status"
             else
               printf 'failed\n' > "$report_dir/$name.status"
+              failures=$((failures + 1))
             fi
           }
 

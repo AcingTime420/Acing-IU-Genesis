@@ -114,6 +114,7 @@ Acing-IU-Genesis/
 |---|---|---|
 | `ci.yml` | push / PR | Repo integrity + clean-clone build |
 | `repo-integrity.yml` | push / PR | No tracked generated artifacts |
+| `gradle-dependency-diagnostic.yml` | PR / manual | Gradle reports are artifacts only; dependency snapshots are not submitted because the submission action is blocked by repository policy |
 
 ---
 
