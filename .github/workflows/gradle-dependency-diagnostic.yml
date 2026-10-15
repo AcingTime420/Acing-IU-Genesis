@@ -50,7 +50,7 @@ jobs:
           capture_report app-build-environment :app:buildEnvironment
           capture_report debug-runtime :app:dependencies --configuration debugRuntimeClasspath
           capture_report release-runtime :app:dependencies --configuration releaseRuntimeClasspath
-          capture_report unit-test-runtime :app:dependencies --configuration testDebugUnitTestRuntimeClasspath
+          capture_report app-dependencies :app:dependencies
           capture_report android-test-runtime :app:dependencies --configuration debugAndroidTestRuntimeClasspath
 
           if (( failures > 0 )); then
