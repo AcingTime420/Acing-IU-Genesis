@@ -3,8 +3,8 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "Acing IU Security Center",
-  description: "SM-S938U Verizon Firmware Trust & Zero-Trust Matrix",
+  title: "Acing IU: Genesis — Human Authority Prototype",
+  description: "Local mock interface for reviewing human authority over an AI agent proposal. Not live or enforced.",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 bg-cyberGreen rounded-full animate-pulse"></span>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                Acing Operations Grid — SM-S938U Baseline [VZW]
+                Genesis Human Authority Prototype — local preview
               </span>
             </div>
             <div className="hidden sm:flex items-center gap-4 text-xs font-semibold text-slate-400">
