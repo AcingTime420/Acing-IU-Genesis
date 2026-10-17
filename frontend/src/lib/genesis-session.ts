@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 
 export const SESSION_COOKIE = "genesis_human_session";
 const LIFETIME = 15 * 60 * 1000;
-export interface HumanSession { credential: string; proposalId: string; documentId: string; expires: number }
+export interface HumanSession { credential: string; proposalId: string; documentId: string; reviewContext: string; expires: number }
 // Server process memory only: restarting the frontend deliberately signs everyone out.
 const sessions = new Map<string, HumanSession>();
 const local = new Set(["localhost", "127.0.0.1", "[::1]"]);
