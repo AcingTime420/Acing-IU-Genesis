@@ -353,6 +353,58 @@ and Release, then run the explicit integration project with
 `--configuration Debug` or `--configuration Release`, respectively, retaining
 the local test-database guard and schema-reset warning above.
 
+### Harness reproducibility correction — fresh verification
+
+Source tested: `8b918bc25dc022d36fb6f0488b4dee8ee8544ea7`
+(the harness fix, based on previously reviewed
+`98d1eb9baae3e0d172411c16aaceb2009f6b4a21`). SDK: .NET `10.0.401`;
+target: .NET 8; database: isolated local PostgreSQL 16. These are newly executed
+results, not a reuse of the earlier prototype counts.
+
+Three detached worktrees of the exact source commit were created from
+`/home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis`:
+
+```bash
+git -C /home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis worktree add --detach /tmp/authority-repro-debug 8b918bc25dc022d36fb6f0488b4dee8ee8544ea7
+git -C /home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis worktree add --detach /tmp/authority-repro-release 8b918bc25dc022d36fb6f0488b4dee8ee8544ea7
+git -C /home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis worktree add --detach /tmp/authority-repro-regression 8b918bc25dc022d36fb6f0488b4dee8ee8544ea7
+for checkout in /tmp/authority-repro-debug /tmp/authority-repro-release /tmp/authority-repro-regression; do
+  git -C "$checkout" rev-parse HEAD
+  find "$checkout" -type d \( -name bin -o -name obj \) -print
+done
+```
+
+Each reported the exact source SHA and **no preexisting bin/obj directories**.
+Executed commands (integration runs sequentially against the guarded database):
+
+```bash
+export GENESIS_TEST_DATABASE='Host=/var/run/postgresql;Database=genesis_authority_test;Username=runner'
+dotnet test /tmp/authority-repro-debug/tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration Debug --verbosity minimal
+dotnet test /tmp/authority-repro-release/tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration Release --verbosity minimal
+for configuration in Debug Release; do
+  dotnet test /tmp/authority-repro-regression/tests/Identity.UnitTests/Identity.UnitTests.csproj --configuration "$configuration" --verbosity minimal
+  dotnet test /tmp/authority-repro-regression/tests/DeviceTrust.UnitTests/DeviceTrust.UnitTests.csproj --configuration "$configuration" --verbosity minimal
+done
+```
+
+| Suite | Debug passed | Release passed | Failed / skipped |
+|---|---:|---:|---|
+| HumanAuthority actual HTTP/PostgreSQL integration | 77 | 77 | 0 / 0 in each |
+| Existing Identity unit regressions | 15 | 15 | 0 / 0 in each |
+| Existing DeviceTrust unit regressions | 6 | 6 | 0 / 0 in each |
+
+Build output showed the backend being built automatically in the matching
+configuration before each integration test assembly. The Release checkout's
+backend `bin` contained only `Release`, not `Debug`. Four new harness cases verify
+the embedded configuration-specific path, explicit missing DLL failure despite
+stale Debug output, and missing dependency/runtime manifests. Database name,
+local-host, schema-only reset and concurrent-suite lease guards are unchanged.
+CodeQL analyzed Python/C# and found zero alerts. Its automated code-review
+component remained unavailable due to the configured model not being registered;
+that wrapper's green status is not a successful code review.
+A separate read-only code-review agent reviewed the harness-fix delta and found
+no significant issues.
+
 Troubleshooting: readiness 503 means check connection, local PostgreSQL and
 explicit migration. 401 means wrong/disabled credentials; 403 execution means
 inspect owner evidence without expanding a grant. 409 means changed key/body
