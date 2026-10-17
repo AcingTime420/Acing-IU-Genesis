@@ -232,8 +232,9 @@ GENESIS_TEST_DATABASE='Host=/var/run/postgresql;Database=genesis_authority_test;
 - Parallel security validation analyzed Python and C# and found **zero CodeQL
   alerts**. Its automated review component was unavailable because model
   `capi-prod-claude-sonnet-4.6` was not in the registry; its green wrapper status
-  is not treated as a successful code review. A separate read-only review was
-  requested. Secret scans found no secrets in changed files.
+  is not treated as a successful code review. A separate read-only code-review
+  agent then reviewed the complete branch changes and reported no significant
+  issues. Secret scans found no secrets in changed files.
 - No unexecuted scenario or result from the unavailable implementation is claimed
   as passing. This is an isolated prototype, not a production-readiness claim.
 
