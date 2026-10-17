@@ -1,14 +1,41 @@
 # Supply-Chain Finding Register — Acing-IU-Genesis
 
 **Status:** Active  
-**Last reviewed:** 2026-10-10
+**Last reviewed:** 2026-10-17
 
 **Policy:** `docs/security/SUPPLY_CHAIN_FINDING_POLICY.md`  
 **Tracking:** Phase 4 Task 4.5 · [#58](https://github.com/AcingTime420/Acing-IU-Genesis/issues/58)
 
 > Metadata only. No secret values. Each row is a detected or accepted supply-chain finding.
 
-**Current scope:** PR #143 is draft and unmerged. The executed PR workflows passed the full npm audit, lint, production build, backend tests, container builds, claim-surface validation, limited-range secret scan, and SBOM generation. These results are not remediation on `master` or in PR #135. Findings below retain the policy's **In progress** status until maintainer review and integration; removal of a dependency path is recorded separately from upstream fixes and closure.
+## Current dependency snapshot — 2026-10-17 (branch `security/dependency-remediation`)
+
+**Base:** `master` at `4cf3181951ddc3366a193d49cb8ca32dce346bf7`. The worktree was clean before this documentation update. Only the task text was attached; no screenshots were available. No `AGENTS.md` files were found in the checkout. GitHub's push response while publishing this branch reported **54 vulnerabilities on the default branch: 4 critical, 20 high, 27 moderate, and 3 low**. However, the Dependabot alerts REST endpoint returned HTTP 403 (`Resource not accessible by integration`), both available CLI credentials were denied, and the public browser showed a signed-out 404; therefore alert numbers, advisory identifiers, package paths, exact severity-to-package mappings, and resolved dependency graphs could not be retrieved. Do not treat the findings below as a complete alert inventory or infer that any alert is resolved.
+
+| Evidence | Result | Scope and limitation |
+|---|---|---|
+| Frontend clean install | `cd frontend && npm ci --no-audit --no-fund` succeeded on Node `v22.13.0` / npm `10.9.2`. | Lockfile installation; npm emitted a deprecation warning for the pre-existing `glob@10.5.0` override. |
+| Frontend audit | `npm audit --json` exited 0: 0 info, low, moderate, high, or critical findings; 547 resolved dependency records reported. | Current frontend lockfile only; it is not proof of zero project-wide vulnerabilities. |
+| Frontend lint | `npm run lint` exited 0 with 19 warnings and no errors. | Existing unused-variable warnings; no lint rules were changed. |
+| Frontend build/type check | `npm run build -- --webpack` succeeded; Next.js completed its TypeScript check and production build. | Existing frontend application tree; no tests are defined in `package.json`. |
+| Gradle/Android | `bash gradlew :app:dependencies --configuration debugRuntimeClasspath` succeeded under Gradle 9.3.1 and resolved the debug runtime graph. | Dependency graph only; no vulnerability-scanning plugin/task is configured, so this is not a Gradle advisory audit. No Gradle lockfile is present. |
+| .NET restore | `dotnet restore backend/AcingIU.sln` succeeded with .NET SDK `8.0.426`. | Current branch; NuGet sources included `https://api.nuget.org/v3/index.json`. |
+| .NET audit | `dotnet list backend/AcingIU.sln package --vulnerable --include-transitive` exited 0; all five projects reported no vulnerable packages. | Current .NET solution and resolved NuGet dependencies; does not replace live GitHub alert access. |
+| .NET build/tests | Release build succeeded with 0 warnings / 0 errors. Tests passed: Identity 15/15; DeviceTrust 6/6. | `dotnet build backend/AcingIU.sln --configuration Release --no-restore`; `dotnet test backend/AcingIU.sln --configuration Release --no-build --verbosity normal`. |
+| Trivy filesystem audit | Repository-pinned Trivy `0.70.0`, checksum verified; `trivy fs --scanners vuln --include-dev-deps --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL --skip-dirs .git --skip-dirs frontend/node_modules .` exited 0 with 0 findings across the 8 detected npm/.NET language-specific files. | Includes development/test dependency scopes from recognized manifests/assets. It did not identify the Gradle dependency graph as an auditable lockfile; this is not an Android vulnerability audit. |
+| Containers | Docker is unavailable, so project images could not be built and the repository's CI-equivalent final-image scan was not reproduced locally. An attempt to scan the digest-pinned ASP.NET base image directly from the remote registry stalled before producing results and was cancelled. | No container/base-image scan result is claimed. Remote base-image scanning would not substitute for building and scanning the final application images. |
+
+### Existing remediation-branch coordination
+
+| Open PR | Observed change and status | Disposition in this work |
+|---|---|---|
+| [#125](https://github.com/AcingTime420/Acing-IU-Genesis/pull/125) | `System.IdentityModel.Tokens.Jwt` `8.3.0` → `8.23.0` in the DeviceTrust project. Reported CI checks, including .NET audit/build/tests, passed on PR head `abbc3b22f7df0cd640a7e1e8a8ac3623e0513bf8`; its recorded base is `3d22e3c20abbe9e8cd3e168b4e4a8d800d17f7c7`, and GitHub reports it behind current master. | Do not duplicate the package edit. Confirm its applicability and rerun validation against current master before relying on it. The current live alert/advisory identity remains unverified because the alert API was inaccessible. |
+| [#142](https://github.com/AcingTime420/Acing-IU-Genesis/pull/142) | `Swashbuckle.AspNetCore` `6.9.0` → `10.3.0` in Identity and DeviceTrust. The recorded backend build checks fail; the branch is based on `3d22e3c20abbe9e8cd3e168b4e4a8d800d17f7c7` and is behind current master. | Do not copy a major-version change with failing backend validation. Determine the exact advisory and compatible supported fixed version, then retest on a current branch with .NET 8. |
+| [#144](https://github.com/AcingTime420/Acing-IU-Genesis/pull/144) | Draft frontend audit remediation is based on `3d22e3c20abbe9e8cd3e168b4e4a8d800d17f7c7` and reports `DIRTY`; the formerly related [#143](https://github.com/AcingTime420/Acing-IU-Genesis/pull/143) is merged. On current master, the clean npm audit above reports zero findings. | Do not duplicate or transplant the old-base frontend lockfile changes without new evidence. Reconcile/close or rebase that PR through maintainer review; this work does not change it. |
+
+No dependency manifest or lockfile was changed in this snapshot because the available current npm audit found no vulnerability and the other potentially relevant changes already exist in open PRs whose current-base applicability has not been established. Do not mark any GitHub alert resolved based on this branch; default-branch status and GitHub rescanning remain authoritative after any future merge. **Recommended next actions:** grant an integration token scope that permits Dependabot alert reads; rerun the .NET 8 audit/build/tests and container scanner on current master; refresh #125 against current master; and investigate #142's failing build without forcing an incompatible major version. This evidence does not disposition or accept any risk exception.
+
+**Scope at time of the 2026-10-10 checkpoint:** PR #143 was draft and unmerged. Its executed PR workflows passed the full npm audit, lint, production build, backend tests, container builds, claim-surface validation, limited-range secret scan, and SBOM generation. PR #143 has since merged (see the 2026-10-17 snapshot above); historical workflow results remain scoped to their recorded PR head and do not establish current results for other ecosystems or prove GitHub alert closure. Findings below preserve their historical status and evidence; current default-branch alert states require live GitHub rescan evidence.
 
 ## Completed investigation and maintainer handoff - 2026-10-10
 
