@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -88,6 +89,11 @@ public sealed class AuthorityFixture : IAsyncLifetime
 
     public async Task StartAsync()
     {
+        var assembly = typeof(AuthorityFixture).Assembly;
+        var configuration = assembly.GetCustomAttribute<AssemblyConfigurationAttribute>()!.Configuration;
+        var artifact = assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .Single(a => a.Key == "HumanAuthorityArtifact").Value!;
+        ValidateBackendArtifact(artifact, configuration);
         using var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
@@ -99,9 +105,7 @@ public sealed class AuthorityFixture : IAsyncLifetime
             RedirectStandardError = true,
             UseShellExecute = false
         };
-        foreach (var arg in new[] { "run", "--no-build", "--no-launch-profile", "--project",
-                     Path.Combine(Root, "backend/HumanAuthority/HumanAuthority.csproj") })
-            start.ArgumentList.Add(arg);
+        start.ArgumentList.Add(artifact);
         start.Environment["ASPNETCORE_ENVIRONMENT"] = "Test";
         start.Environment["DOTNET_ENVIRONMENT"] = "Test";
         start.Environment["ASPNETCORE_URLS"] = $"http://127.0.0.1:{port}";
@@ -120,6 +124,16 @@ public sealed class AuthorityFixture : IAsyncLifetime
             try { return (await Http.GetAsync("/health/ready")).IsSuccessStatusCode; }
             catch (HttpRequestException) { return false; }
         }, "Service did not become ready: " + string.Join('\n', output));
+    }
+
+    public static void ValidateBackendArtifact(string artifact, string configuration)
+    {
+        foreach (var required in new[] { artifact, Path.ChangeExtension(artifact, ".deps.json"),
+                     Path.ChangeExtension(artifact, ".runtimeconfig.json") })
+            if (!File.Exists(required))
+                throw new InvalidOperationException(
+                    $"Missing HumanAuthority {configuration} backend artifact: {Path.GetFullPath(required)}. " +
+                    $"Build HumanAuthority.IntegrationTests.csproj --configuration {configuration} before using --no-build; no configuration fallback is allowed.");
     }
 
     private void Capture(string? line)

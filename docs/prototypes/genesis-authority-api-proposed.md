@@ -337,6 +337,22 @@ Supply `GENESIS_TEST_DATABASE` securely for a separate local database ending in
 Do not point it at a development database containing evidence you want to keep.
 New service/tests are opt-in, not production startup or platform CI changes.
 
+The integration project has a build-only reference to the backend. A normal
+`dotnet test` builds both projects in the requested configuration. The fixture
+launches `dotnet <backend artifact.dll>` directly, using the artifact path embedded
+by MSBuild for that test build's configuration and target framework; it does not
+use `dotnet run` or fall back to Debug. Missing DLL, runtime configuration or
+dependency manifest fails explicitly with the missing path and rebuild command.
+`--no-build` is only appropriate after building that same configuration. Keep the
+checkout at its build location because the embedded artifact path is absolute.
+The interactive `ga serve` command remains a separate development workflow that
+uses `dotnet run` and builds the service.
+
+For reproducibility, use separate clean checkouts without `bin`/`obj` for Debug
+and Release, then run the explicit integration project with
+`--configuration Debug` or `--configuration Release`, respectively, retaining
+the local test-database guard and schema-reset warning above.
+
 Troubleshooting: readiness 503 means check connection, local PostgreSQL and
 explicit migration. 401 means wrong/disabled credentials; 403 execution means
 inspect owner evidence without expanding a grant. 409 means changed key/body

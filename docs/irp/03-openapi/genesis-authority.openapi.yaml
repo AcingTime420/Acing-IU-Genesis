@@ -3,8 +3,8 @@ info:
   title: Genesis human authority API — PROPOSED
   version: 0.1.0-proposed
   description: |
-    Pending cross-workstream review. Contract-first increment; endpoints not yet
-    implemented. Development/Test only. See genesis-authority-api-proposed.md
+    Pending cross-workstream review. Endpoints implemented by the isolated
+    Development/Test prototype. See genesis-authority-api-proposed.md
     for atomicity, authentication, retention, expiry and lock-order invariants.
 servers:
   - url: http://127.0.0.1:5088

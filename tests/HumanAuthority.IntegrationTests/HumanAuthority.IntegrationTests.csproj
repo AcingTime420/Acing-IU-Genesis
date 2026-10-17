@@ -18,6 +18,9 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <ProjectReference Include="../../backend/HumanAuthority/HumanAuthority.csproj" ReferenceOutputAssembly="false" />
+    <AssemblyMetadata Include="HumanAuthorityArtifact"
+                      Value="$(MSBuildProjectDirectory)/../../backend/HumanAuthority/bin/$(Configuration)/$(TargetFramework)/HumanAuthority.dll" />
   </ItemGroup>
 
 </Project>
