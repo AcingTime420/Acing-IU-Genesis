@@ -177,6 +177,49 @@ jobs:
             echo "No frontend package.json found — skipping"
           fi
 
+      - name: Genesis adapter and session tests
+        working-directory: frontend
+        run: |
+          npm run test:genesis
+          npm run test:genesis-session
+
+      - name: Genesis production HTTP boundary tests
+        working-directory: frontend
+        run: npm run test:genesis-live-http
+
+  human-authority-integration:
+    name: Human Authority HTTP/PostgreSQL (${{ matrix.configuration }})
+    runs-on: ubuntu-latest
+    needs: repo-integrity
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: authority_test
+          POSTGRES_PASSWORD: isolated_ci_password_only
+          POSTGRES_DB: genesis_authority_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U authority_test -d genesis_authority_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      GENESIS_TEST_DATABASE: Host=127.0.0.1;Database=genesis_authority_test;Username=authority_test;Password=isolated_ci_password_only
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          dotnet-version: '8.0.x'
+      - name: Run actual authority HTTP and PostgreSQL integration tests
+        run: dotnet test tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration "${{ matrix.configuration }}" --verbosity normal
+
   # ── Job 5: Container build (Docker) ───────────────────────────────────
   containerization:
     name: Container Build (Docker)

@@ -11,7 +11,7 @@ test('backend config cannot send credentials to remote hosts or URL paths',()=>{
  assert.equal(backendOrigin('http://127.0.0.1:5088'),'http://127.0.0.1:5088');
 });
 test('sessions expire and logout removes authority',()=>{
- const data={credential:'secret',proposalId:'p',documentId:'d'};
+ const data={credential:'secret',proposalId:'p',documentId:'d',reviewContext:'context'};
  const key=newSession(data,1000); assert.equal(readSession(key,1001)?.credential,'secret');
  assert.equal(readSession(key,1000+15*60*1000),null);
  const other=newSession(data);deleteSession(other);assert.equal(readSession(other),null);
