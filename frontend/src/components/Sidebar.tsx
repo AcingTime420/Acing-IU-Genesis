@@ -13,25 +13,26 @@ export default function Sidebar() {
     { name: 'Users', path: '/users', icon: Users },
     { name: 'Devices', path: '/devices', icon: Smartphone },
     { name: 'Audit Logs', path: '/audit', icon: FileText },
+    { name: 'Genesis Approval Demo', path: '/genesis', icon: CheckCircle },
     { name: 'RootMaster Lab', path: '/rootmaster', icon: Cpu },
   ];
 
   return (
-    <aside className="w-64 bg-cyberDark border-r border-cyberBorder flex flex-col justify-between h-screen sticky top-0">
+    <aside className="w-14 shrink-0 bg-cyberDark border-r border-cyberBorder flex flex-col justify-between h-screen sticky top-0 md:w-64">
       <div>
         {/* Branding Area */}
-        <div className="p-6 border-b border-cyberBorder flex items-center gap-3">
+        <div className="p-3 border-b border-cyberBorder flex items-center justify-center gap-3 md:justify-start md:p-6">
           <div className="bg-linear-to-tr from-[#2F58CD] to-[#6C3483] p-2.5 rounded-xl">
             <Shield className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-sm font-bold tracking-wider text-white uppercase">Acing IU</h1>
-            <p className="text-[10px] text-slate-400 font-medium">Security Center</p>
+            <h1 className="hidden text-sm font-bold tracking-wider text-white uppercase md:block">Acing IU</h1>
+            <p className="hidden text-[10px] text-slate-400 font-medium md:block">Security Center</p>
           </div>
         </div>
 
         {/* Navigation Items */}
-        <nav className="p-4 space-y-1.5">
+        <nav className="p-1.5 space-y-1.5 md:p-4" aria-label="Main navigation">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
@@ -39,14 +40,16 @@ export default function Sidebar() {
               <Link
                 key={item.path}
                 href={item.path}
-                className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                aria-label={item.name}
+                title={item.name}
+                className={`flex items-center justify-center gap-3.5 rounded-xl px-2 py-3 text-sm font-semibold transition-all duration-200 md:justify-start md:px-4 ${
                   isActive
                     ? 'bg-royalBlue text-white shadow-lg shadow-[#2F58CD]/20'
                     : 'text-slate-400 hover:text-white hover:bg-cyberCard'
                 }`}
               >
                 <Icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                <span>{item.name}</span>
+                <span className="sr-only md:not-sr-only">{item.name}</span>
               </Link>
             );
           })}
@@ -54,7 +57,7 @@ export default function Sidebar() {
       </div>
 
       {/* System Status Indicators (Bottom of Sidebar) */}
-      <div className="p-4 border-t border-cyberBorder space-y-3.5 bg-[#111827]/40">
+      <div className="hidden p-4 border-t border-cyberBorder space-y-3.5 bg-[#111827]/40 md:block">
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-slate-400 font-medium">
             <Cpu className="h-3.5 w-3.5 text-royalBlue" />
