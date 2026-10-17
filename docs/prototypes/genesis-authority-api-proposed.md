@@ -168,7 +168,138 @@ Request-body cap: 7 MiB to accommodate JSON escaping of bounded document text.
 ## Current validation record
 
 This first increment contains a proposal, not an implemented service.
-No backend tests have been run for this reimplementation yet. No previous
+Fresh baseline commands run during this reimplementation:
+
+- `dotnet test /home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis/tests/Identity.UnitTests/Identity.UnitTests.csproj --nologo`:
+  15 passed, zero failed/skipped.
+- `dotnet test /home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis/tests/DeviceTrust.UnitTests/DeviceTrust.UnitTests.csproj --nologo`:
+  six passed, zero failed/skipped.
+- The first meaningful contract increment, `f412cad1c847575378408628fc8771ed3ada3a40`,
+  was published through the supported progress tool and independently retrieved
+  through GitHub's commit API. Assigned remote ref matched that exact SHA.
+- New dependency advisory checks for existing-repository Npgsql/xUnit/test SDK
+  versions found no advisories before adding those dependencies.
+
+These baseline tests do not verify the new authority scenario. No previous
 implementation results are carried forward. Production identity, frontend live
 adapter, browser session/CSRF/CORS, operational retention/backups and deployment
 remain outside the isolated prototype and require separate review.
+
+Fresh schema/authentication increment:
+
+- Service scaffold/build succeeded with zero warnings/errors.
+- Fresh PostgreSQL migration and actor/owner/composite-grant/immutable-history/
+  document-version/terminal-grant checks passed in an isolated probe database.
+- Live readiness and bearer-validation probe passed, including disabled
+  credentials returning 401. Authority action endpoints are not in this increment.
+- Standalone database-environment guard tests: ten passed, zero failed/skipped.
+- Local CLI help and negative Production/foreign-host/repository-output guards
+  were exercised successfully. Full action demonstration is still unverified.
+
+## Local operation (implemented incrementally)
+
+Prerequisites: .NET 8 SDK/runtime, PostgreSQL 16 with `psql`, Python 3.9+.
+The commands below assume checkout
+`/home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis`; substitute its absolute
+path on another machine. Do not use a platform/production database.
+
+Create a dedicated local database/login using your PostgreSQL administrator:
+
+```bash
+sudo -u postgres createuser --pwprompt genesis_authority_dev
+sudo -u postgres createdb --owner=genesis_authority_dev genesis_authority_dev
+export ASPNETCORE_ENVIRONMENT=Development
+export PGHOST=127.0.0.1 PGPORT=5432 PGUSER=genesis_authority_dev PGDATABASE=genesis_authority_dev
+read -rsp 'Local PostgreSQL password: ' PGPASSWORD; echo
+export PGPASSWORD
+mkdir -p /tmp/genesis-authority
+chmod 700 /tmp/genesis-authority
+ga() { python /home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis/scripts/genesis-authority.py "$@"; }
+ga migrate
+ga fixtures
+ga serve
+```
+
+Alternatively use the exact `/var/run/postgresql` socket with a deliberately
+provisioned peer-authenticated local role. Never weaken PostgreSQL authentication
+globally. Startup does not create/migrate/reset databases or grant approvals.
+`migrate` runs only version `001`, not the existing platform's migration `000`.
+
+Fixture creation generates distinct random human and named test-agent credentials,
+stores only SHA-256 hashes in PostgreSQL, and exclusively creates
+`/tmp/genesis-authority/credentials.json` with mode 0600 outside the repository.
+Credentials are not printed or embedded in frontend code. The trusted local
+operator holds both credentials for this demonstration; real agent deployment
+must deliver only the agent credential to its process. The CLI's agent commands
+never call the human decision endpoint.
+
+In a second terminal, set `ASPNETCORE_ENVIRONMENT=Development` and define `ga`
+as above. Create the exact files; using `printf '%s'` avoids a hidden final LF:
+
+```bash
+ga health
+printf 'Genesis local prototype document.\n' > /tmp/genesis-authority/initial.txt
+printf '%s' 'Reviewed summary: three findings are ready for human follow-up.' > /tmp/genesis-authority/append.txt
+ga create-document --content-file /tmp/genesis-authority/initial.txt
+```
+
+Copy the returned document UUID to `DOC` (initial version zero):
+
+```bash
+ga propose --document-id "$DOC" --expected-version 0 \
+  --text-file /tmp/genesis-authority/append.txt --out /tmp/genesis-authority/proposal.json
+```
+
+Copy the proposal UUID to `PROPOSAL`. The human explicitly inspects current
+content, named agent, exact proposed text/version/expiry before deciding:
+
+```bash
+ga document --document-id "$DOC"
+ga review --proposal-id "$PROPOSAL"
+ga approve --proposal-id "$PROPOSAL" --confirm-exact-proposal "$PROPOSAL"
+```
+
+Copy the grant UUID to `GRANT`. Execute before server expiry:
+
+```bash
+ga execute --proposal-file /tmp/genesis-authority/proposal.json --grant-id "$GRANT" --key demo-1
+ga execute --proposal-file /tmp/genesis-authority/proposal.json --grant-id "$GRANT" --key demo-1
+ga reconcile --key demo-1
+ga document --document-id "$DOC"
+ga evidence --document-id "$DOC"
+```
+
+Expected behavior (not a passing-test claim): one exact append, document version
+one, identical historical retry outcome and persisted linked evidence. For
+revocation, make/review/approve a fresh proposal at the current document version,
+then run `ga revoke --grant-id "$GRANT" --reason 'Human withdrew authority'`
+before execution. For rejection, explicitly use `ga reject --proposal-id
+"$PROPOSAL" --confirm-exact-proposal "$PROPOSAL"` instead of approving.
+
+Stop the service with Ctrl-C; restart `ga serve` using the same database to
+inspect durable records. PostgreSQL shutdown is separate; on a dedicated local
+Ubuntu cluster use `sudo pg_ctlcluster 16 main stop`, not on a shared cluster.
+Do not delete PostgreSQL's data directory.
+
+Deliberate reset: stop service, set the explicit dev/test database variables,
+then `ga reset --confirm-database genesis_authority_dev`, `ga migrate`, and
+`ga --credentials /tmp/genesis-authority/new-credentials.json fixtures`.
+The reset destroys only this local authority schema, including prototype
+evidence. Old credential files are not overwritten and no longer authenticate.
+Pass the new credential path before each subcommand. This is not a production
+retention or rollback operation.
+
+Verification uses the explicit integration project, not frontend mock tests.
+Supply `GENESIS_TEST_DATABASE` securely for a separate local database ending in
+`_test`; the test fixture will deliberately recreate only its authority schema.
+Do not point it at a development database containing evidence you want to keep.
+New service/tests are opt-in, not production startup or platform CI changes.
+
+Troubleshooting: readiness 503 means check connection, local PostgreSQL and
+explicit migration. 401 means wrong/disabled credentials; 403 execution means
+inspect owner evidence without expanding a grant. 409 means changed key/body
+or conflicting/expired decision; preserve the original key/request to reconcile.
+503 or dropped transport can leave an uncertain committed result: look up the
+original key, and retry only that same request/key if necessary. A lookup 404
+does not rule out an in-flight request. Never rely on a UI expiry countdown.
+Browser CORS/session/CSRF integration is deliberately not enabled.

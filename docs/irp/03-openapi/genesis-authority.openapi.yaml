@@ -288,16 +288,20 @@ components:
         state: {type: string, enum: [active, expired, revoked, consumed]}
         createdAt: {type: string, format: date-time}
     Attempt:
-      allOf:
-        - {$ref: '#/components/schemas/Execute'}
-        - type: object
-          required: [id, outcome, reason, documentVersion, createdAt]
-          properties:
-            id: {type: string, format: uuid}
-            outcome: {type: string, enum: [allowed, denied]}
-            reason: {type: string}
-            documentVersion: {type: integer, format: int64, nullable: true}
-            createdAt: {type: string, format: date-time}
+      type: object
+      required: [id, proposalId, grantId, documentId, operation, text, expectedVersion, outcome, reason, documentVersion, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        proposalId: {type: string, format: uuid}
+        grantId: {type: string, format: uuid}
+        documentId: {type: string, format: uuid}
+        operation: {type: string}
+        text: {type: string}
+        expectedVersion: {type: integer, format: int64}
+        outcome: {type: string, enum: [allowed, denied]}
+        reason: {type: string}
+        documentVersion: {type: integer, format: int64, nullable: true}
+        createdAt: {type: string, format: date-time}
     Evidence:
       type: object
       required: [id, documentId, requesterId, approverId, proposalId, grantId, attemptId, action, decision, outcome, details, createdAt]
