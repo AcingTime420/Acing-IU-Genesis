@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:genesis": "node --experimental-strip-types --test tests/genesis-adapter.test.mjs",
+    "test:genesis-session": "node --experimental-strip-types --test tests/genesis-session.test.mjs",
+    "test:genesis-live-http": "node --test tests/genesis-live-http.test.mjs"
   },
   "dependencies": {
     "d3": "^7.9.0",

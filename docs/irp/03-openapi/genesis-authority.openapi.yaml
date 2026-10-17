@@ -1,0 +1,320 @@
+openapi: 3.0.3
+info:
+  title: Genesis human authority API — PROPOSED
+  version: 0.1.0-proposed
+  description: |
+    Pending cross-workstream review. Endpoints implemented by the isolated
+    Development/Test prototype. See genesis-authority-api-proposed.md
+    for atomicity, authentication, retention, expiry and lock-order invariants.
+servers:
+  - url: http://127.0.0.1:5088
+security:
+  - opaqueBearer: []
+paths:
+  /health/ready:
+    get:
+      security: []
+      responses:
+        '200': {description: PostgreSQL and migration ready}
+        '503': {$ref: '#/components/responses/Error'}
+  /v1/authority/documents:
+    post:
+      description: Human creates an owned document.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [title, content]
+              properties:
+                title: {type: string, minLength: 1, maxLength: 200}
+                content: {type: string, description: At most 1 MiB UTF-8}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Document'}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/documents/{id}:
+    parameters: [{$ref: '#/components/parameters/Id'}]
+    get:
+      description: Current human owner only; foreign objects return 404.
+      responses:
+        '200':
+          description: Current document
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Document'}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/documents/{id}/evidence:
+    parameters: [{$ref: '#/components/parameters/Id'}]
+    get:
+      description: Current human owner only.
+      responses:
+        '200':
+          description: Persisted evidence
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Evidence'}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/proposals:
+    post:
+      description: Authenticated agent creates immutable exact append proposal.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [documentId, expectedVersion, text, ttlSeconds]
+              properties:
+                documentId: {type: string, format: uuid}
+                expectedVersion: {type: integer, format: int64, minimum: 0}
+                text: {$ref: '#/components/schemas/AppendText'}
+                ttlSeconds: {type: integer, minimum: 1, maximum: 600}
+      responses:
+        '201':
+          description: Immutable proposal with server-frozen expiry
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Proposal'}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/proposals/{id}:
+    parameters: [{$ref: '#/components/parameters/Id'}]
+    get:
+      description: Current document owner or original proposing agent only.
+      responses:
+        '200':
+          description: Immutable proposal
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Proposal'}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/proposals/{id}/decision:
+    parameters: [{$ref: '#/components/parameters/Id'}]
+    post:
+      description: Human owner only. Same decision preserves original grant; opposite conflicts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [decision]
+              properties:
+                decision: {type: string, enum: [approved, rejected]}
+      responses:
+        '200':
+          description: Decision and optional original grant ID
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [proposalId, decision, grantId]
+                properties:
+                  proposalId: {type: string, format: uuid}
+                  decision: {type: string, enum: [approved, rejected]}
+                  grantId: {type: string, format: uuid, nullable: true}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/grants/{id}:
+    parameters: [{$ref: '#/components/parameters/Id'}]
+    get:
+      description: Current owner only; expired state uses database wall time.
+      responses:
+        '200':
+          description: Current grant
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Grant'}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/grants/{id}/revoke:
+    parameters: [{$ref: '#/components/parameters/Id'}]
+    post:
+      description: Current owner only. Consumed remains consumed; repeated revocation preserves history.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reason]
+              properties:
+                reason: {type: string, minLength: 1, maxLength: 500}
+      responses:
+        '200':
+          description: Current grant
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Grant'}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/execute:
+    post:
+      description: |
+        Agent only. Exact append plus LF. Atomic mutation/consumption/result/evidence.
+        Accepted work outlives client disconnection. Same key/request replays history.
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: {type: string, minLength: 1, maxLength: 200}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/Execute'}
+      responses:
+        '200':
+          description: Historical allowed attempt
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Attempt'}
+        '403':
+          description: Persisted semantic denial, or wrong-kind error without an attempt
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - {$ref: '#/components/schemas/Attempt'}
+                  - {$ref: '#/components/schemas/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/attempts/by-key:
+    get:
+      description: Exact authenticated caller plus execute plus key; foreign/missing returns 404.
+      parameters:
+        - in: query
+          name: key
+          required: true
+          schema: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Historical attempt only, never a current document or grant snapshot
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Attempt'}
+        default: {$ref: '#/components/responses/Error'}
+  /v1/authority/attempts/{id}:
+    parameters: [{$ref: '#/components/parameters/Id'}]
+    get:
+      description: Executing agent or current proposal-document owner via evidence association.
+      responses:
+        '200':
+          description: Historical attempt
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Attempt'}
+        default: {$ref: '#/components/responses/Error'}
+components:
+  securitySchemes:
+    opaqueBearer: {type: http, scheme: bearer, description: Separate validated human/agent development credentials}
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema: {type: string, format: uuid}
+  responses:
+    Error:
+      description: |
+        400 invalid_request; 401 unauthorized; 403 forbidden; 404 not_found;
+        409 decision_conflict/proposal_expired/idempotency_conflict;
+        413 request_too_large; 503 authority_unavailable.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: {type: string}
+    AppendText:
+      type: string
+      minLength: 1
+      description: At most 8192 UTF-8 bytes; exact text without normalization or NUL
+    Execute:
+      type: object
+      additionalProperties: false
+      required: [proposalId, grantId, documentId, operation, text, expectedVersion]
+      properties:
+        proposalId: {type: string, format: uuid}
+        grantId: {type: string, format: uuid}
+        documentId: {type: string, format: uuid}
+        operation: {type: string, maxLength: 200, description: Only append is authorized; other strings persist denial}
+        text: {$ref: '#/components/schemas/AppendText'}
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+    Document:
+      type: object
+      required: [id, ownerId, title, content, version, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        ownerId: {type: string, format: uuid}
+        title: {type: string}
+        content: {type: string}
+        version: {type: integer, format: int64}
+        createdAt: {type: string, format: date-time}
+    Proposal:
+      type: object
+      required: [id, agentId, agentName, documentId, operation, text, expectedVersion, expiresAt, singleUse, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        agentId: {type: string, format: uuid}
+        agentName: {type: string}
+        documentId: {type: string, format: uuid}
+        operation: {type: string, enum: [append]}
+        text: {$ref: '#/components/schemas/AppendText'}
+        expectedVersion: {type: integer, format: int64}
+        expiresAt: {type: string, format: date-time}
+        singleUse: {type: boolean, enum: [true]}
+        createdAt: {type: string, format: date-time}
+    Grant:
+      type: object
+      required: [id, proposalId, documentId, agentId, expiresAt, singleUse, state, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        proposalId: {type: string, format: uuid}
+        documentId: {type: string, format: uuid}
+        agentId: {type: string, format: uuid}
+        expiresAt: {type: string, format: date-time}
+        singleUse: {type: boolean, enum: [true]}
+        state: {type: string, enum: [active, expired, revoked, consumed]}
+        createdAt: {type: string, format: date-time}
+    Attempt:
+      type: object
+      required: [id, proposalId, grantId, documentId, operation, text, expectedVersion, outcome, reason, documentVersion, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        proposalId: {type: string, format: uuid}
+        grantId: {type: string, format: uuid}
+        documentId: {type: string, format: uuid}
+        operation: {type: string}
+        text: {type: string}
+        expectedVersion: {type: integer, format: int64}
+        outcome: {type: string, enum: [allowed, denied]}
+        reason: {type: string}
+        documentVersion: {type: integer, format: int64, nullable: true}
+        createdAt: {type: string, format: date-time}
+    Evidence:
+      type: object
+      required: [id, documentId, requesterId, approverId, proposalId, grantId, attemptId, action, decision, outcome, details, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        documentId: {type: string, format: uuid, nullable: true}
+        requesterId: {type: string, format: uuid}
+        approverId: {type: string, format: uuid, nullable: true}
+        proposalId: {type: string, format: uuid, nullable: true}
+        grantId: {type: string, format: uuid, nullable: true}
+        attemptId: {type: string, format: uuid, nullable: true}
+        action: {type: string}
+        decision: {type: string, nullable: true}
+        outcome: {type: string}
+        details: {type: object, additionalProperties: true}
+        createdAt: {type: string, format: date-time}
