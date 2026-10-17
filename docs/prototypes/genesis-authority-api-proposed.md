@@ -209,8 +209,33 @@ Fresh authority-endpoint increment:
   execution without document changes. Exact content was verified as
   `Original\r\nApproved exact text\n\n`, with version one and only one successful
   execution evidence record. No credential or database contents are committed.
-- The expanded integration matrix is being executed separately; no unexecuted
-  scenario or result from the unavailable implementation is claimed as passing.
+- Published endpoint increment:
+  `9c2267c08f16b5c6ef18b701784353c914474d43`; the assigned remote branch was
+  independently verified at that exact commit.
+
+Fresh complete integration validation:
+
+```bash
+GENESIS_TEST_DATABASE='Host=/var/run/postgresql;Database=genesis_authority_test;Username=runner' \
+  dotnet test /home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis/tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --verbosity minimal
+```
+
+- **73 passed, zero failed, zero skipped**, against the actual service process and
+  PostgreSQL 16. Initial fixture-only issues with transitive blocking, completed
+  transaction cleanup and ownership-change setup were corrected before the
+  successful full run; the affected targeted rerun also passed seven of seven.
+- Coverage includes independent credentials/ownership, exact binding and input
+  limits, repeated/concurrent approval, rejection, expiration after lock waits,
+  single-use and different/same-key races, both revocation orderings, required
+  evidence rollback for success and denial, current owner/approver revalidation,
+  uncertain transport reconciliation, immutable records and restart durability.
+- Parallel security validation analyzed Python and C# and found **zero CodeQL
+  alerts**. Its automated review component was unavailable because model
+  `capi-prod-claude-sonnet-4.6` was not in the registry; its green wrapper status
+  is not treated as a successful code review. A separate read-only review was
+  requested. Secret scans found no secrets in changed files.
+- No unexecuted scenario or result from the unavailable implementation is claimed
+  as passing. This is an isolated prototype, not a production-readiness claim.
 
 ## Local operation (implemented incrementally)
 
