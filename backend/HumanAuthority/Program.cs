@@ -12,6 +12,7 @@ builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
 });
 builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
 builder.Services.AddSingleton(_ =>
@@ -44,6 +45,11 @@ app.Use(async (context, next) =>
     try
     {
         await next(context);
+    }
+    catch (AuthorityRequestException exception) when (!context.Response.HasStarted)
+    {
+        context.Response.Clear();
+        await AuthorityErrors.Write(context, exception.Status, exception.Code);
     }
     catch (BadHttpRequestException exception) when (!context.Response.HasStarted)
     {
@@ -97,6 +103,7 @@ app.MapGet("/health/ready", async (AuthorityDatabase database) =>
         ? Results.Ok(new { status = "ready" })
         : Results.Json(new { error = "authority_unavailable" }, statusCode: 503));
 
+app.MapAuthorityEndpoints();
 app.Run();
 
 public partial class Program;

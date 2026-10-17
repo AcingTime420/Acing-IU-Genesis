@@ -167,7 +167,7 @@ Request-body cap: 7 MiB to accommodate JSON escaping of bounded document text.
 
 ## Current validation record
 
-This first increment contains a proposal, not an implemented service.
+The first increment contained a proposal, not an implemented service.
 Fresh baseline commands run during this reimplementation:
 
 - `dotnet test /home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis/tests/Identity.UnitTests/Identity.UnitTests.csproj --nologo`:
@@ -195,6 +195,22 @@ Fresh schema/authentication increment:
 - Standalone database-environment guard tests: ten passed, zero failed/skipped.
 - Local CLI help and negative Production/foreign-host/repository-output guards
   were exercised successfully. Full action demonstration is still unverified.
+
+Fresh authority-endpoint increment:
+
+- All proposed authority routes are now implemented. The implementation owner's
+  service build completed with zero warnings/errors; an isolated real
+  HTTP/PostgreSQL probe exercised approval, execution, six concurrent identical
+  retries, revocation, strict input handling and success/denial evidence-failure
+  rollback. This probe is separate from the integration-suite results below.
+- The actual local CLI demonstrated readiness, owned document creation, named
+  agent proposal, separate explicit human review/approval, execution, identical
+  retry/reconciliation, owner evidence, and revocation followed by denied
+  execution without document changes. Exact content was verified as
+  `Original\r\nApproved exact text\n\n`, with version one and only one successful
+  execution evidence record. No credential or database contents are committed.
+- The expanded integration matrix is being executed separately; no unexecuted
+  scenario or result from the unavailable implementation is claimed as passing.
 
 ## Local operation (implemented incrementally)
 

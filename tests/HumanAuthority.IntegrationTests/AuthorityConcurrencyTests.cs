@@ -35,15 +35,18 @@ public sealed partial class AuthorityTests
             var body = JsonSerializer.SerializeToNode(scenario.Execute)!;
             if (mode == "changed-body") body["text"] = "different";
             var second = f.PostAsync("/execute", f.Agent, body, mode == "different" ? Key() : key);
-            if (mode == "different")
-                await f.WaitForBlockedAsync(connection.ProcessID, 2);
-            else
-                await AuthorityFixture.UntilAsync(async () =>
-                    (long)(await f.SqlAsync("""
-                        SELECT count(*) FROM pg_stat_activity
-                        WHERE application_name=@app AND wait_event_type='Lock'
-                        """, ("app", f.ServiceApplication)))! >= 2,
-                    "Second request did not wait for the first key.");
+            await AuthorityFixture.UntilAsync(async () =>
+                (long)(await f.SqlAsync("""
+                    WITH RECURSIVE blocked(pid) AS (
+                        SELECT pid FROM pg_stat_activity WHERE @blocker=ANY(pg_blocking_pids(pid))
+                        UNION
+                        SELECT activity.pid FROM pg_stat_activity activity
+                        JOIN blocked ON blocked.pid=ANY(pg_blocking_pids(activity.pid))
+                    )
+                    SELECT count(*) FROM pg_stat_activity
+                    WHERE application_name=@app AND pid IN (SELECT pid FROM blocked)
+                    """, ("app", f.ServiceApplication), ("blocker", connection.ProcessID)))! >= 2,
+                "Both requests were not observed in the independent controller's PostgreSQL lock chain.");
             await transaction.CommitAsync();
             var results = await Task.WhenAll(first, second);
             Status(results[0], 200);
@@ -182,7 +185,7 @@ public sealed partial class AuthorityTests
         }
         finally
         {
-            if (transaction.Connection is not null) await transaction.RollbackAsync();
+            await transaction.DisposeAsync();
             await RemoveEvidenceTrigger();
         }
     }
@@ -223,7 +226,7 @@ public sealed partial class AuthorityTests
         }
         finally
         {
-            if (transaction.Connection is not null) await transaction.RollbackAsync();
+            await transaction.DisposeAsync();
             await RemoveEvidenceTrigger();
         }
     }
@@ -232,11 +235,22 @@ public sealed partial class AuthorityTests
     public async Task ChangedCurrentOwnerInvalidatesOriginalApprovalAndMovesInspectionAuthority()
     {
         var scenario = await Setup();
+        Status(await f.PostAsync("/documents", f.Human,
+            new { title = "cannot select owner", content = "", ownerId = f.OtherHuman.Id }), 400);
+        var transfer = await f.SendAsync(HttpMethod.Put, $"/documents/{scenario.Document}/owner", f.Human,
+            new { ownerId = f.OtherHuman.Id });
+        Assert.Contains(transfer.Status, new[] { 404, 405 });
+        var immutable = await Assert.ThrowsAsync<PostgresException>(() => f.SqlAsync("""
+            UPDATE genesis_authority.documents SET owner_id=@owner WHERE id=@id
+            """, ("owner", f.OtherHuman.Id), ("id", scenario.Document)));
+        Assert.Equal("23514", immutable.SqlState);
         // Simulate an external ownership workflow; this prototype intentionally exposes no transfer endpoint.
         await f.SqlAsync("""
             BEGIN;
             ALTER TABLE genesis_authority.documents DISABLE TRIGGER validate_document;
+            ALTER TABLE genesis_authority.documents DISABLE TRIGGER record_version;
             UPDATE genesis_authority.documents SET owner_id=@owner WHERE id=@id;
+            ALTER TABLE genesis_authority.documents ENABLE TRIGGER record_version;
             ALTER TABLE genesis_authority.documents ENABLE TRIGGER validate_document;
             COMMIT;
             """, ("owner", f.OtherHuman.Id), ("id", scenario.Document));
