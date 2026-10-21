@@ -1,0 +1,135 @@
+{
+  "observed_date": "2026-10-20",
+  "timezone": "America/Los_Angeles",
+  "repository": "AcingTime420/Acing-IU-Genesis",
+  "branch_ruleset": {
+    "id": 23200339,
+    "name": "master-stabilization",
+    "target": "branch",
+    "source_type": "Repository",
+    "source": "AcingTime420/Acing-IU-Genesis",
+    "enforcement": "active",
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": [
+          "refs/heads/master"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 1,
+          "dismiss_stale_reviews_on_push": true,
+          "required_reviewers": [],
+          "require_code_owner_review": false,
+          "require_last_push_approval": true,
+          "required_review_thread_resolution": true,
+          "require_extra_approval_for_unattributed_changes": true,
+          "allowed_merge_methods": [
+            "merge",
+            "squash",
+            "rebase"
+          ]
+        }
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "strict_required_status_checks_policy": true,
+          "do_not_enforce_on_create": false,
+          "required_status_checks": [
+            {
+              "context": "Repository Integrity (no tracked artifacts)",
+              "integration_id": 15368
+            },
+            {
+              "context": "Backend Build & Test (.NET)",
+              "integration_id": 15368
+            },
+            {
+              "context": "Frontend Build & Test (Node.js)",
+              "integration_id": 15368
+            }
+          ]
+        }
+      }
+    ],
+    "node_id": "RRS_lACqUmVwb3NpdG9yec5NLBAQzgFiAlM",
+    "created_at": "2026-09-13T11:49:52.027-07:00",
+    "updated_at": "2026-10-08T21:17:14.076-07:00",
+    "bypass_actors": [
+      {
+        "actor_id": 5,
+        "actor_type": "RepositoryRole",
+        "bypass_mode": "pull_request"
+      }
+    ],
+    "current_user_can_bypass": "pull_requests_only",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/AcingTime420/Acing-IU-Genesis/rulesets/23200339"
+      },
+      "html": {
+        "href": "https://github.com/AcingTime420/Acing-IU-Genesis/rules/23200339"
+      }
+    }
+  },
+  "release_ruleset": {
+    "id": 24706855,
+    "name": "release-tag-protection",
+    "target": "tag",
+    "source_type": "Repository",
+    "source": "AcingTime420/Acing-IU-Genesis",
+    "enforcement": "active",
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": [
+          "refs/tags/v*"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "creation"
+      },
+      {
+        "type": "update"
+      }
+    ],
+    "node_id": "RRS_lACqUmVwb3NpdG9yec5NLBAQzgF4_yc",
+    "created_at": "2026-10-08T01:18:17.229-07:00",
+    "updated_at": "2026-10-08T01:18:17.289-07:00",
+    "bypass_actors": [
+      {
+        "actor_id": 5,
+        "actor_type": "RepositoryRole",
+        "bypass_mode": "always"
+      }
+    ],
+    "current_user_can_bypass": "always",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/AcingTime420/Acing-IU-Genesis/rulesets/24706855"
+      },
+      "html": {
+        "href": "https://github.com/AcingTime420/Acing-IU-Genesis/rules/24706855"
+      }
+    }
+  }
+}

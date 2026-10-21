@@ -85,6 +85,9 @@ jobs:
         shell: bash
         run: bash scripts/validate-premerge.sh --skip-compose
 
+      - name: Verify Guardian build failure reporting
+        run: python3 tests/build/test_guardian_build.py
+
       - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
