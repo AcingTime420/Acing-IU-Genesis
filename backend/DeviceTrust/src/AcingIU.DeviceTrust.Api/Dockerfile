@@ -20,7 +20,7 @@ RUN dotnet publish backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/AcingIU.Devic
     -o /app/publish \
     --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.32-alpine3.24@sha256:cf6f271f1c106dcb4dd403e7b3dc03b0c508dabef348c51fd6a709b12cda69b0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.13-alpine3.24@sha256:284a1c3072bae5cb3b063e80e135f701b8477b3bcaf8a3cfb6e513a585ed3acf AS runtime
 
 WORKDIR /app
 
