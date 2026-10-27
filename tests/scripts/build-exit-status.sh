@@ -16,7 +16,7 @@ prepare() {
 expect_failure() {
     local status=0
     (cd "$fixture" && bash build.sh) >"$fixture/output.log" 2>&1 || status=$?
-    if [[ "$status" -eq 0 ]] || grep -q 'build process completed' "$fixture/output.log"; then
+    if [[ "$status" -eq 0 ]] || grep -q 'build completed successfully' "$fixture/output.log"; then
         cat "$fixture/output.log"
         echo "FAIL: $1 reported success" >&2
         exit 1
@@ -36,6 +36,15 @@ prepare missing-artifact
 mkdir -p "$fixture/system/security/guardian/build"
 printf 'all:\n\t@mkdir -p out\n' >"$fixture/system/security/guardian/build/Makefile"
 expect_failure missing-artifact
+
+prepare empty-artifact
+mkdir -p "$fixture/system/security/guardian/build/out"
+printf 'all:\n\t@true\n' >"$fixture/system/security/guardian/build/Makefile"
+for artifact in "${artifacts[@]}"; do
+    printf 'fixture: %s\n' "$artifact" >"$fixture/system/security/guardian/build/out/$artifact"
+done
+: >"$fixture/system/security/guardian/build/out/iu_auth_service"
+expect_failure empty-artifact
 
 prepare blocked-destination
 mkdir -p "$fixture/system/security/guardian/build/out" "$fixture/out/security"
@@ -57,5 +66,5 @@ done
 for artifact in "${artifacts[@]}"; do
     cmp "$fixture/system/security/guardian/build/out/$artifact" "$fixture/out/security/guardian/$artifact"
 done
-grep -q 'build process completed' "$fixture/output.log"
+grep -q 'build completed successfully' "$fixture/output.log"
 echo 'PASS: success stages all six artifacts when invoked outside the checkout'
