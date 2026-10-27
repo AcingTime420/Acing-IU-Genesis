@@ -1,14 +1,17 @@
-# Public identity proposal — maintainer approval required
+# Public identity — description verified; topic proposals held
 
-Status: proposed; no live GitHub metadata change applied.
+Status: exact repository About description approved by the maintainer and verified live on 2026-10-27. Topic suggestions remain proposed and have not been applied.
 
 ## Repository About description
 
 Human-authority platform for AI-assisted actions, combining explicit permission, independent enforcement, revocation, and verifiable evidence.
 
-This is the exact proposed GitHub repository description. Committing README
-changes does not update GitHub About metadata. Obtain explicit maintainer approval
-before applying it through GitHub settings or an API.
+The maintainer explicitly authorized this exact GitHub repository description.
+Direct REST and GraphQL reads on 2026-10-27 returned the exact text above. It was
+already correct at the latest check, so no additional write was made. The earlier
+integration PATCH attempt returned HTTP 403; that historical failure does not
+negate the subsequent live verification. Committing README changes does not
+update GitHub About metadata or grant permission for other repository settings.
 
 ## Product heading and motto
 
