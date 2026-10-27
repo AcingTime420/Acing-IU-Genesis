@@ -5,6 +5,9 @@ OUT_DIR := out
 SOURCES := $(sort $(wildcard ../core/*.kt ../threat/*.kt ../dashboard/*.kt ../identity/*.kt ../trust/*.kt))
 SCRIPTS := guardian_init.sh iu_security_init iu_auth_service acing_vault_init acing_vault_check_tamper
 
+# Never leave a changed, incomplete target that a retry could accept as current.
+.DELETE_ON_ERROR:
+
 .PHONY: all clean
 all: $(OUT_DIR)/guardian.jar $(addprefix $(OUT_DIR)/,$(SCRIPTS))
 

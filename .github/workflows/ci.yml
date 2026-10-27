@@ -46,6 +46,10 @@ jobs:
           chmod +x scripts/check-claim-surface.sh
           bash scripts/check-claim-surface.sh
 
+      - name: Guardian partial-output retry regression
+        shell: bash
+        run: bash tests/scripts/guardian-make-failure.sh
+
   # ── Job 2: Full validate-premerge (build + conditional compose) ────────
   validate-baseline:
     name: Validate Pre-merge Baseline
