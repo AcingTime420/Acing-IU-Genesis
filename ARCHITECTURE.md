@@ -1,185 +1,85 @@
 # Architecture — Acing IU: Genesis
 
-> **Feature-status legend used throughout this document**
-> | Status | Meaning |
-> |---|---|
-> | ✅ Implemented | Code exists and is verifiable in this repository. |
-> | 🧪 Experimental | Present but not production-hardened; subject to change. |
-> | 📋 Planned | Documented intent; no code yet. |
+**Human Authority for the Age of Artificial Intelligence**
 
----
+**Security by Foundation. Personal by Choice. Engineered for Trust.**
 
-## 1. Project overview
+Genesis is an emerging human-authority platform for AI-assisted operations. IU means Interface User. A person is the source of delegated authority; neither an agent nor an AI provider can authorize itself. The platform remains in development. The diagram below is a target, not evidence that all components are integrated or production-ready.
 
-**Acing IU: Genesis** is a custom Android-based OS security platform.  
-Its primary purpose is to provide hardware-backed security, boot integrity, and a hardened administrative interface for Acing OS devices.
+## Target authority lifecycle
 
----
-
-## 2. High-level component map
-
-```
-┌────────────────────────────────────────────────────────────────┐
-│                     Acing OS (Android base)                     │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                  Acing Guardian Platform                  │  │
-│  │                                                           │  │
-│  │  ┌─────────────────┐  ┌──────────────────────────────┐  │  │
-│  │  │  Boot Integrity  │  │   GuardianService (Kotlin)   │  │  │
-│  │  │  guardian_init   │  │   ├─ AcingVaultEmulator      │  │  │
-│  │  │  acing_vault_*   │  │   ├─ ThreatEngine            │  │  │
-│  │  └─────────────────┘  │   └─ AdminDashboardBridge     │  │  │
-│  │                        └──────────────────────────────┘  │  │
-│  │  ┌─────────────────┐  ┌──────────────────────────────┐  │  │
-│  │  │  IU Security     │  │  Policy & Compliance Engine  │  │  │
-│  │  │  iu_security_init│  │  (policies.json)             │  │  │
-│  │  │  iu_auth_service │  └──────────────────────────────┘  │  │
-│  │  └─────────────────┘                                      │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    H[Authenticated human] --> A[Explicit scoped authorization]
+    A --> E[Independent enforcement]
+    P[Agent proposal] --> A
+    E --> X[Permitted agent action]
+    X --> O[Recorded outcome]
+    R[Revocation and policy state] --> E
+    O --> H
 ```
 
----
+**Human → Authorization → Independent Enforcement → Agent Action → Recorded Outcome**
 
-## 3. Component details
+Before an effect is committed, independent server-side enforcement must establish the effective authorization, including its actor, scope, current policy and revocation state. Browser controls and model assertions are not enforcement. Unknown or unavailable authority must deny the action.
 
-### 3.1 Boot Integrity Layer ✅ Experimental
-
-| File | Purpose |
-|---|---|
-| `system/security/guardian/boot/guardian_init.sh` | Init-sequence script; verifies AVB, starts keystore, activates IU security. |
-| `system/security/guardian/boot/acing_vault_init` | Initialises the Acing Vault (hardware-backed key store emulator). |
-| `system/security/guardian/boot/acing_vault_check_tamper` | Detects runtime tampering of the vault. |
-
-### 3.2 Interface User (IU) Security ✅ Experimental
-
-| File | Purpose |
-|---|---|
-| `system/security/guardian/iu_security/iu_security_init` | Protects admin UI mount points and runs anti-tamper checks. |
-| `system/security/guardian/auth/iu_auth_service` | Auth stub; placeholder for full biometric/strong-auth integration. |
-
-### 3.3 GuardianService ✅ Experimental
-
-Kotlin system service (`system/security/guardian/core/GuardianService.kt`) that orchestrates:
-
-- Acing Vault initialisation and tamper detection
-- Threat engine start-up (malware scanner, anomaly detector, network monitor)
-- Admin Dashboard security state feed
-- Interface User protection (biometric gate, secure workspace, session key storage)
-
-### 3.4 AcingVaultEmulator 🧪 Experimental
-
-`system/security/guardian/core/AcingVaultEmulator.kt` — software emulation of hardware-backed key storage for development.  
-Production target: TrustZone / hardware Keystore.
-
-### 3.5 Threat Engine ✅ Experimental
-
-| File | Capability |
-|---|---|
-| `threat/MalwareScanner.kt` | Signature + heuristic malware detection stub. |
-| `threat/AnomalyDetector.kt` | Behavioural anomaly detection stub. |
-| `threat/NetworkThreatMonitor.kt` | Network traffic monitoring stub. |
-
-### 3.6 Policy & Compliance Engine ✅ Experimental
-
-`system/security/guardian/policy/policies.json` — declarative security policies (boot integrity, keystore init, tamper detection, biometric auth, secure workspace).
-
-### 3.7 Admin Dashboard ✅ Experimental
-
-`system/security/guardian/dashboard/AdminDashboardSecurityCard.kt` — Compose/View component for displaying security posture in the admin UI.
-
----
-
-## 4. Build system
-
-| Artefact | Tool | Status |
+| Boundary | Target requirement | Current evidence limit |
 |---|---|---|
-| `guardian.jar` (Kotlin) | `kotlinc` + `jar` via `make` | ✅ Experimental |
-| Shell scripts / binaries | `make` copy rules | ✅ Implemented |
-| OS image | `build.sh` (placeholder) | 📋 Planned |
+| Human/session → authorization | Authenticated human and reviewer identity; expiration, revocation and safe recovery | Identity source exists; end-to-end session and approval behavior not validated here. |
+| Agent → protected operation | Distinct agent identity bound to the exact delegated permission | Integrated authority path not established in the inspected checkout. |
+| Authorization → enforcement | Human, agent, tenant, application, resource, operation, input constraints, resource version, expiry, usage cap, revocation, approval context, policy version | Contract and race/negative-path evidence required before claiming enforcement. |
+| Enforcement → effect | Revalidate at commit; idempotent retries and explicit uncertain outcomes | No cross-system transaction or rollback guarantee claimed. |
+| Effect → evidence | Authenticated durable event with decision, correlation, actor, resource, policy, and outcome; sensitive values minimized | Database persistence alone does not establish tamper evidence or immutable audit. |
 
-Build output is written to `system/security/guardian/build/out/` and the root `out/` directory.  
-Both paths are excluded from version control via `.gitignore`.
+Revocation must block subsequent uncommitted operations within documented synchronization limits. It cannot undo an already completed external effect. Outages, partial failures, duplicate execution, and unknown retry results require explicit outcomes rather than fabricated success.
 
----
+## Implementation inventory
 
-## 5. Container / deployment architecture 📋 Planned
+The canonical backend root is `backend/`. Source presence is classified separately from independently validated operation; see [CAPABILITY_REGISTER.md](docs/CAPABILITY_REGISTER.md).
 
-No Dockerfiles or Compose files exist in this repository today.  
-The planned containerisation approach will:
+| Area | Location | Classification and limitations |
+|---|---|---|
+| Identity API | `backend/Identity/src/AcingIU.Identity.Api/` | Implemented but not independently validated here; password/JWT/MFA/session functionality needs current behavior evidence. |
+| DeviceTrust API | `backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/` | Implemented but not independently validated here; documented object-level authorization gap requires remediation. Scoring is not attestation. |
+| Shared kernel and unit tests | `backend/SharedKernel/`, `tests/Identity.UnitTests/`, `tests/DeviceTrust.UnitTests/` | Source/test projects present; a test's existence is not a current pass. |
+| Policy and legacy Audit | `backend/Security/`, `backend/Audit/` | Not in canonical solution. Legacy Audit stores demo events in memory and prints SQL strings; it does not execute those strings or persist them. Runtime exposure and authorization must be reconciled before use. |
+| Operator frontend | `frontend/` | Simulator; browser fixture state cannot establish server-side authority. |
+| PostgreSQL/Redis and API stack | `infrastructure/docker-compose.yml`, `infrastructure/postgres/init/` | Development configuration implemented; fresh isolated migration, health, and functional results required. |
+| Human-authority prototypes | Remote development PRs | PRs #161–167 confirmed open drafts on 2026-10-27; #165 is stacked on #164. Implementation exists on PR heads, not integrated into master; independent runtime validation and review remain required. |
+| AI provider adapter | No validated governed adapter established in this baseline | Planned; use deterministic mocks until provider and data governance are approved. |
 
-- Wrap each service in a minimal, non-root, read-only-root-filesystem container.
-- Use pinned base-image digests.
-- Include `HEALTHCHECK` directives and resource limits.
-- Be orchestrated with Docker Compose (development) and optionally Kubernetes (production).
+`acing-iu/backend/` is a frozen duplicate and `installer/payload/platform/backend/` is generated payload. Do not develop or consolidate those copies independently. Existing architecture decisions and historical evidence retain their recorded context.
 
-See `RELEASE_PROCESS.md` for planned milestone.
+## Supporting security and Android research
 
----
+These components support research into device security and governed administration. They are not the primary product identity and do not independently prove human-authority enforcement.
 
-## 6. Security architecture
+| Research area | Location | Maturity |
+|---|---|---|
+| Guardian orchestration | `system/security/guardian/core/GuardianService.kt` | Experimental |
+| Software vault | `system/security/guardian/core/AcingVaultEmulator.kt` | Simulator; in-process software, not hardware-backed storage |
+| Identity/trust foundations | `system/security/guardian/identity/`, `system/security/guardian/trust/` | Experimental; device integration unverified |
+| Boot/init and auth scripts | `system/security/guardian/boot/`, `auth/`, `iu_security/` | Experimental; no verified boot or rooting guarantee |
+| Threat-engine sources | `system/security/guardian/threat/` | Experimental stubs; not a validated antivirus product |
+| Policy/dashboard research | `system/security/guardian/policy/`, `dashboard/` | Experimental |
+| Android app | `app/` | Scaffold/simulator-level evidence; device operations remain safety-gated |
 
-See `SECURITY.md` and `THREAT_MODEL.md` for full detail.
+Hardware root of trust, Samsung Knox integration/certification, and independently certified security are not established capabilities. Preserve the [Android safety gates](docs/adr/ADR-006-android-and-firmware-safety.md).
 
-Key design principles:
+## Build, services, and validation
 
-1. **Hardware root of trust** — Acing Vault (TrustZone target) is the root of all key operations.
-2. **Verified boot** — every boot image is AVB-verified before execution.
-3. **Least privilege** — IU Security mounts and protects only the surfaces it owns.
-4. **Defence in depth** — boot integrity + runtime threat engine + policy engine layer independently.
-5. **Auditability** — all security events are logged (structured audit log: 📋 Planned).
+`backend/AcingIU.sln` selects Identity, DeviceTrust, SharedKernel and their unit-test projects. CI uses .NET 8 and Node.js 22. The frontend uses a frozen npm lockfile installation. Compose definitions exist under `infrastructure/`; older statements that no containers or health endpoints exist are stale. Runtime health and migrations still require validation.
 
----
+The baseline Guardian wrapper refers to an absent `system/security/guardian/build/` directory. Restoring that build is distinct from ensuring `build.sh` reports failures. Root `validate-premerge.sh` can skip Kotlin compilation, misses infrastructure Compose when looking only at root paths, and does not exercise the API health endpoints. Its zero exit alone cannot establish readiness.
 
-## 7. Directory layout
+Required authority acceptance evidence includes absent/expired/revoked/exhausted permission denial, cross-tenant/resource access denial, agent substitution denial, stale approval/context/version denial, session expiry, concurrent approval/revocation, duplicate execution, backend outage, partial failure, and retry after uncertain results. These are requirements, not executed tests.
 
-```
-Acing-IU-Genesis/
-├── .github/
-│   ├── ISSUE_TEMPLATE/          # Bug, feature, and custom issue templates
-│   └── workflows/               # CI: baseline validation, repo integrity
-├── docs/
-│   ├── adr/                     # Architecture Decision Records
-│   ├── evidence/                # Baseline validation evidence reports
-│   └── *.md / *.mmd / *.d2      # Architecture diagrams and descriptions
-├── scripts/
-│   ├── validate-premerge.sh     # Linux/macOS clean-clone validator
-│   └── validate-premerge.ps1    # Windows/PowerShell variant
-├── system/
-│   └── security/
-│       └── guardian/
-│           ├── auth/            # Authentication service stub
-│           ├── boot/            # Boot-time init scripts
-│           ├── build/           # Makefile; output in build/out/ (gitignored)
-│           ├── core/            # GuardianService, AcingVaultEmulator
-│           ├── dashboard/       # Admin UI security card
-│           ├── iu_security/     # IU security init
-│           ├── policy/          # policies.json
-│           └── threat/          # Threat engine stubs
-├── build.sh                     # Top-level build entry point
-├── .gitignore                   # Excludes all generated artifacts
-├── ARCHITECTURE.md              # This file
-├── CONTRIBUTING.md
-├── SECURITY.md
-├── SUPPORT.md
-├── RELEASE_PROCESS.md
-├── DEPRECATION_POLICY.md
-├── THREAT_MODEL.md
-├── DATA_CLASSIFICATION.md
-└── PRIVACY.md
-```
+## Governing decisions and release limits
 
----
+- [Repository and path governance](docs/governance/REPOSITORY_GOVERNANCE.md)
+- [Data and audit boundaries](docs/adr/ADR-005-data-and-audit-boundaries.md)
+- [AI and external API governance](docs/adr/ADR-007-ai-provider-governance.md)
+- [Release provenance and recovery](docs/adr/ADR-008-release-provenance-and-recovery.md)
+- [Security policy](SECURITY.md) and [threat model](THREAT_MODEL.md)
 
-## 8. Known gaps and next actions
-
-| # | Gap | Priority | Owner |
-|---|---|---|---|
-| 1 | No integration tests; only build-time compilation validated | High | Engineering |
-| 2 | No Docker / Compose baseline | High | Engineering |
-| 3 | AcingVaultEmulator is not a real hardware integration | High | Platform |
-| 4 | No HTTP/health endpoints to probe in CI | Medium | Engineering |
-| 5 | Auth service is a shell stub, not a real auth implementation | High | Security |
-| 6 | No OpenTelemetry / structured logging | Medium | Engineering |
-
-See `docs/evidence/repository-integrity-baseline.md` for a current-state snapshot.
+No deployment, release, public metadata update, permission change, or merge is authorized by an architecture document. Validation evidence must identify its commit, environment, command, status, and limitations.

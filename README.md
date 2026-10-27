@@ -1,143 +1,75 @@
-# Acing IU: Genesis
+# Acing IU: Genesis — Human Authority for the Age of Artificial Intelligence
 
-> **An Android-oriented security research and engineering platform for device
-> trust, boot-integrity experimentation, and governed administrative workflows.**
+**Security by Foundation. Personal by Choice. Engineered for Trust.**
 
----
+Human-authority platform for AI-assisted actions, combining explicit permission, independent enforcement, revocation, and verifiable evidence.
 
-## Feature status
+Acing IU: Genesis is an emerging human-authority platform designed to keep people in control of AI-assisted operations. It enables explicit authorization, narrowly scoped permissions, independent policy enforcement, revocation, and reviewable evidence. Its supporting security architecture incorporates identity, device trust, and governed administrative workflows. Genesis remains under active development, with experimental and planned capabilities clearly distinguished from validated functionality.
 
-> ✅ Implemented · 🧪 Experimental · 📋 Planned
+**IU means Interface User. The human remains the source of delegated authority.**
+AI agents may propose actions, but cannot grant themselves permission. Enforcement must be independent, and consequential decisions and outcomes must be reviewable. This describes the product direction; it is not a claim that the complete lifecycle is operational in this checkout.
 
-| Capability | Status |
+## Development status
+
+Genesis is in development. Source code, mock interfaces, and passing compilation alone do not establish security guarantees or production readiness. See the [capability register](docs/CAPABILITY_REGISTER.md) for implementation locations, evidence, limitations, and acceptance criteria.
+
+| Area | Current evidence and limits |
 |---|---|
-| Boot integrity verification (AVB) | 🧪 Experimental |
-| Acing Vault (hardware key store) | 🧪 Experimental (emulated) |
-| IU Security initialisation | 🧪 Experimental |
-| GuardianService orchestration | 🧪 Experimental |
-| Real-time threat engine (malware, anomaly, network) | 🧪 Experimental |
-| Security policy enforcement (`policies.json`) | 🧪 Experimental |
-| Admin Dashboard security card | 🧪 Experimental |
-| Container deployment | 📋 Planned |
-| HTTP health endpoints | 📋 Planned |
-| Structured audit logging | 📋 Planned |
-| Integration / E2E tests | 📋 Planned |
+| Human authorization → independent enforcement → agent action → recorded outcome | Target architecture; end-to-end behavior not verified in this checkout. Remote prototype PRs #161–167 remain open drafts and require review before integration. |
+| Identity, sessions, and DeviceTrust | Canonical backend source and unit tests exist; current runtime validation is required. Documented ownership and audit gaps remain release blockers. |
+| Operator frontend | Simulator surfaces; fixture data does not prove live device operations, backend enforcement, or connectivity. |
+| Android security and Guardian | Supporting research and experimental components; not a finished operating system or a hardware-attestation guarantee. |
+| Acing Vault | Software emulator; not hardware-isolated key storage. |
+| Live AI provider integration | Not verified; provider output is advisory and cannot become an authority source. |
 
----
+Genesis does not claim Samsung Knox certification, carrier certification, independently certified security, or tamper-proof audit storage. Device-changing and RootMaster operations remain unavailable pending their safety gates.
 
-## Quick start
+## Development and validation
 
-### Prerequisites
+Use the canonical `backend/` implementation. The duplicate `acing-iu/backend/` is frozen; installer payloads are derived, not independent development roots. Follow [repository governance](docs/governance/REPOSITORY_GOVERNANCE.md) and [CONTRIBUTING.md](CONTRIBUTING.md). The canonical default branch is `master`.
 
-| Tool | Minimum version |
-|---|---|
-| JDK | 17 |
-| Kotlin compiler (`kotlinc`) | 1.9+ |
-| GNU Make | 3.81+ |
-| Git | 2.39+ |
-| Bash | 5.0+ |
-
-### Clone and validate
+The CI workflow uses .NET 8 and Node.js 22. With these tools and dependency registry access available:
 
 ```bash
-git clone https://github.com/AcingTime420/Acing-IU-Genesis.git
-cd Acing-IU-Genesis
-bash scripts/validate-premerge.sh
+# From the repository root
+dotnet restore backend/AcingIU.sln
+dotnet build backend/AcingIU.sln --configuration Release --no-restore
+dotnet test backend/AcingIU.sln --configuration Release --no-build
+
+cd frontend
+npm ci
+npm run lint
+npx --no-install tsc --noEmit
+npm run build
+cd ..
 ```
 
-A clean run exits 0 and reports the status of each validation step.
-
-### Build the Guardian platform
+These are development commands, not recorded passing results. The frontend currently declares no test script; `npm test --if-present` is not test evidence.
 
 ```bash
-cd system/security/guardian/build
-make
-# Output: build/out/guardian.jar and associated scripts
+# Static claim guard; does not validate authorization or runtime behavior
+bash scripts/check-claim-surface.sh
 ```
 
-Or use the top-level script:
+The legacy `scripts/validate-premerge.sh` may exit zero while skipping compilation and service checks. Read its skip output; do not use that result alone as readiness evidence. The Guardian build entry point references a missing `system/security/guardian/build/` directory in the inspected baseline. A fail-fast wrapper fix alone does not restore that build. Review the current Guardian remediation before using its documented build commands.
 
-```bash
-bash build.sh
-# Output: out/security/guardian/
-```
+For PostgreSQL, Redis, Identity, and DeviceTrust service setup, see [backend documentation](backend/README.md) and [infrastructure documentation](infrastructure/README.md). Compose startup requires local development credentials and isolated resources; never reuse production credentials or delete persistent state to make tests pass. Repository infrastructure is development configuration, not deployment authorization.
 
-### Run baseline validation
+## Supporting Android and security research
 
-```bash
-# Full validation (skips Compose/health checks when not available)
-bash scripts/validate-premerge.sh
+Android security, Guardian orchestration, device trust, policy experiments, and vault emulation support the authority platform's research. Preserve their evidence and limitations:
 
-# Skip build (only check repo integrity + env)
-bash scripts/validate-premerge.sh --skip-build
+- [Guardian sources](system/security/guardian/): identity/trust foundations, service orchestration, threat-engine stubs, boot scripts, and software vault emulation.
+- [Android safety decision](docs/adr/ADR-006-android-and-firmware-safety.md): gates for firmware and device-changing work.
+- [DeviceTrust backend](backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/): trust scoring and device APIs; scores are not hardware attestation.
 
-# Windows / PowerShell
-pwsh scripts/validate-premerge.ps1
-pwsh scripts/validate-premerge.ps1 -SkipBuild
-```
+## Architecture and governance
 
----
+The target lifecycle is **Human → Authorization → Independent Enforcement → Agent Action → Recorded Outcome**. Identity, policy, device trust, secure storage, monitoring, and audit support this lifecycle; they do not grant agents human authority.
 
-## Repository layout
+See [ARCHITECTURE.md](ARCHITECTURE.md), [SECURITY.md](SECURITY.md), [THREAT_MODEL.md](THREAT_MODEL.md), [architecture decisions](docs/adr/README.md), and [validation evidence](docs/evidence/repository-integrity-baseline.md). Historical evidence describes its recorded revision, not necessarily today's state.
 
-```
-Acing-IU-Genesis/
-├── .github/workflows/        # CI: ci.yml, repo-integrity.yml
-├── docs/
-│   ├── adr/                  # Architecture Decision Records
-│   └── evidence/             # Baseline validation evidence reports
-├── scripts/
-│   ├── validate-premerge.sh  # Linux/macOS clean-clone validator
-│   └── validate-premerge.ps1 # Windows/PowerShell variant
-├── system/security/guardian/ # Guardian Security Platform source
-│   ├── auth/                 # Auth service stub
-│   ├── boot/                 # Boot-time init scripts
-│   ├── build/                # Makefile (output in build/out/ — gitignored)
-│   ├── core/                 # GuardianService, AcingVaultEmulator
-│   ├── dashboard/            # Admin UI security card
-│   ├── iu_security/          # IU security init
-│   ├── policy/               # policies.json
-│   └── threat/               # Threat engine stubs
-├── build.sh                  # Top-level build entry point
-├── ARCHITECTURE.md           # Component map and design decisions
-├── CONTRIBUTING.md           # Development workflow and PR checklist
-├── SECURITY.md               # Vulnerability reporting process
-├── THREAT_MODEL.md           # STRIDE threat analysis
-└── ...                       # Other governance docs
-```
-
----
-
-## CI checks
-
-| Workflow | Trigger | Checks |
-|---|---|---|
-| `ci.yml` | push / PR | Repo integrity + clean-clone build |
-| `repo-integrity.yml` | push / PR | No tracked generated artifacts |
-
----
-
-## Documentation
-
-| Document | Purpose |
-|---|---|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Component map, build system, known gaps |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Development workflow, PR checklist |
-| [SECURITY.md](SECURITY.md) | Vulnerability reporting, security design |
-| [THREAT_MODEL.md](THREAT_MODEL.md) | STRIDE analysis, attack surface |
-| [RELEASE_PROCESS.md](RELEASE_PROCESS.md) | Release stages and checklist |
-| [DEPRECATION_POLICY.md](DEPRECATION_POLICY.md) | Deprecation lifecycle |
-| [DATA_CLASSIFICATION.md](DATA_CLASSIFICATION.md) | Data sensitivity levels |
-| [PRIVACY.md](PRIVACY.md) | Privacy commitments |
-| [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
-| [docs/evidence/](docs/evidence/repository-integrity-baseline.md) | Baseline validation evidence |
-
----
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).  
-Security issues: see [SECURITY.md](SECURITY.md) — **do not open a public issue**.
+Releases require the evidence and review in [RELEASE_PROCESS.md](RELEASE_PROCESS.md). Security reports follow [SECURITY.md](SECURITY.md); do not publish suspected vulnerabilities in public issues.
 
 ---
 

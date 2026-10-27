@@ -3,8 +3,8 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "Acing IU Security Center",
-  description: "SM-S938U Verizon Firmware Trust & Zero-Trust Matrix",
+  title: "Acing IU: Genesis — Human Authority for the Age of Artificial Intelligence",
+  description: "Human-authority platform for AI-assisted actions, combining explicit permission, independent enforcement, revocation, and verifiable evidence. In development; capabilities require validation.",
 };
 
 export default function RootLayout({
@@ -25,13 +25,13 @@ export default function RootLayout({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 bg-cyberGreen rounded-full animate-pulse"></span>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                Acing Operations Grid — SM-S938U Baseline [VZW]
+                Acing IU: Genesis — In development · Simulator surfaces
               </span>
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
-              <span>Timezone: <strong className="text-slate-200">UTC-7</strong></span>
+              <span>Human authority · <strong className="text-slate-200">Interface User</strong></span>
               <span>•</span>
-              <span>Matrix Key: <strong className="text-slate-200">ACTIVE_TIMA_RKP</strong></span>
+              <span><strong className="text-slate-200">Security by Foundation. Personal by Choice. Engineered for Trust.</strong></span>
             </div>
           </header>
 
