@@ -41,6 +41,7 @@ npm ci
 npm run lint
 npx --no-install tsc --noEmit
 npm run build
+cd ..
 ```
 
 These are development commands, not recorded passing results. The frontend currently declares no test script; `npm test --if-present` is not test evidence.

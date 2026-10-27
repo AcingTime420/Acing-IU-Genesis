@@ -42,7 +42,7 @@ The canonical backend root is `backend/`. Source presence is classified separate
 | Identity API | `backend/Identity/src/AcingIU.Identity.Api/` | Implemented but not independently validated here; password/JWT/MFA/session functionality needs current behavior evidence. |
 | DeviceTrust API | `backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/` | Implemented but not independently validated here; documented object-level authorization gap requires remediation. Scoring is not attestation. |
 | Shared kernel and unit tests | `backend/SharedKernel/`, `tests/Identity.UnitTests/`, `tests/DeviceTrust.UnitTests/` | Source/test projects present; a test's existence is not a current pass. |
-| Policy and legacy Audit | `backend/Security/`, `backend/Audit/` | Not in canonical solution; runtime exposure and authorization must be reconciled before use. |
+| Policy and legacy Audit | `backend/Security/`, `backend/Audit/` | Not in canonical solution. Legacy Audit stores demo events in memory and prints SQL strings; it does not execute those strings or persist them. Runtime exposure and authorization must be reconciled before use. |
 | Operator frontend | `frontend/` | Simulator; browser fixture state cannot establish server-side authority. |
 | PostgreSQL/Redis and API stack | `infrastructure/docker-compose.yml`, `infrastructure/postgres/init/` | Development configuration implemented; fresh isolated migration, health, and functional results required. |
 | Human-authority prototypes | Remote development PRs | PRs #161–167 confirmed open drafts on 2026-10-27; #165 is stacked on #164. Implementation exists on PR heads, not integrated into master; independent runtime validation and review remain required. |
