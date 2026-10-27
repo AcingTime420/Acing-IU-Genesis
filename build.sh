@@ -1,7 +1,12 @@
 #!/bin/bash
 
-BLUE=\033[0;34m
-NC=\033[0m # No Color
+set -euo pipefail
+
+# Resolve all inputs and outputs relative to this script, not the caller's cwd.
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+BLUE=$'\033[0;34m'
+NC=$'\033[0m' # No Color
 
 OUTPUT_DIR="./out"
 
