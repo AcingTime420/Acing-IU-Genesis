@@ -5,6 +5,28 @@
 **Last claim-surface update:** 2026-09-13 (issue #63)
 **Evidence standard:** A capability is not production-verified merely because source code, a UI, or a build manifest exists. “Verified” requires the linked automated evidence to pass at a recorded commit.
 
+## Primary identity and current evidence boundary
+
+Genesis is an emerging human-authority platform for AI-assisted actions. **IU means Interface User.** A human is the source of delegated authority. Android, Guardian, and DeviceTrust remain supporting research and security components.
+
+**Security by Foundation. Personal by Choice. Engineered for Trust.**
+
+This update describes local baseline `4cf3181951ddc3366a193d49cb8ca32dce346bf7`; live master was confirmed at this SHA on 2026-10-27. PRs #161–167 are open drafts and #178 is open/non-draft; none is merged. Existing dated evidence below remains historical evidence, not a new validation result. No capability is promoted to Verified by a product identity change.
+
+| Capability | Current classification | Implementation/evidence | Limit or blocker | Next acceptance criterion |
+|---|---|---|---|---|
+| End-to-end human-authority lifecycle | Unverified due to insufficient evidence | Target: Human → Authorization → Independent Enforcement → Agent Action → Recorded Outcome; no integrated path established in inspected checkout | Prototype integration and independent review outstanding | Reconcile current prototypes; record exact-SHA end-to-end approval/execution/denial evidence. |
+| Independent scoped delegation and revocation | Planned target; remote implementation unverified | Target contract in root architecture | Cannot infer concurrency or external transaction guarantees | Negative-path, revocation, stale-context, race, idempotency and uncertain-retry tests against a disposable resource. |
+| Human identity/session and DeviceTrust services | Implemented but not independently validated | Canonical source and test projects in `backend/AcingIU.sln`; authorization matrix records gaps | Current behavior evidence required; object ownership and audit boundaries unresolved | Pass behavior tests and persistence-backed ownership/session tests at a recorded SHA. |
+| Operator frontend | Simulator | `frontend/src/app/`; static claim guard | Fixtures do not prove live permission enforcement or connectivity | Current build/render checks and a tested real authority path before changing maturity. |
+| Guardian and Android security research | Experimental | `system/security/guardian/`, `app/` | Guardian build inputs missing at baseline; device integration unverified | Restore supported build, record test evidence, retain device-operation gates. |
+| Software vault | Simulator | `AcingVaultEmulator.kt` | No hardware isolation or attestation | Approved hardware integration and independent evidence before any hardware-backed claim. |
+| RootMaster/device-changing actions | Not available | RootMaster safety gate | Safety evidence and explicit device-operation authorization absent | Satisfy ADR-006; do not enable through an identity update. |
+| Governed live AI workflow | Unverified due to insufficient evidence | ADR-007 requirements; no validated adapter found | No approved live-provider/data-processing evidence | First demonstrate a deterministic mock proposal→human approval→independent action→outcome with all denial cases. |
+| Full-stack readiness | Unverified due to insufficient evidence | Current setup evidence is separate from source capability | Dependency setup alone does not validate service, database, Guardian or authority behavior | Actual build/test, isolated database and functional startup evidence at the reviewed SHA. |
+
+The requested classifications also include **Verified implemented** (only with current evidence) and **Not available** (explicitly gated). The older labels below are retained for traceability; “Tested” means test source exists, not that it passed here. “Target” means Planned; unavailable evidence means Unverified rather than absence.
+
 ## Maturity Labels
 
 | Label | Meaning |
@@ -30,7 +52,7 @@
 | Acing Vault (software emulator) | Simulator | `system/security/guardian/core/AcingVaultEmulator.kt` | Deterministic init (no `Math.random`); claim-surface lint rejects non-determinism | Pure in-process map; not hardware-isolated. |
 | RBAC and grants | Implemented | `infrastructure/postgres/init/002_roles_and_grants.sql`; Identity and policy sources | No current end-to-end authorization result recorded | Database grants and application authorization must be reconciled and tested. |
 | Policy engine | Implemented | `backend/Security/Services/AcingPolicyEngine.cs`; `backend/Security/Controllers/PolicyController.cs` | No dedicated current policy test discovered | This project is not included in the current canonical `backend/AcingIU.sln`; policy decisions are not proven consistent across API and database controls. |
-| Immutable audit logging | Implemented | `infrastructure/postgres/init/000_security_core.sql`; `infrastructure/postgres/init/002_roles_and_grants.sql`; inserts in the Identity and Device Trust repositories | `tests/database/constraint_tests.sql` exercises `security_audit_logs`; no recorded current result | Application audit events use `security_audit_logs`; append-only guarantees, retention, access control, and tamper-evidence require validation. |
+| Audit recording (immutability unverified) | Implemented | `infrastructure/postgres/init/000_security_core.sql`; `infrastructure/postgres/init/002_roles_and_grants.sql`; inserts in the Identity and Device Trust repositories | `tests/database/constraint_tests.sql` exercises `security_audit_logs`; no recorded current result | Application audit events use `security_audit_logs`; append-only guarantees, retention, access control, and tamper-evidence require validation. |
 | Security database schemas | Implemented | `database/migrations/000_security_core.sql`; PostgreSQL initialization scripts `001` through `007` | `tests/database/constraint_tests.sql` | Migrations have not yet been verified from a clean container volume. |
 | Containerized platform startup | Implemented | `infrastructure/docker-compose.yml`; service Dockerfiles; PostgreSQL and Redis configuration | `infrastructure/scripts/up.sh`; `migrate.sh`; `smoke-auth.sh` | Health, migrations, and smoke tests are not yet recorded green. |
 | Operator web experience (dashboard, devices, users) | Simulator | `frontend/src/app/page.tsx`; `frontend/src/app/devices/page.tsx`; `frontend/src/app/users/page.tsx` | Fixture banners and claim-surface lint (`scripts/check-claim-surface.sh`) | UI presence is not evidence of backend enforcement. All trust/RF/partition values are fixtures. |
