@@ -72,12 +72,76 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
     [Fact]
     public async Task Admin_and_Operator_can_read_unowned()
     {
+        _factory.Repository.Record!.OwnerUserId = null;
         foreach (var (id, role) in new[] { (AdminId, "Admin"), (OperatorId, "Operator") })
         {
             using var req = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{OwnedHw}");
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(id, role));
             Assert.Equal(HttpStatusCode.OK, (await _client.SendAsync(req)).StatusCode);
         }
+    }
+
+    [Fact]
+    public async Task Unauthenticated_telemetry_is_rejected_before_repository_mutation()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/trust/telemetry/submit")
+        {
+            Content = new StringContent(TelemetryJson(OwnedHw), Encoding.UTF8, "application/json")
+        };
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _client.SendAsync(request)).StatusCode);
+        Assert.Empty(_factory.Repository.MutationAttempts);
+    }
+
+    [Fact]
+    public async Task Ordinary_caller_cannot_read_an_unowned_device()
+    {
+        _factory.Repository.Record!.OwnerUserId = null;
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{OwnedHw}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerA, "User"));
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.SendAsync(request)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Privileged_telemetry_updates_existing_unowned_device_but_never_enrolls_unknown()
+    {
+        _factory.Repository.Record!.OwnerUserId = null;
+        foreach (var (id, role) in new[] { (AdminId, "Admin"), (OperatorId, "Operator") })
+        {
+            foreach (var hw in new[] { OwnedHw, UnknownHw })
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, "/api/trust/telemetry/submit")
+                {
+                    Content = new StringContent(TelemetryJson(hw), Encoding.UTF8, "application/json")
+                };
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(id, role));
+                Assert.Equal(hw == OwnedHw ? HttpStatusCode.OK : HttpStatusCode.NotFound,
+                    (await _client.SendAsync(request)).StatusCode);
+                Assert.Null(_factory.Repository.Record!.OwnerUserId);
+                Assert.Equal(OwnedHw, _factory.Repository.Record.Response.HwIdentifier);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Authorized_low_score_telemetry_records_posture_without_granting_score_allowance()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/trust/telemetry/submit")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(new
+            {
+                hwIdentifier = OwnedHw, socModel = "SM-TEST", selinuxStatus = "Permissive",
+                bootloaderLocked = false, partitionsUnmodified = false,
+                knoxWarrantyFuseIntact = false, isRooted = true
+            }), Encoding.UTF8, "application/json")
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerA, "User"));
+        var response = await _client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.False(body.RootElement.GetProperty("allowed").GetBoolean());
+        Assert.Equal(0, body.RootElement.GetProperty("trustScore").GetInt32());
+        Assert.Equal(OwnerA, _factory.Repository.Record!.OwnerUserId);
+        Assert.Contains(_factory.Repository.Audits, a => a.EventType == "trust.telemetry.submit");
     }
 
     [Fact]
