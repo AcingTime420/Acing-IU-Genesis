@@ -4,7 +4,8 @@ title = "Acing IU Gitleaks policy"
 useDefault = true
 
 [[allowlists]]
-description = "Legacy synthetic auth/doc examples in two historical commits."
+description = "Historical auth/doc findings; provenance still requires maintainer validation."
+condition = "AND"
 regexTarget = "match"
 commits = [
   '''2b0cb1345a4d4fc309f849b86136a00463b92ce9''',
@@ -23,7 +24,8 @@ regexes = [
 ]
 
 [[allowlists]]
-description = "Legacy Refact buddy memory artifact in historical commit 2b0cb13; not runtime configuration."
+description = "Historical Refact memory finding; provenance still requires maintainer validation."
+condition = "AND"
 regexTarget = "match"
 commits = ['''2b0cb1345a4d4fc309f849b86136a00463b92ce9''']
 paths = ['''^\.refact/buddy/memory_ops\.jsonl$''']

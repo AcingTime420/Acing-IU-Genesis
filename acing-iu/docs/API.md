@@ -1,6 +1,9 @@
 # API Specifications — Acing IU
 
-This document details the REST API specifications exposed by the **Acing IU** API Gateway and backend microservices.
+This is a historical API-shape reference, not evidence of operational
+authentication or MFA. Compare routes and schemas against the reviewed
+implementation before using them. Credential examples are placeholders, not
+usable tokens or an enrollment flow.
 
 ---
 
@@ -72,14 +75,20 @@ This document details the REST API specifications exposed by the **Acing IU** AP
 ## 2. Multi-Factor Authentication (MFA)
 
 ### 2.1 Enable MFA (Initiate)
+
+This legacy API-shape example is not operational MFA enrollment. Replace the
+nonfunctional `BASE32_SECRET_PLACEHOLDER` in both fields with the same fresh
+server-issued secret when implementing an actual enrollment flow. Do not import
+this placeholder into an authenticator or reuse a published demonstration seed.
+
 *   **Method**: `POST`
 *   **Path**: `/api/security/mfa/enable`
-*   **Headers**: `Authorization: mock`
+*   **Headers**: `Authorization: Bearer <access-token>`
 *   **Response (200 OK)**:
     ```json
     {
-      "secretKey": "mock",
-      "qrCodeUri": "otpauth://totp/Acing%20IU:user@domain.com?secret=NBSWY3DPEB3W64TBNQ&issuer=Acing%20IU"
+      "secretKey": "BASE32_SECRET_PLACEHOLDER",
+      "qrCodeUri": "otpauth://totp/Acing%20IU:user@domain.com?secret=BASE32_SECRET_PLACEHOLDER&issuer=Acing%20IU"
     }
     ```
 
@@ -88,7 +97,7 @@ This document details the REST API specifications exposed by the **Acing IU** AP
 ### 2.2 Verify and Complete MFA Activation
 *   **Method**: `POST`
 *   **Path**: `/api/security/mfa/verify`
-*   **Headers**: `Authorization: mock`
+*   **Headers**: `Authorization: Bearer <access-token>`
 *   **Request Body**:
     ```json
     {
@@ -113,7 +122,7 @@ This document details the REST API specifications exposed by the **Acing IU** AP
 ### 3.1 Register / Profile Device
 *   **Method**: `POST`
 *   **Path**: `/api/devices/register`
-*   **Headers**: `Authorization: mock`
+*   **Headers**: `Authorization: Bearer <access-token>`
 *   **Request Body**:
     ```json
     {
@@ -138,7 +147,7 @@ This document details the REST API specifications exposed by the **Acing IU** AP
 ### 3.2 Fetch Registered Devices
 *   **Method**: `GET`
 *   **Path**: `/api/devices`
-*   **Headers**: `Authorization: mock`
+*   **Headers**: `Authorization: Bearer <access-token>`
 *   **Response (200 OK)**:
     ```json
     [
@@ -160,7 +169,7 @@ This document details the REST API specifications exposed by the **Acing IU** AP
 ### 4.1 Update System Access Policy
 *   **Method**: `PUT`
 *   **Path**: `/api/policies/{id}`
-*   **Headers**: `Authorization: mock` (Requires `policy.write` permission)
+*   **Headers**: `Authorization: Bearer <access-token>` (Requires `policy.write` permission)
 *   **Request Body**:
     ```json
     {
@@ -182,7 +191,7 @@ This document details the REST API specifications exposed by the **Acing IU** AP
 ### 4.2 Fetch Audit Trail
 *   **Method**: `GET`
 *   **Path**: `/api/audit`
-*   **Headers**: `Authorization: mock` (Requires `audit.read` permission)
+*   **Headers**: `Authorization: Bearer <access-token>` (Requires `audit.read` permission)
 *   **Response (200 OK)**:
     ```json
     [
