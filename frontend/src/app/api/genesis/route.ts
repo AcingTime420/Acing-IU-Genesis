@@ -67,7 +67,7 @@ async function handle(request: NextRequest) {
       const proposal = await upstream(provisional, `/proposals/${body.proposalId}`);
       // This endpoint is human-owner-only: agent credentials cannot create a browser session.
       await upstream(provisional, `/documents/${proposal.documentId}`);
-      const session = { credential: body.credential, proposalId: body.proposalId, documentId: proposal.documentId, reviewContext: randomBytes(32).toString("hex"), expires: Date.now() + 900000 };
+      const session = { credential: body.credential, proposalId: proposal.id, documentId: proposal.documentId, reviewContext: randomBytes(32).toString("hex"), expires: Date.now() + 900000 };
       const state = await snapshot(session);
       deleteSession(key); key = newSession(session);
       const out = response({ ...state, reviewContext: session.reviewContext }); out.cookies.set(SESSION_COOKIE, key, { httpOnly: true, sameSite: "strict", path: "/api/genesis", maxAge: 900 }); return out;
