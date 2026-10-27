@@ -48,7 +48,9 @@ jobs:
 
       - name: Build entry-point failure regression tests
         shell: bash
-        run: bash tests/scripts/build-exit-status.sh
+        run: |
+          bash tests/scripts/build-exit-status.sh
+          bash tests/scripts/guardian-make-failure.sh
 
   # ── Job 2: Full validate-premerge (build + conditional compose) ────────
   validate-baseline:
