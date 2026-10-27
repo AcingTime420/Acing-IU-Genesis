@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { backendOrigin, deleteSession, newSession, readSession, SESSION_COOKIE, trustedLocalRequest, type HumanSession } from "@/lib/genesis-session";
 
@@ -66,19 +67,24 @@ async function handle(request: NextRequest) {
       const proposal = await upstream(provisional, `/proposals/${body.proposalId}`);
       // This endpoint is human-owner-only: agent credentials cannot create a browser session.
       await upstream(provisional, `/documents/${proposal.documentId}`);
-      const session = { credential: body.credential, proposalId: body.proposalId, documentId: proposal.documentId, expires: Date.now() + 900000 };
+      const session = { credential: body.credential, proposalId: proposal.id, documentId: proposal.documentId, reviewContext: randomBytes(32).toString("hex"), expires: Date.now() + 900000 };
       const state = await snapshot(session);
       deleteSession(key); key = newSession(session);
-      const out = response(state); out.cookies.set(SESSION_COOKIE, key, { httpOnly: true, sameSite: "strict", path: "/api/genesis", maxAge: 900 }); return out;
+      const out = response({ ...state, reviewContext: session.reviewContext }); out.cookies.set(SESSION_COOKIE, key, { httpOnly: true, sameSite: "strict", path: "/api/genesis", maxAge: 900 }); return out;
     }
     const session = readSession(key);
     if (!session) throw new ApiError(401, "Sign in to review a proposal.");
     if (request.method === "POST") {
+      // Cookies are shared across tabs. Bind the click to the records actually
+      // displayed in that tab, rather than silently using another tab's login.
+      if (["approve", "reject", "revoke"].includes(String(body.action)) &&
+          (body.reviewContext !== session.reviewContext || body.proposalId !== session.proposalId || body.documentId !== session.documentId))
+        throw new ApiError(409, "Reviewer context changed. Refresh and review the exact proposal before deciding.");
       if (body.action === "approve" || body.action === "reject") await upstream(session, `/proposals/${session.proposalId}/decision`, { decision: body.action === "approve" ? "approved" : "rejected" });
-      else if (body.action === "revoke") { const state = await snapshot(session); if (!state.grant) throw new ApiError(409, "No grant exists."); await upstream(session, `/grants/${state.grant.id}/revoke`, { reason: "Human withdrew authority through local reviewer." }); }
+      else if (body.action === "revoke") { const state = await snapshot(session); if (!state.grant) throw new ApiError(409, "No grant exists."); if (body.grantId !== state.grant.id) throw new ApiError(409, "Grant changed. Refresh and review before revoking."); await upstream(session, `/grants/${state.grant.id}/revoke`, { reason: "Human withdrew authority through local reviewer." }); }
       else throw new ApiError(400, "Unsupported action.");
     }
-    return response(await snapshot(session));
+    return response({ ...await snapshot(session), reviewContext: session.reviewContext });
   } catch (error) {
     const status = error instanceof ApiError ? error.status : 503;
     if (status === 401) deleteSession(key);

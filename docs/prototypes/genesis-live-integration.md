@@ -87,3 +87,27 @@ implementation-owner evidence, not tests rerun by this integration.
 Before merge: independent review, real local PostgreSQL end-to-end execution,
 browser visual/interaction checks, and CI integration remain required. Do not
 publish this route as a hosted service or claim the full prototype verified yet.
+
+## Reviewer action binding correction
+
+Each loaded view carries a random, non-credential reviewer context. Approval,
+rejection and revocation send that context plus the displayed proposal and document
+identifiers; revocation also sends the displayed grant identifier. The server
+rejects a mismatch with HTTP 409 before forwarding a mutation. A second tab's
+login rotates the shared cookie but cannot redirect the first tab's pending
+click to another proposal. Refresh and review the newly loaded proposal before
+acting. Re-login to the same proposal also invalidates the previous context.
+
+Login binds the session to the backend-returned canonical proposal UUID rather
+than retaining the entered spelling. Uppercase and mixed-case UUID input remains
+valid; the displayed canonical identifiers must remain actionable after refresh.
+The strict proposal, document, grant and reviewer-context comparisons remain in
+place. A synthetic HTTP regression covers both casing variants and confirms that
+the intended approval reaches the upstream once.
+
+The production HTTP regression tests reproduce shared-cookie tab switching,
+missing context, mismatched documents, same-proposal re-login, and mismatched
+grants; rejected requests must leave the upstream mutation count unchanged.
+These tests use a synthetic upstream and do not replace PostgreSQL validation.
+CI now runs the named frontend suites and the authority HTTP/PostgreSQL suite
+in separate Debug and Release jobs with disposable test databases.

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 type ReviewState = {
+  reviewContext: string;
   proposal: { id: string; agentId: string; agentName: string; documentId: string; operation: string; text: string; expectedVersion: number; expiresAt: string; singleUse: boolean };
   document: { id: string; ownerId: string; title: string; content: string; version: number };
   decision: { decision: string; grantId: string | null } | null;
@@ -50,7 +51,7 @@ export default function LiveGenesisPage() {
         setState(null);
         setNotice("Signed out of the local reviewer session.");
       } else {
-        if (!payload?.proposal || !payload?.document || !Array.isArray(payload.evidence)) {
+        if (typeof payload?.reviewContext !== "string" || !payload?.proposal || !payload?.document || !Array.isArray(payload.evidence)) {
           throw new Error("The backend returned an invalid review response. No success is confirmed.");
         }
         setState(payload as ReviewState);
@@ -62,6 +63,12 @@ export default function LiveGenesisPage() {
       inFlight.current = false;
       setBusy(false);
     }
+  }
+
+  function decide(action: "approve" | "reject" | "revoke") {
+    if (!state) return;
+    void request({ action, reviewContext: state.reviewContext, proposalId: state.proposal.id,
+      documentId: state.document.id, ...(action === "revoke" && state.grant ? { grantId: state.grant.id } : {}) });
   }
 
   useEffect(() => { void request(); }, []);
@@ -105,9 +112,9 @@ export default function LiveGenesisPage() {
             <h3 className="mt-5 text-sm font-semibold text-slate-200">Exact proposed text (untrusted text)</h3>
             <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-slate-950 p-4 font-mono text-sm text-white">{state.proposal.text}</pre>
             <p className="mt-2 text-sm text-amber-100">Append behavior: the backend appends the exact text above followed by one LF newline (U+000A). Approval is bound to the agent, proposal, document, operation, exact text, expected version, expiration, and single-use scope.</p>
-            <div className="mt-4 flex flex-wrap gap-3"><button type="button" disabled={busy || state.decision !== null} onClick={() => void request({ action: "approve" })} className={`${control} bg-emerald-800`}>Approve exact proposal</button><button type="button" disabled={busy || state.decision !== null} onClick={() => void request({ action: "reject" })} className={`${control} border-rose-400`}>Reject proposal</button></div>
+            <div className="mt-4 flex flex-wrap gap-3"><button type="button" disabled={busy || state.decision !== null} onClick={() => decide("approve")} className={`${control} bg-emerald-800`}>Approve exact proposal</button><button type="button" disabled={busy || state.decision !== null} onClick={() => decide("reject")} className={`${control} border-rose-400`}>Reject proposal</button></div>
           </section>
-          <section className={panel} aria-labelledby="grant-heading"><h2 id="grant-heading" className="text-xl font-semibold text-white">Current authority</h2><p className="mt-3 break-all text-sm text-slate-200">Grant: {state.grant?.id ?? "Not issued"}</p><p className="mt-2 text-sm text-slate-200">Server-reported state: <strong>{state.grant?.state ?? "No grant"}</strong></p>{state.grant && <p className="mt-2 text-sm text-slate-300">Expires: {date(state.grant.expiresAt)}</p>}<p className="mt-3 text-sm text-slate-400">Revocation blocks subsequent execution when it takes effect. It does not undo a completed append. Refresh to see changes made by the separate agent.</p><button type="button" disabled={busy || state.grant?.state !== "active"} onClick={() => void request({ action: "revoke" })} className={`${control} mt-4 border-rose-400`}>Revoke grant</button></section>
+          <section className={panel} aria-labelledby="grant-heading"><h2 id="grant-heading" className="text-xl font-semibold text-white">Current authority</h2><p className="mt-3 break-all text-sm text-slate-200">Grant: {state.grant?.id ?? "Not issued"}</p><p className="mt-2 text-sm text-slate-200">Server-reported state: <strong>{state.grant?.state ?? "No grant"}</strong></p>{state.grant && <p className="mt-2 text-sm text-slate-300">Expires: {date(state.grant.expiresAt)}</p>}<p className="mt-3 text-sm text-slate-400">Revocation blocks subsequent execution when it takes effect. It does not undo a completed append. Refresh to see changes made by the separate agent.</p><button type="button" disabled={busy || state.grant?.state !== "active"} onClick={() => decide("revoke")} className={`${control} mt-4 border-rose-400`}>Revoke grant</button></section>
           <section className={panel} aria-labelledby="document-heading"><h2 id="document-heading" className="text-xl font-semibold text-white">Current document: {state.document.title}</h2><p className="mt-2 break-all text-sm text-slate-400">{state.document.id} · Version {state.document.version}</p><pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-slate-950 p-4 font-mono text-sm text-slate-100">{state.document.content}</pre></section>
           <section className={panel} aria-labelledby="evidence-heading"><h2 id="evidence-heading" className="text-xl font-semibold text-white">Backend evidence</h2><p className="mt-2 text-sm text-slate-400">Persisted prototype events; no claim of tamper-proof storage. Historical outcomes do not replace current document or grant state.</p>{state.evidence.length === 0 ? <p className="mt-4 text-sm text-slate-300">No evidence returned.</p> : <ol className="mt-4 space-y-4">{state.evidence.map((event) => <li key={event.id} className="rounded-lg border border-slate-700 p-4"><p className="text-sm font-semibold text-slate-100">{event.action} · {event.outcome}{event.decision ? ` · ${event.decision}` : ""}</p><time dateTime={event.createdAt} className="text-xs text-slate-400">{date(event.createdAt)}</time><dl className="mt-2 space-y-1 break-all text-xs text-slate-300">{[["Requester", event.requesterId], ["Approver", event.approverId], ["Proposal", event.proposalId], ["Grant", event.grantId], ["Attempt", event.attemptId]].map(([label, value]) => <div key={label}><dt className="inline text-slate-400">{label}: </dt><dd className="inline">{value ?? "None"}</dd></div>)}</dl><pre className="mt-3 whitespace-pre-wrap break-words text-xs text-slate-300">{JSON.stringify(event.details, null, 2)}</pre></li>)}</ol>}</section>
         </>
