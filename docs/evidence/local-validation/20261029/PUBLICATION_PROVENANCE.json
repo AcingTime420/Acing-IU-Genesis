@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-29",
+  "author": "Manus AI",
+  "publication_branch": "docs/genesis-local-validation-evidence-20261029",
+  "publication_base": "4cf3181951ddc3366a193d49cb8ca32dce346bf7",
+  "publication_format": "New curated summaries and allowlisted JSON, not copies of raw reports",
+  "originals_preserved_locally": true,
+  "independent_human_review": "REQUIRED_NOT_CLAIMED",
+  "source_attribution": "Original reports and result files were produced in the authorized Manus Desktop recovery/validation session; raw originals retain original authorship",
+  "sources": [
+    {
+      "logical_source": "docs/evidence/local-validation/20261027/GENESIS_CODEX_HANDOFF.md",
+      "sha256": "4441e265708e96065c7e9b06e8a7d851e42c90443be1f9469842ddbc02e82675",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261027/GENESIS_LOCAL_COMPLETION_REPORT.md",
+      "sha256": "8211327736915d4f87f8d35e4a5797bb94b27f55d7472d828dceb0b633cb16fc",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261027/GENESIS_LOCAL_ENVIRONMENT_INVENTORY.md",
+      "sha256": "359437e586af4387585b345ca28f60d6f8d74f986e23b27184e1c1c0fe237e99",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261027/GENESIS_LOCAL_SECURITY_FINDINGS.md",
+      "sha256": "cf610b514e810ee8095fd5875a8b13d7da19e387d40bf232ba37b859bf031060",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261027/GENESIS_LOCAL_SETUP_REPORT.md",
+      "sha256": "cb1c0fca4059d0e9c7345dc1a75a2ee88a191c50bdb0ea6c3d98f3ce5d8e14da",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261027/GENESIS_LOCAL_VALIDATION_MATRIX.md",
+      "sha256": "596561bb36f45e56136a7f5a6d3f7c10edde76d68253dd0ad5021ebe7e7f8288",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261029/GENESIS_BASELINE_COMPARISON.md",
+      "sha256": "aca1701b41dc5d764939fd845bce9484405fb74141e68d578ed22a28925b7b25",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261029/GENESIS_CODEX_HANDOFF.md",
+      "sha256": "c989c971ae0a371b2d7edbc35490f9508104a3381728586f15db074a82e411b0",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261029/GENESIS_ENVIRONMENT_CONFIGURATION_REPORT.md",
+      "sha256": "6625eb1a7d0ef849a635ccf8ce501b2dc0f970f29c4ba7af9b53790187239de0",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261029/GENESIS_ENVIRONMENT_TEMPLATE_RECOVERY_PLAN.md",
+      "sha256": "d03a02d2f97dd63172767b9222565a32c0adfbcd260fe3cb28593e9c6e069fb6",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261029/GENESIS_GUARDIAN_TOOLCHAIN_RECOVERY_PLAN.md",
+      "sha256": "268fa35bfd5ec90d9c88e97e7da21e63ebf122be5042275e1a28558f9247c568",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "docs/evidence/local-validation/20261029/GENESIS_LOCAL_READINESS_REPORT.md",
+      "sha256": "1c2145685fd99612db415741606b47963116016c994558f3dbb7038b6833889b",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/GENESIS_LOCAL_VALIDATION_FINAL_20261029.md",
+      "sha256": "5cc33067be053324c9eda3c6e808b1e1416c41bbe0273397e39c4b652dfad2af",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/GENESIS_CODEX_HANDOFF_20261029.md",
+      "sha256": "c0db9e522c982e83a242f814058a84ac36b9c9d3c044486610663ed60037b3f2",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/GENESIS_APPLICATION_VALIDATION_FINAL_20261029.md",
+      "sha256": "b2cc4b4b8039a1c3c388b609691ad46e870dc5a628d407e64605ab14912b748d",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/GENESIS_APPLICATION_CODEX_HANDOFF_20261029.md",
+      "sha256": "5222308cc685b47cc58540ea0cfe8263ee823ca77645bcb3ac54bf4de85fc6b2",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/GENESIS_FRONTEND_VULNERABILITY_ANALYSIS.md",
+      "sha256": "22064828a169dd8e35f5360f0898885a4f1125044c9f1e8519ba8cb89d5a337a",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/GENESIS_HUMANAUTHORITY_WINDOWS_TEST_ANALYSIS.md",
+      "sha256": "cbb0309699234390373bed1b7ebaeec512845a88c73098b73135144247bcebcd",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/GENESIS_DOCKER_ENGINE_DIAGNOSTICS.md",
+      "sha256": "3ed25518586ed672d058592608eb1c0ebc85900bea74ee5f3a6080f0ca64bbeb",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/GENESIS_CODEX_REMEDIATION_HANDOFF.md",
+      "sha256": "2b975d003fd034ca44012bd88f0a151f8f2601ccd09b1cad58d6f86a91c77739",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/GENESIS_VALIDATION_BLOCKER_STATUS.md",
+      "sha256": "fae97c975a3724910307c70e3371d6f74c4e41c9bd2085ae3df382f52937203c",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/backend-validation-summary.json",
+      "sha256": "5f7b11b528844f3f13fefab7fcc42fa5014e4f159a69dda1a7bafb868ba41804",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/frontend-validation-summary.json",
+      "sha256": "0dc9fd41f0ce7468297e89191ced5ca64ff0ae98ad167c0a7cda59bfcadc8d31",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/android-online-validation-summary.json",
+      "sha256": "e40ae0f03735e56f367ef4b6be59638a06eff74f7b9e4e8d3ef6cb7c62b5f973",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/application-integration-summary.json",
+      "sha256": "7887cb9f8bab554ca5f602229d8a1ba2d1a4ff951a98715d83872d75c17f1004",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/application-integration-utf8-summary.json",
+      "sha256": "c0488588bfdac91c2804937bc1faaca6a719463f0838bd68c2afd3b3c43c81f2",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-validation-outputs/frontend-audit.stdout.txt",
+      "sha256": "bccb9d3671d0b1b01be8c201ec3e4f56b0068ca705342ffbd652e0e867c80376",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-recovery-evidence/guardian-postbuild.json",
+      "sha256": "4fc2f511ae698e8ef8fadd9568bd8b966d636542d42291e25415b1c9508b4ee6",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-recovery-evidence/guardian-regressions.txt",
+      "sha256": "c518ce8f7f84b7848f9ae5c159006e90ca60512aeccd8064d57f8fb50102df5d",
+      "raw_original_published": false
+    },
+    {
+      "logical_source": "private-recovery-evidence/pg-stagec-local-final/stagec-postgres-report.json",
+      "sha256": "b0406fba75a6c064dc7f2d2f67974278b92802604074251d9d8a1b85ea7ad593",
+      "raw_original_published": false
+    }
+  ],
+  "privacy": "No account identity, workstation name, absolute private paths, credentials, internal-network details, raw alerts, raw logs, private TRX or skill archive included",
+  "security_claim": "Secret scanning reduces risk; it does not prove absence of secrets or authorize release"
+}
