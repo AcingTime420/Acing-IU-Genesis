@@ -1,0 +1,306 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-29",
+  "prepared_by": "Manus AI",
+  "status": "BLOCKED_NOT_RELEASE_READY",
+  "evidence_type": "Curated allowlisted historical result summary; raw logs remain local",
+  "publication_base": "4cf3181951ddc3366a193d49cb8ca32dce346bf7",
+  "new_application_suite_executions_during_publication": 0,
+  "backend": {
+    "source_sha": "67ce0fc02505885148cefdab1d063ca9a5555146",
+    "sdk": "10.0.400",
+    "stages": [
+      {
+        "name": "nuget-sources",
+        "exit_code": 0
+      },
+      {
+        "name": "restore",
+        "exit_code": 0
+      },
+      {
+        "name": "build",
+        "exit_code": 0
+      },
+      {
+        "name": "identity-tests",
+        "exit_code": 0
+      },
+      {
+        "name": "devicetrust-tests",
+        "exit_code": 0
+      }
+    ],
+    "tests": [
+      {
+        "name": "Identity",
+        "total": 15,
+        "executed": 15,
+        "passed": 15,
+        "failed": 0,
+        "not_executed": 0
+      },
+      {
+        "name": "DeviceTrust",
+        "total": 6,
+        "executed": 6,
+        "passed": 6,
+        "failed": 0,
+        "not_executed": 0
+      }
+    ],
+    "tls_verification_disabled": false
+  },
+  "frontend": {
+    "source_sha": "67ce0fc02505885148cefdab1d063ca9a5555146",
+    "node": "v24.18.0",
+    "npm": "11.16.0",
+    "stages": [
+      {
+        "name": "ci",
+        "exit_code": 0
+      },
+      {
+        "name": "typecheck",
+        "exit_code": 0
+      },
+      {
+        "name": "lint",
+        "exit_code": 0
+      },
+      {
+        "name": "unit-tests",
+        "exit_code": null,
+        "status": "Not Run: no test script or unit-test files declared/detected"
+      },
+      {
+        "name": "build",
+        "exit_code": 0
+      },
+      {
+        "name": "audit",
+        "exit_code": 1
+      }
+    ],
+    "lint_warning_count": 19,
+    "unit_suite_declared": false,
+    "vulnerable_package_nodes": 2,
+    "advisory_count": 4,
+    "package_severity_counts": {
+      "critical": 1,
+      "high": 1
+    },
+    "advisories": [
+      {
+        "package": "next",
+        "source": "https://github.com/advisories/GHSA-2464-fhr4-w9xw",
+        "severity": "critical",
+        "range": ">=16.0.0 <=16.4.0",
+        "title": "Next.js: Unauthenticated Remote Code Execution in Image Optimization API when SVG files are used"
+      },
+      {
+        "package": "next",
+        "source": "https://github.com/advisories/GHSA-p3m5-59mp-jv5r",
+        "severity": "high",
+        "range": ">=16.0.0 <=16.4.0",
+        "title": "Next.js: Denial of Service in App Router using Server Actions"
+      },
+      {
+        "package": "next",
+        "source": "https://github.com/advisories/GHSA-673q-mjm6-r5xr",
+        "severity": "critical",
+        "range": ">=16.0.0 <=16.4.0",
+        "title": "Next.js: Unauthenticated Remote Code Execution in `use cache` functions returning typed arrays"
+      },
+      {
+        "package": "zod",
+        "source": "https://github.com/advisories/GHSA-mrhx-c7xc-m3w5",
+        "severity": "high",
+        "range": "<4.6.6",
+        "title": "Zod can exhaust memory while validating oversized constrained collections"
+      }
+    ],
+    "committed_locked_versions": {
+      "next": "16.3.8",
+      "zod": "4.4.3",
+      "sharp": "0.35.5"
+    },
+    "canonical_uncommitted_lock_versions": {
+      "next": "16.4.2",
+      "zod": "4.4.3",
+      "sharp": "0.35.5"
+    },
+    "canonical_uncommitted_lock_changed_nodes": 10,
+    "canonical_uncommitted_lock_published": false
+  },
+  "android": {
+    "source_sha": "67ce0fc02505885148cefdab1d063ca9a5555146",
+    "jdk": "21.0.8",
+    "gradle": "9.3.1",
+    "sdk_platform": "android-36.1",
+    "stages": [
+      {
+        "name": "android-online-gradle-tasks",
+        "exit_code": 0
+      },
+      {
+        "name": "android-online-compile-debug-kotlin",
+        "exit_code": 0
+      },
+      {
+        "name": "android-online-selected-unit-tests",
+        "exit_code": 0
+      }
+    ],
+    "tests": [
+      {
+        "suite": "TEST-com.example.ExampleRobolectricTest.xml",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "TEST-com.example.ExampleUnitTest.xml",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "screenshot_tests_run": false,
+    "instrumented_tests_run": false,
+    "release_signing_or_device_validation": false
+  },
+  "human_authority": {
+    "source_sha": "a2e72020b311b93a14e14a7a56202b65fe3c66a1",
+    "pr": 164,
+    "tests": [
+      {
+        "name": "human-authority",
+        "total": 77,
+        "executed": 77,
+        "passed": 76,
+        "failed": 1,
+        "not_executed": 0,
+        "source_sha": "a2e72020b311b93a14e14a7a56202b65fe3c66a1"
+      }
+    ],
+    "test_exit_code": 1,
+    "encoding": "UTF8",
+    "remaining_failure": "BackendArtifactTests.ArtifactPathMatchesTestBuildConfiguration",
+    "correction_applied": false
+  },
+  "device_trust": {
+    "tested_sha": "e9b762fecd01640f69677d5a05559a95d9e44d8a",
+    "remote_pr107_sha": "4e1a51f87bdbcbc0fede2cf686d8f5467bbd7b2d",
+    "remote_only_commits_since_tested_head": 1,
+    "authorization": [
+      {
+        "name": "device-authorization",
+        "total": 35,
+        "executed": 35,
+        "passed": 35,
+        "failed": 0,
+        "not_executed": 0,
+        "source_sha": "e9b762fecd01640f69677d5a05559a95d9e44d8a"
+      }
+    ],
+    "postgresql": [
+      {
+        "name": "device-postgres",
+        "total": 4,
+        "executed": 4,
+        "passed": 4,
+        "failed": 0,
+        "not_executed": 0,
+        "source_sha": "e9b762fecd01640f69677d5a05559a95d9e44d8a"
+      }
+    ],
+    "postgresql_version": "17.11",
+    "encoding": "UTF8"
+  },
+  "guardian": {
+    "source_sha": "aec5d75b726cbe88da7ecd62a5088ccc7475bd0c",
+    "pr": 179,
+    "build_exit_code": 0,
+    "fixture_regression_script_exits": [
+      0,
+      0
+    ],
+    "packaged_script_syntax_exit": 0,
+    "jar_list_exit": 0,
+    "artifacts": [
+      {
+        "name": "guardian.jar",
+        "bytes": 4847738,
+        "sha256": "df44e96a3f36c5f3ff371b48334e7ab3fa39b723f52d27b00495c96546c6b389",
+        "package_copy_matches": true
+      },
+      {
+        "name": "guardian_init.sh",
+        "bytes": 1603,
+        "sha256": "204957d698c36aa90d72130b7b77ef04651049d153aae39dbd42c45590e29cf1",
+        "package_copy_matches": true
+      },
+      {
+        "name": "iu_security_init",
+        "bytes": 824,
+        "sha256": "78a17a1779e169ba5c0e2bd2d1436f958fadbf5f8887e9107e3731b70d6eac24",
+        "package_copy_matches": true
+      },
+      {
+        "name": "iu_auth_service",
+        "bytes": 601,
+        "sha256": "e524d10f542cefedc260ecdfcfde3792094ca6b7dd6bfe9b9bb732854a8d13e4",
+        "package_copy_matches": true
+      },
+      {
+        "name": "acing_vault_init",
+        "bytes": 556,
+        "sha256": "f21acd2d17fc59ab1f20099222a7dc81985e06e65d27bfd8005546a5a86f52f8",
+        "package_copy_matches": true
+      },
+      {
+        "name": "acing_vault_check_tamper",
+        "bytes": 1018,
+        "sha256": "64604bc7492b8944e91c1b351896861510ad025769158ed7b9e88b743bc465f3",
+        "package_copy_matches": true
+      }
+    ],
+    "device_installation_or_firmware_validation": false,
+    "isolated_sql_lane_summary": "Eight reviewed initialization files and constraint SQL passed on disposable PostgreSQL17.11; raw step logs retained locally"
+  },
+  "docker": {
+    "engine_api_status": "UNRESPONSIVE",
+    "desktop_running": true,
+    "wsl2_running": true,
+    "ordinary_start_exit": 0,
+    "ordinary_start_message": "Docker Desktop is already running",
+    "explicit_engine_and_inventory_timeout_seconds": 8,
+    "engine_ping_timeout_seconds": 2,
+    "underlying_cause": "UNVERIFIED",
+    "existing_resources_inventory": "UNVERIFIED_NOT_EMPTY",
+    "disruptive_restart_performed": false,
+    "resources_deleted": false
+  },
+  "database_teardown": {
+    "utf8_cluster_stopped": true,
+    "data_directory_removed": true,
+    "test_port_idle": true,
+    "native_database_targeted": false
+  },
+  "not_run": [
+    "Full clean-clone premerge for publication head",
+    "Exact PostgreSQL16 image",
+    "Full Compose/runtime E2E",
+    "Android screenshot/device/emulator/release-signing",
+    "Production Guardian hardware/firmware integration"
+  ],
+  "limitations": [
+    "Results belong to separate exact source heads, not a consolidated master",
+    "No private raw logs or machine-specific diagnostics are included",
+    "First application database attempt had Windows encoding errors; final unchanged-assembly retry used UTF8",
+    "Structured summaries are not independent release certification"
+  ]
+}
