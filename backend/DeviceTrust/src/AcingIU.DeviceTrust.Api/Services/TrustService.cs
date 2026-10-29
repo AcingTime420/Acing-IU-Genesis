@@ -81,7 +81,17 @@ public sealed class TrustService : ITrustService
     {
         var record = await _repo.GetByHwIdAsync(hwId, ct);
         if (record is null)
+        {
+            await TryWriteDenialAuditAsync(
+                eventType: "trust.device.access_denied",
+                resource: "/api/trust/devices",
+                callerUserId,
+                isPrivileged,
+                reason: "unknown_device",
+                traceId,
+                ct);
             return DeviceAccessResult.NotFound();
+        }
 
         var isOwner = record.OwnerUserId.HasValue && record.OwnerUserId.Value == callerUserId;
         if (!isPrivileged && !isOwner)

@@ -8,7 +8,6 @@ namespace AcingIU.DeviceTrust.Api.Controllers;
 
 [ApiController]
 [Route("api/trust")]
-[Produces("application/json")]
 public sealed class TrustController : ControllerBase
 {
     private readonly ITrustService _trust;
@@ -89,12 +88,16 @@ public sealed class TrustController : ControllerBase
     }
 
     private ObjectResult ProblemResult(int status, string title, string detail) =>
-        StatusCode(status, new ProblemBody
+        new ObjectResult(new ProblemBody
         {
             Type = $"https://acing.iu/problems/{status}",
             Title = title,
             Status = status,
             Detail = detail,
             TraceId = HttpContext.TraceIdentifier
-        });
+        })
+        {
+            StatusCode = status,
+            ContentTypes = { "application/problem+json" }
+        };
 }

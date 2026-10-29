@@ -48,7 +48,8 @@ its useful changes and acceptance criteria are accounted for.
 
 1. Keep the common canonical controller/service/repository/model contract and the
    atomic UPDATE/audit transaction. Preserve source/test history on the existing PR.
-2. Integrate #135's read-audit and response-format improvements with focused tests.
+2. The follow-up carries #135's unknown-read audit and problem-response format
+   into the existing implementation, with focused HTTP and audit-outage tests.
    Do not copy both PostgresFixture definitions or CI setups verbatim.
 3. Use one explicit disposable PostgreSQL fixture: verify loopback or an exact
    approved local socket, a dedicated test database and actual resource ownership
@@ -81,6 +82,8 @@ The #107 follow-up corrects the falsely named "read unowned" fixture, adds real
 JWT/HTTP checks for missing authentication, ordinary null-owner denial, privileged
 existing-null-owner writes/unknown-ID rejection and authorized low-score capture,
 and removes an unmapped gitlink from the index without deleting local files.
+It also preserves #135's unknown-read denial audit and application/problem+json
+contract, with tests for audit outage and equal unknown/cross-owner error shape.
 These changes do not implement a tenant model, enrollment API or new permission.
 
 Local full PostgreSQL execution and reconciled installer/smoke validation remain

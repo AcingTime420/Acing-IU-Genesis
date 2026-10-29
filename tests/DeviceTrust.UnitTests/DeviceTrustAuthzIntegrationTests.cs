@@ -70,6 +70,54 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
     }
 
     [Fact]
+    public async Task Unknown_read_uses_problem_json_and_records_denial()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{UnknownHw}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerA, "User"));
+        var response = await _client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains(_factory.Repository.Audits, audit =>
+            audit.EventType == "trust.device.access_denied" &&
+            audit.PayloadJson.Contains("unknown_device", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Unknown_read_audit_outage_preserves_404()
+    {
+        _factory.Repository.FailDenialAudit = true;
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{UnknownHw}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerA, "User"));
+        var response = await _client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task Unknown_and_cross_owner_reads_expose_the_same_problem_shape()
+    {
+        Dictionary<string, string>? prior = null;
+        foreach (var hw in new[] { OwnedHw, UnknownHw })
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/trust/devices/{hw}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerB, "User"));
+            var response = await _client.SendAsync(request);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+            using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var fields = body.RootElement.EnumerateObject()
+                .Where(property => property.Name != "traceId")
+                .ToDictionary(property => property.Name, property => property.Value.GetRawText());
+            if (prior is not null)
+            {
+                Assert.Equal(prior.Count, fields.Count);
+                foreach (var pair in prior) Assert.Equal(pair.Value, fields[pair.Key]);
+            }
+            prior = fields;
+        }
+    }
+
+    [Fact]
     public async Task Admin_and_Operator_can_read_unowned()
     {
         _factory.Repository.Record!.OwnerUserId = null;
