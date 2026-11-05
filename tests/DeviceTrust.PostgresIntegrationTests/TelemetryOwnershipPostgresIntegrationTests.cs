@@ -276,25 +276,34 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     public PostgresFixture()
     {
-        var explicitAdminConnection = Environment.GetEnvironmentVariable("DEVICETRUST_PG_TEST_ADMIN_CONNECTION");
-        if (!string.IsNullOrWhiteSpace(explicitAdminConnection))
-        {
-            _adminConnectionString = explicitAdminConnection;
-        }
-        else
-        {
-            var adminBuilder = new NpgsqlConnectionStringBuilder
-            {
-                Host = "127.0.0.1",
-                Port = 5432,
-                Database = "acing_iu",
-                Username = "acing_admin",
-                Password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "ci_admin_password_only",
-                IncludeErrorDetail = true
-            };
-            _adminConnectionString = adminBuilder.ConnectionString;
-        }
+        _adminConnectionString = GuardDatabase(
+            Environment.GetEnvironmentVariable("DEVICETRUST_PG_TEST_ADMIN_CONNECTION"),
+            Environment.GetEnvironmentVariable("DEVICETRUST_PG_TEST_CONFIRM_ISOLATED_CLUSTER")).ConnectionString;
         _deviceTrustPassword = Environment.GetEnvironmentVariable("DEVICE_TRUST_DB_PASSWORD") ?? "ci_device_trust_password_only";
+    }
+
+    // Naming and loopback checks prevent accidental targets; the operator must also
+    // independently verify a dedicated disposable cluster because roles are cluster-wide.
+    public static NpgsqlConnectionStringBuilder GuardDatabase(string? value, string? isolationConfirmation)
+    {
+        if (isolationConfirmation != "1" || string.IsNullOrWhiteSpace(value))
+            throw new InvalidOperationException(
+                "Explicit test connection and confirmed isolated disposable cluster are required.");
+        NpgsqlConnectionStringBuilder connection;
+        try { connection = new NpgsqlConnectionStringBuilder(value); }
+        catch (ArgumentException)
+        {
+            // Do not include an inner parser exception or the credential-bearing input.
+            throw new InvalidOperationException("Invalid test database connection configuration.");
+        }
+        if (connection.Database is null || connection.Database.Length <= "_test".Length ||
+            !connection.Database.EndsWith("_test", StringComparison.Ordinal) ||
+            connection.Host is not ("localhost" or "127.0.0.1" or "::1"))
+            throw new InvalidOperationException(
+                "Test database must have an explicit _test name and a single loopback host.");
+        connection.Timeout = 10;
+        connection.CommandTimeout = 30;
+        return connection;
     }
 
     public async Task InitializeAsync()

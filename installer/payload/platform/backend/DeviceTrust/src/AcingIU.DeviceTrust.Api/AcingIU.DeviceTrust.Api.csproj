@@ -15,8 +15,6 @@
   </ItemGroup>
 
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\SharedKernel\src\AcingIU.SharedKernel\AcingIU.SharedKernel.csproj" />
-  </ItemGroup>
+
 
 </Project>

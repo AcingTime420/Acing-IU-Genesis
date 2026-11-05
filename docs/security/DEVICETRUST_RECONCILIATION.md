@@ -90,3 +90,35 @@ Local full PostgreSQL execution and reconciled installer/smoke validation remain
 outstanding. Compilation or fake-repository HTTP tests cannot establish database
 rollback, runtime grants or concurrency. This plan does not lift the stabilization
 freeze, approve either PR or authorize deployment.
+
+## Follow-up: payload parity and test-target safety
+
+The installer controller/service must include the canonical problem-response and
+unknown-device denial-audit behavior. The source gate compares all source/project
+files, prunes generated `bin`/`obj`, and separately allows packaging-only Docker
+files. Its regression tests reject changed, missing, extra, and project-drift
+inputs. DeviceTrust does not consume SharedKernel types; the unused reference is
+removed from both project files so the payload's existing isolated build context
+can resolve its actual dependencies. This does not change Identity's dependencies.
+
+PostgreSQL fixture execution now requires both:
+
+- `DEVICETRUST_PG_TEST_ADMIN_CONNECTION`: an explicit driver-parsed connection with
+  one exact loopback host and a nonempty database name ending `_test`.
+- `DEVICETRUST_PG_TEST_CONFIRM_ISOLATED_CLUSTER=1`: operator confirmation that the
+  endpoint belongs to a newly provisioned disposable cluster.
+
+The fixture rejects missing configuration before opening a connection or running
+migrations. Confirmation and a `_test` name are safeguards, not proof of isolation:
+verify cluster identity and ownership independently, including any port forwarding.
+The fixture changes cluster-wide roles, so a new database on a persistent/shared
+cluster is insufficient. CI uses its ephemeral job-owned PostgreSQL service and
+sets these values at job scope for both solution and explicit fixture test runs.
+The separate migration workflow remains unchanged.
+
+Pure `DatabaseTargetGuardTests` can run without PostgreSQL using the filter
+`FullyQualifiedName~DatabaseTargetGuardTests`. These parser/target tests and the
+unit/HTTP suite do not establish real transaction or concurrency correctness.
+Actual PostgreSQL integration, full container-stack validation, and independent
+Windows validation remain separate gates. Manus's terminal fails before PowerShell
+starts; its requested checks are Blocked / Not Run with no process exit code.

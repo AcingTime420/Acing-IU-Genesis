@@ -50,6 +50,7 @@ jobs:
         shell: bash
         run: |
           chmod +x scripts/check-devicetrust-payload-sync.sh
+          python3 tests/integrity/test_devicetrust_payload_sync.py
           bash scripts/check-devicetrust-payload-sync.sh
 
   # ── Job 2: Full validate-premerge (build + conditional compose) ────────
@@ -112,15 +113,17 @@ jobs:
         env:
           POSTGRES_USER: acing_admin
           POSTGRES_PASSWORD: ci_admin_password_only
-          POSTGRES_DB: acing_iu
+          POSTGRES_DB: acing_iu_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U acing_admin -d acing_iu"
+          --health-cmd "pg_isready -U acing_admin -d acing_iu_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
+      DEVICETRUST_PG_TEST_ADMIN_CONNECTION: "Host=127.0.0.1;Port=5432;Database=acing_iu_test;Username=acing_admin;Password=ci_admin_password_only"
+      DEVICETRUST_PG_TEST_CONFIRM_ISOLATED_CLUSTER: "1"
       POSTGRES_PASSWORD: ci_admin_password_only
       MIGRATOR_DB_PASSWORD: ci_migrator_password_only
       IDENTITY_DB_PASSWORD: ci_identity_password_only
@@ -148,7 +151,7 @@ jobs:
           PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
         run: |
           for i in $(seq 1 60); do
-            if pg_isready -h localhost -p 5432 -U acing_admin -d acing_iu >/dev/null 2>&1; then
+            if pg_isready -h localhost -p 5432 -U acing_admin -d acing_iu_test >/dev/null 2>&1; then
               echo "PostgreSQL is ready."
               exit 0
             fi
