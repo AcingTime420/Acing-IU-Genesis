@@ -2,7 +2,8 @@ name: Security and Dependency Review
 
 on:
   pull_request:
-    branches: [master]
+    # Include stacked dependency/security PRs whose base is another working branch.
+    branches: ["**"]
   push:
     branches: [master]
   schedule:
