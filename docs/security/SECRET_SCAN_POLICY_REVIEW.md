@@ -11,10 +11,12 @@ and can suppress future credentials there. Both proposed historical exceptions
 now require the commit, path and finding match together; default rules remain
 enabled. No new exception, path, commit or value pattern was added.
 
-The global `[[allowlists]]` syntax requires Gitleaks 8.25 or later. The dedicated
-policy workflow and the general Security and Dependency Review workflow pin 8.30.1, verifies the official release SHA-256 before running
-it, runs regression fixtures, and preserves a nonzero full-history scan result.
-It does not disable or replace other security gates.
+The global `[[allowlists]]` syntax requires Gitleaks 8.25 or later. Both scanner
+workflows select 8.30.1. The dedicated policy workflow additionally verifies the
+official release SHA-256 and runs regression fixtures before its full-history
+scan. The general workflow uses the pinned Gitleaks action's installer; selecting
+the same version does not add checksum verification to that action. Both retain
+nonzero finding failures and do not disable or replace other security gates.
 
 ## Reproducible validation
 
