@@ -10,7 +10,6 @@ public sealed class TelemetrySubmitRequest
     [Required, MaxLength(100)]
     public string SocModel { get; set; } = string.Empty;
 
-    /// <summary>Enforcing | Permissive | Disabled</summary>
     [Required, MaxLength(50)]
     public string SelinuxStatus { get; set; } = "Enforcing";
 
@@ -50,6 +49,60 @@ public sealed class DeviceListItem
     public string SelinuxStatus { get; set; } = string.Empty;
     public bool KnoxWarrantyFuseBlown { get; set; }
     public DateTimeOffset? LastSeenAt { get; set; }
+}
+
+public sealed class DeviceOwnershipRecord
+{
+    public TrustScoreResponse Response { get; set; } = new();
+    public Guid? OwnerUserId { get; set; }
+}
+
+public enum DeviceAccessOutcome
+{
+    NotFound,
+    Allowed
+}
+
+public sealed class DeviceAccessResult
+{
+    public DeviceAccessOutcome Outcome { get; init; }
+    public TrustScoreResponse? Device { get; init; }
+
+    public static DeviceAccessResult NotFound() => new() { Outcome = DeviceAccessOutcome.NotFound };
+    public static DeviceAccessResult Ok(TrustScoreResponse device) =>
+        new() { Outcome = DeviceAccessOutcome.Allowed, Device = device };
+}
+
+/// <summary>
+/// Repository-level telemetry mutation outcome. Rejected covers unknown device,
+/// cross-owner, and null-owner non-privileged — no ownership data is exposed.
+/// </summary>
+public enum TelemetryMutationOutcome
+{
+    Updated,
+    Rejected
+}
+
+public sealed class TelemetryMutationResult
+{
+    public TelemetryMutationOutcome Outcome { get; init; }
+    public TrustScoreResponse? Device { get; init; }
+
+    public static TelemetryMutationResult Updated(TrustScoreResponse device) =>
+        new() { Outcome = TelemetryMutationOutcome.Updated, Device = device };
+
+    public static TelemetryMutationResult Rejected() =>
+        new() { Outcome = TelemetryMutationOutcome.Rejected };
+}
+
+public sealed class TelemetrySubmitResult
+{
+    public DeviceAccessOutcome Outcome { get; init; }
+    public TrustScoreResponse? Device { get; init; }
+
+    public static TelemetrySubmitResult NotFound() => new() { Outcome = DeviceAccessOutcome.NotFound };
+    public static TelemetrySubmitResult Ok(TrustScoreResponse device) =>
+        new() { Outcome = DeviceAccessOutcome.Allowed, Device = device };
 }
 
 public sealed class ProblemBody
