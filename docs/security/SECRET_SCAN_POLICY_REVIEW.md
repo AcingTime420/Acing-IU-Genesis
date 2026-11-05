@@ -12,7 +12,7 @@ now require the commit, path and finding match together; default rules remain
 enabled. No new exception, path, commit or value pattern was added.
 
 The global `[[allowlists]]` syntax requires Gitleaks 8.25 or later. The dedicated
-policy workflow pins 8.30.1, verifies the official release SHA-256 before running
+policy workflow and the general Security and Dependency Review workflow pin 8.30.1, verifies the official release SHA-256 before running
 it, runs regression fixtures, and preserves a nonzero full-history scan result.
 It does not disable or replace other security gates.
 
@@ -49,3 +49,12 @@ general token shapes. Do not publish unredacted values in review evidence.
 API examples separately retain the Bearer transport shape and use a consistent,
 explicitly nonfunctional MFA placeholder. They do not implement authentication,
 token issuance or real TOTP enrollment.
+
+## General workflow compatibility
+
+The pinned Gitleaks action otherwise defaults to 8.24.3, which predates this
+policy's global allowlist syntax. Its explicit `GITLEAKS_VERSION=8.30.1` now
+aligns it with the already checksum-verified dedicated policy workflow. Default
+rules, full-history checkout, redaction, failure behavior, and narrow AND
+conditions remain unchanged. This compatibility repair does not approve any
+historical exception or dismiss the outstanding human-requested changes.
