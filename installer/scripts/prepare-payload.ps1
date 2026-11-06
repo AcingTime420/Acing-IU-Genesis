@@ -2,6 +2,10 @@
 # Run from repo root or installer\:
 #   powershell -File installer\scripts\prepare-payload.ps1
 
+param(
+    [string]$OutputRoot
+)
+
 $ErrorActionPreference = "Stop"
 
 $InstallerRoot = Split-Path $PSScriptRoot -Parent
@@ -15,7 +19,18 @@ if (-not (Test-Path (Join-Path $RepoRoot "infrastructure"))) {
 }
 
 $InfraSrc = Join-Path $RepoRoot "infrastructure"
-$Payload = Join-Path $InstallerRoot "payload"
+$Payload = if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
+    Join-Path $InstallerRoot "payload"
+} else {
+    [System.IO.Path]::GetFullPath($OutputRoot)
+}
+if (-not [string]::IsNullOrWhiteSpace($OutputRoot)) {
+    $repoPrefix = [System.IO.Path]::GetFullPath($RepoRoot).TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+    if ($Payload.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase) -or
+        $Payload -eq [System.IO.Path]::GetFullPath($RepoRoot)) {
+        throw "OutputRoot must be outside the repository so staging cannot overwrite tracked payload files."
+    }
+}
 $PlatformDest = Join-Path $Payload "platform"
 $DocsDest = Join-Path $Payload "documentation"
 $BrandingDest = Join-Path $Payload "branding"
@@ -81,15 +96,24 @@ if (Test-Path $BackendSrc) {
     New-Item -ItemType Directory -Force -Path $BackendDest | Out-Null
     Copy-Item (Join-Path $BackendSrc "Identity") $BackendDest -Recurse -Force
     Copy-Item (Join-Path $BackendSrc "DeviceTrust") $BackendDest -Recurse -Force
-    Write-Host "  + platform\backend\Identity, DeviceTrust"
+    Copy-Item (Join-Path $BackendSrc "SharedKernel") $BackendDest -Recurse -Force
+    Write-Host "  + platform\backend\Identity, DeviceTrust, SharedKernel"
 }
 
-# Fix compose build contexts for installed layout
+# Keep host build artifacts and local configuration out of the installer build context.
+$DockerIgnoreSrc = Join-Path $RepoRoot ".dockerignore"
+if (Test-Path $DockerIgnoreSrc) {
+    Copy-Item $DockerIgnoreSrc (Join-Path $PlatformDest ".dockerignore") -Force
+    Write-Host "  + platform\.dockerignore"
+}
+
+# Point staged builds at the prepared platform root so both project references
+# remain inside the payload and the repository Dockerfiles' COPY paths work.
 $ComposeFile = Join-Path $PlatformDest "docker-compose.yml"
 if (Test-Path $ComposeFile) {
     $c = Get-Content $ComposeFile -Raw
-    $c = $c -replace 'context: \.\./backend/Identity/src/AcingIU\.Identity\.Api', 'context: ./backend/Identity/src/AcingIU.Identity.Api'
-    $c = $c -replace 'context: \.\./backend/DeviceTrust/src/AcingIU\.DeviceTrust\.Api', 'context: ./backend/DeviceTrust/src/AcingIU.DeviceTrust.Api'
-    Set-Content $ComposeFile -Value $c -Encoding UTF8
-    Write-Host "  ~ docker-compose.yml build contexts adjusted for installer layout"
+    $c = $c -replace '(?m)(context:\s*)\.\.(\s*)$', '$1.$2'
+    $c = $c.TrimEnd([char[]]"`r`n") + [Environment]::NewLine
+    Set-Content $ComposeFile -Value $c -NoNewline -Encoding UTF8
+    Write-Host "  ~ docker-compose.yml build contexts adjusted for staged payload"
 }

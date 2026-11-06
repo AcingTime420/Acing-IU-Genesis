@@ -1,0 +1,2 @@
+# Unsigned mock JWT copied into the installer payload, not a credential.
+89e2db8f9ee7964c7c6262e26f0c303913d120eb:installer/payload/platform/backend/Identity/Controllers/AuthController.cs:generic-api-key:25

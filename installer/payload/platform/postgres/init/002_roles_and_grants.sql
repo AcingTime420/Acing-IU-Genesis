@@ -1,12 +1,12 @@
--- Acing IU Genesis — 002_roles_and_grants.sql
+-- Acing IU Genesis â€” 002_roles_and_grants.sql
 -- Least-privilege roles. Passwords injected via env at bootstrap (see 003 or init wrapper).
 -- Default bootstrap uses roles created with login + password from compose env substitution
--- in infrastructure/postgres/init/002 — this IRP copy documents the grant model.
+-- in infrastructure/postgres/init/002 â€” this IRP copy documents the grant model.
 --
 -- Roles:
---   acing_migrator     — DDL + data for migrations only
---   acing_identity     — Identity API runtime
---   acing_device_trust — Device Trust API runtime
+--   acing_migrator     â€” DDL + data for migrations only
+--   acing_identity     â€” Identity API runtime
+--   acing_device_trust â€” Device Trust API runtime
 
 -- Role creation is idempotent; passwords set by bootstrap script using env
 DO $$
@@ -24,7 +24,8 @@ END
 $$;
 
 -- CONNECT on database is granted by bootstrap shell (needs concrete DB name).
-GRANT USAGE ON SCHEMA public TO acing_migrator, acing_identity, acing_device_trust;
+GRANT USAGE ON SCHEMA public TO acing_identity, acing_device_trust;
+GRANT USAGE, CREATE ON SCHEMA public TO acing_migrator;
 
 -- Migrator: full DDL on public schema objects
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO acing_migrator;

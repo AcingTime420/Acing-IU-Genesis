@@ -64,4 +64,3 @@ public sealed class UserRecord
     public DateTimeOffset CreatedAt { get; set; }
     public List<string> Roles { get; set; } = new();
 }
-
