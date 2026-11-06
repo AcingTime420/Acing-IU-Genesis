@@ -25,8 +25,8 @@ export default function Sidebar() {
             <Shield className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-sm font-bold tracking-wider text-white uppercase">Acing IU</h1>
-            <p className="text-[10px] text-slate-400 font-medium">Security Center</p>
+            <h1 className="text-sm font-bold tracking-wider text-white uppercase">Acing IU: Genesis</h1>
+            <p className="text-[10px] text-slate-400 font-medium">Human Authority · In development</p>
           </div>
         </div>
 
@@ -58,9 +58,9 @@ export default function Sidebar() {
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-slate-400 font-medium">
             <Cpu className="h-3.5 w-3.5 text-royalBlue" />
-            <span>KSP Integrity</span>
+            <span>Security research</span>
           </div>
-          <span className="text-cyberGreen font-bold">ACTIVE</span>
+          <span className="text-cyberGreen font-bold">SIMULATOR</span>
         </div>
 
         <div className="flex items-center justify-between text-xs">
@@ -68,12 +68,12 @@ export default function Sidebar() {
             <Database className="h-3.5 w-3.5 text-vividViolet" />
             <span>PostgreSQL</span>
           </div>
-          <span className="text-cyberGreen font-bold">CONNECTED</span>
+          <span className="text-cyberGreen font-bold">UNVERIFIED</span>
         </div>
 
         <div className="flex items-center gap-2 p-2.5 bg-cyberCard rounded-lg border border-cyberBorder text-[10px] text-slate-400">
           <CheckCircle className="h-3.5 w-3.5 text-cyberGreen shrink-0" />
-          <span className="font-medium">SM-S938U Baseline Synced</span>
+          <span className="font-medium">Fixture surfaces; no live connectivity verified</span>
         </div>
       </div>
     </aside>
