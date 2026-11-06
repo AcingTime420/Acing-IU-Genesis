@@ -55,10 +55,27 @@ jobs:
             core.info(`Found ${labelNames.length} labels: ${labelNames.join(', ')}`);
             return labelNames;
 
+      - name: 'Check Gemini authentication'
+        id: 'gemini_auth'
+        env:
+          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+          GOOGLE_GENAI_USE_GCA: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
+          GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+        run: |-
+          if [[ -n "${GEMINI_API_KEY}" ]] \
+            || [[ "${GOOGLE_GENAI_USE_GCA,,}" == 'true' ]] \
+            || [[ "${GOOGLE_GENAI_USE_VERTEXAI,,}" == 'true' ]]; then
+            echo 'configured=true' >> "${GITHUB_OUTPUT}"
+          else
+            echo '::warning::Gemini issue analysis skipped because no authentication method is configured.'
+            echo 'configured=false' >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: 'Run Gemini issue analysis'
         id: 'gemini_analysis'
         if: |-
-          ${{ steps.get_labels.outputs.available_labels != '' }}
+          ${{ steps.get_labels.outputs.available_labels != '' &&
+              steps.gemini_auth.outputs.configured == 'true' }}
         uses: 'google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489' # ratchet:exclude
         env:
           GITHUB_TOKEN: '' # Do NOT pass any auth tokens here since this runs on untrusted inputs
