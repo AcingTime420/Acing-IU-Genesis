@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://acing.iu/schemas/genesis-human-authorization-receipt.schema.json",
+  "title": "Genesis Human Sovereignty Authorization Receipt",
+  "description": "Audit contract for a Human Sovereignty Gate decision. A conforming JSON document is not valid proof by itself; the trusted verifier must cryptographically verify the WebAuthn assertion and device-bound approval proof.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "receiptId",
+    "decision",
+    "action",
+    "governance",
+    "humanPrincipal",
+    "approvalDevice",
+    "humanProof",
+    "deviceProof",
+    "verifier",
+    "issuedAt",
+    "expiresAt"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "receiptId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "decision": {
+      "enum": [
+        "approved",
+        "denied"
+      ]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actionId",
+        "kind",
+        "digest",
+        "resources",
+        "summary"
+      ],
+      "properties": {
+        "actionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "resources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reversible": {
+          "type": "boolean"
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ownerLawVersion",
+        "ownerLawDigest",
+        "constitutionVersion",
+        "constitutionDigest"
+      ],
+      "properties": {
+        "ownerLawVersion": {
+          "type": "string"
+        },
+        "ownerLawDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "constitutionVersion": {
+          "type": "string"
+        },
+        "constitutionDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "humanPrincipal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "principalId"
+      ],
+      "properties": {
+        "principalId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "approvalDevice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deviceId",
+        "deviceBindingKeyId",
+        "trustState"
+      ],
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "deviceBindingKeyId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trustState": {
+          "const": "trusted"
+        }
+      }
+    },
+    "humanProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "rpId",
+        "origin",
+        "credentialId",
+        "userVerified",
+        "assertionDigest"
+      ],
+      "properties": {
+        "type": {
+          "const": "webauthn"
+        },
+        "rpId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "origin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "credentialId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userVerified": {
+          "const": true
+        },
+        "assertionDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "deviceProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "challengeDigest",
+        "signature",
+        "publicKeyThumbprint"
+      ],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "minLength": 1
+        },
+        "challengeDigest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "signature": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publicKeyThumbprint": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "verifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service",
+        "version",
+        "result"
+      ],
+      "properties": {
+        "service": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result": {
+          "const": "verified"
+        }
+      }
+    },
+    "nonce": {
+      "type": "string",
+      "minLength": 16
+    },
+    "issuedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
