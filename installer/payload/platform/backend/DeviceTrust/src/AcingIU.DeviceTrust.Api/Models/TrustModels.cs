@@ -11,7 +11,7 @@ public sealed class TelemetrySubmitRequest
     public string SocModel { get; set; } = string.Empty;
 
     [Required, MaxLength(50)]
-    public string SelinuxStatus { get; set; } = "Enforcing";
+    public string SelinuxStatus { get; set; } = string.Empty;
 
     public bool BootloaderLocked { get; set; } = true;
     public bool PartitionsUnmodified { get; set; } = true;

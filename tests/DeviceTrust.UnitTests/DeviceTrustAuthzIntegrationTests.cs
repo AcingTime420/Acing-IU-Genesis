@@ -211,6 +211,22 @@ public class DeviceTrustAuthzIntegrationTests : IClassFixture<DeviceTrustWebAppl
     }
 
     [Fact]
+    public async Task Missing_selinux_status_is_rejected_before_mutation()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/trust/telemetry/submit")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(new
+            {
+                hwIdentifier = OwnedHw, socModel = "SM-TEST"
+            }), Encoding.UTF8, "application/json")
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", CreateToken(OwnerA, "User"));
+        var response = await _client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Empty(_factory.Repository.MutationAttempts);
+    }
+
+    [Fact]
     public async Task SubmitTelemetry_owner_update_returns_200()
     {
         var payload = TelemetryJson(OwnedHw);
