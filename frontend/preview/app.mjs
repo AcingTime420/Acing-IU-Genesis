@@ -2,6 +2,8 @@ import { MockGenesisAdapter, buildExecutionInput } from './genesis-adapter.mjs';
 
 // This view delegates simulated decisions to the repository adapter.
 const $ = id => document.getElementById(id);
+// Demo identifiers only; fallback supports local HTTP review.
+const newKey = () => globalThis.crypto?.randomUUID?.() ?? `demo-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 let adapter, state, attemptKey, busy = false;
 function render() {
   $('status').textContent = state.execution.state === 'idle' ? state.decision : state.execution.state;
@@ -22,7 +24,7 @@ function render() {
 }
 function reset() {
   adapter = new MockGenesisAdapter(); state = adapter.refreshFixtureClock();
-  attemptKey = crypto.randomUUID(); $('consent').checked = false;
+  attemptKey = newKey(); $('consent').checked = false;
   $('message').textContent = 'New in-memory fixture. Human: Alex Morgan (demo human), unauthenticated.';
   render();
 }
@@ -38,10 +40,10 @@ $('approve').onclick = () => { if ($('consent').checked) return run(() => adapte
 $('reject').onclick = () => run(() => adapter.decide('rejected'));
 $('revoke').onclick = () => run(() => adapter.revoke());
 $('execute').onclick = () => run(() => adapter.execute(buildExecutionInput(state, attemptKey), 'normal'));
-$('change').onclick = () => run(() => adapter.execute(buildExecutionInput(state, crypto.randomUUID(), {text: state.proposal.text + ' (changed after review)'}), 'normal'));
+$('change').onclick = () => run(() => adapter.execute(buildExecutionInput(state, newKey(), {text: state.proposal.text + ' (changed after review)'}), 'normal'));
 for (const [button, condition] of [['expire','expired'],['stale','stale-version'],['uncertain','network-uncertain']]) {
   $(button).onclick = () => {
-    attemptKey = crypto.randomUUID();
+    attemptKey = newKey();
     return run(() => adapter.execute(buildExecutionInput(state, attemptKey), condition));
   };
 }
