@@ -101,6 +101,8 @@ test('cross-origin, missing CSRF, wrong Host and spoofed role inputs are rejecte
   assert.equal((await a.post('chat', {message: 'hi', role: 'system'})).status, 400);
   assert.equal(await rawStatus(a.origin + '/api/local/state', {Host: 'evil.example'}), 403);
   assert.equal(await rawStatus(a.origin + '/api/local/state', {'Sec-Fetch-Site': 'cross-site'}), 403);
+  assert.equal(await rawStatus(a.origin + '/', {'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document'}), 200);
+  assert.equal(await rawStatus(a.origin + '/api/local/state', {'Sec-Fetch-Site': 'cross-site', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document'}), 403);
 });
 test('HTTP exact review, repeat execution and two-session isolation', async t => {
   const a = await app(t, {reply: async () => 'reply'});

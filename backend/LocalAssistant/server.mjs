@@ -46,7 +46,9 @@ export function createServer({model = process.env.GENESIS_MODEL, provider, clock
       const host = `127.0.0.1:${address.port}`;
       if (request.headers.host !== host) throw new BoundaryError(403, 'Open this application using its exact 127.0.0.1 address.');
       const origin = `http://${host}`;
-      if ((request.headers.origin && request.headers.origin !== origin) || request.headers['sec-fetch-site'] === 'cross-site')
+      const topLevelNavigation = request.method === 'GET' && ['/', '/assistant.html'].includes(request.url) &&
+        request.headers['sec-fetch-mode'] === 'navigate' && request.headers['sec-fetch-dest'] === 'document';
+      if (!topLevelNavigation && ((request.headers.origin && request.headers.origin !== origin) || request.headers['sec-fetch-site'] === 'cross-site'))
         throw new BoundaryError(403, 'Cross-origin access is denied.');
       if (request.method === 'GET' && ASSETS.has(request.url)) {
         const [file, type] = ASSETS.get(request.url);
