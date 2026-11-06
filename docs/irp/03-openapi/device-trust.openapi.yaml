@@ -187,6 +187,7 @@ components:
           maxLength: 100
         selinuxStatus:
           type: string
+          minLength: 1
           maxLength: 50
         bootloaderLocked:
           type: boolean
