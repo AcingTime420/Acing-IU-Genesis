@@ -75,6 +75,7 @@ $('chat-form').onsubmit = event => {
   return run(async () => {
     $('action-status').textContent = 'Generating locally. No action is being authorized.';
     const result = await api('chat', {message: prompt});
+    $('connection').textContent = 'LOCAL AI · REPLY RECEIVED';
     message('user', prompt); message('assistant', result.reply);
     state = result.state; $('prompt').value = ''; $('action-status').textContent = 'Reply received as text. Nothing was approved or executed.';
   });
@@ -111,7 +112,9 @@ try {
   const info = await response.json();
   if (info.mode !== 'local-prototype' || typeof info.csrf !== 'string') throw new Error('Unsupported service');
   csrf = info.csrf; state = info.state; connected = true; configured = info.aiConfigured;
-  $('connection').textContent = configured ? 'LOCAL SERVICE · AI NOT YET VERIFIED' : 'LOCAL SERVICE · MODEL NOT CONFIGURED';
+  $('connection').textContent = configured
+    ? (info.messages.some(item => item.role === 'assistant') ? 'LOCAL AI · REPLY RECEIVED' : 'LOCAL SERVICE · MODEL CONFIGURED')
+    : 'LOCAL SERVICE · MODEL NOT CONFIGURED';
   $('mode-notice').textContent = 'Experimental local service. Browser-session access only; no verified human identity. Documents, grants, chat, and receipts are in memory and disappear on expiry or restart.';
   $('model-name').textContent = info.model ? `Configured model: ${info.model}` : 'Set GENESIS_MODEL to an installed local model and restart.';
   $('policy-hash').textContent = info.policyHash;
