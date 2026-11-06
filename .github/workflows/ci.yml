@@ -204,3 +204,6 @@ jobs:
           else
             echo "Frontend Dockerfile not ready — skipping"
           fi
+
+      - name: Smoke test production frontend image
+        run: bash tests/scripts/frontend-image-smoke.sh acing-iu-frontend:latest
