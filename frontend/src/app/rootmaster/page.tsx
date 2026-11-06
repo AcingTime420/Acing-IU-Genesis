@@ -1020,20 +1020,20 @@ function PartitionHierarchyD3({
           (d: any) => `translate(${d.y + margin.left},${d.x + margin.top})`,
         )
         .on("mouseover", (event, d: any) => {
-          d3.select(event.currentTarget)
+          d3.select(event.currentTarget as SVGGElement)
             .select("circle")
             .transition()
             .duration(200)
             .attr("r", 8)
             .attr("stroke", "#FFFFFF")
             .attr("stroke-width", 2);
-          d3.select(event.currentTarget)
+          d3.select(event.currentTarget as SVGGElement)
             .select("text")
             .transition()
             .duration(200)
             .attr("font-size", "10px")
             .attr("fill", "#FFFFFF");
-          d3.select(event.currentTarget)
+          d3.select(event.currentTarget as SVGGElement)
             .transition()
             .duration(200)
             .style("transform", "scale(1.25)")
@@ -1044,20 +1044,20 @@ function PartitionHierarchyD3({
           setHoveredNode(d.data);
         })
         .on("mouseout", (event, d: any) => {
-          d3.select(event.currentTarget)
+          d3.select(event.currentTarget as SVGGElement)
             .select("circle")
             .transition()
             .duration(200)
             .attr("r", 5)
             .attr("stroke", "#070B14")
             .attr("stroke-width", 1.5);
-          d3.select(event.currentTarget)
+          d3.select(event.currentTarget as SVGGElement)
             .select("text")
             .transition()
             .duration(200)
             .attr("font-size", "8.5px")
             .attr("fill", "#94A3B8");
-          d3.select(event.currentTarget)
+          d3.select(event.currentTarget as SVGGElement)
             .transition()
             .duration(200)
             .style("transform", "scale(1)")
@@ -1341,7 +1341,7 @@ function FirmwarePartitions() {
       .attr("class", "partition-block cursor-pointer")
       .on("mouseover", (event, d) => {
         setHoveredPartition(d);
-        d3.select(event.currentTarget)
+        d3.select(event.currentTarget as SVGGElement)
           .select("rect")
           .attr("opacity", 0.85)
           .attr("stroke", "#FFFFFF")
@@ -1353,7 +1353,7 @@ function FirmwarePartitions() {
       })
       .on("mouseout", (event, d) => {
         setHoveredPartition(null);
-        d3.select(event.currentTarget)
+        d3.select(event.currentTarget as SVGGElement)
           .select("rect")
           .attr("opacity", 1)
           .attr("stroke", "none");
