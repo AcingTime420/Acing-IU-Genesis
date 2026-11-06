@@ -9,7 +9,17 @@ Global allowlists default to OR matching. Combining a historical commit, path an
 value-shape pattern without `condition = "AND"` independently excludes each path
 and can suppress future credentials there. Both proposed historical exceptions
 now require the commit, path and finding match together; default rules remain
-enabled. No new exception, path, commit or value pattern was added.
+enabled. JSON value patterns match the default rule's finding text, which omits
+the key's opening quote; fixtures exercise that same boundary.
+
+Additional AND-scoped historical exceptions cover the generated controller's
+truncated, unsigned JWT example and the exact `placeholder_signing_key_32_chars`
+and `placeholder_key_32_bytes` environment-template values. Each requires a
+listed immutable commit and anchored path; no path-wide or commit-wide exemption
+was added. The historical API access tokens end in an ellipsis, and its published
+MFA example decodes to a plaintext greeting, not an operational enrollment secret.
+These observations do not approve reuse of any published example in production
+or resolve the outstanding review on PR #94.
 
 The global `[[allowlists]]` syntax requires Gitleaks 8.25 or later. Both scanner
 workflows select 8.30.1. The dedicated policy workflow additionally verifies the
@@ -29,15 +39,15 @@ gitleaks git . --config .gitleaks.toml --log-opts=--all --redact=100 --no-banner
 The first command generates only temporary synthetic data. It checks default
 credential-shaped canary detection in every exempted path and outside those
 paths, Git and filesystem scans, all configured historical path/value-shape
-combinations and both auth-example commit criteria, unrelated findings within
+combinations and every configured historical commit criterion, unrelated findings within
 the same commit, and later-commit replays. It does not contact a credential issuer
 or prove that every historical value was synthetic.
 
 The second command is a real gate, not an expected-success demonstration. The
-local review scan remained nonzero with candidate findings after narrowing. A
-redacted inventory was retained for maintainer review; findings must be triaged
-rather than suppressed to obtain green CI. Different fetched-ref inventories can
-produce different full-history counts.
+reported failure reproduced with 15 findings across 409 commits. Correcting the
+JSON match boundary and scoping the verified historical template/mock findings
+produced a passing scan over the same history. Different fetched-ref inventories
+can produce different full-history counts; new findings still require triage.
 
 ## Historical evidence still required
 

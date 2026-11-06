@@ -8,18 +8,21 @@ import argparse
 import base64
 import json
 from pathlib import Path
-import re
 import secrets
 import string
 import subprocess
 import tempfile
+import tomllib
 import uuid
 
 
 ROOT = Path(__file__).resolve().parents[2]
 PATHS = ["acing-iu/docs/API.md", "backend/Identity/Controllers/AuthController.cs",
          "acing-iu/backend/Identity/Controllers/AuthController.cs",
-         ".refact/buddy/memory_ops.jsonl", "outside.txt"]
+         ".refact/buddy/memory_ops.jsonl", "outside.txt",
+         "installer/payload/platform/backend/Identity/Controllers/AuthController.cs",
+         ".env.example", "infrastructure/.env.example",
+         "installer/payload/platform/.env.example"]
 
 
 def git(repo, *args):
@@ -74,11 +77,11 @@ def main():
             # Directory mode may return absolute paths; compare normalized suffixes.
             if not all(any(path == name or path.endswith("/" + name) for path in detected) for name in PATHS):
                 raise AssertionError("Policy suppressed a future canary in " + mode + " mode")
-        print("PASS: future credential-shaped canaries detected in all four exempted paths and outside, in Git and directory scans")
+        print("PASS: future credential-shaped canaries detected in all exempted paths and outside, in Git and directory scans")
 
         # Each path/value-shape exception and each configured historical commit
         # receives an independent fixture. No historical secret is copied here.
-        historical_ids = re.findall(r"[0-9a-f]{40}", policy)
+        allowlists = tomllib.loads(policy)["allowlists"]
         token_value = "TEST_FIXTURE_" + secrets.token_hex(12)
         uuid_value = str(uuid.uuid4())
         base32_value = base64.b32encode(b"non-secret fixture").decode().rstrip("=")
@@ -89,15 +92,28 @@ def main():
             (PATHS[0], '"refreshToken": "{}"', '"otherToken": "{}"', uuid_value, "json"),
             (PATHS[0], '"secretKey": "{}"', '"otherToken": "{}"', base32_value, "json"),
             (PATHS[3], 'idempotency_key":"{}"', 'other_key":"{}"', token_value, "memory"),
+            (PATHS[5], 'AccessToken = "{}"', 'OtherToken = "{}"',
+             "SYNTHETIC_HEADER.SYNTHETIC_PAYLOAD...", "installer"),
         ]
+        for path in PATHS[6:]:
+            cases.extend([
+                (path, 'JWT_SIGNING_KEY={}', 'OTHER_SIGNING_KEY={}',
+                 "placeholder_signing_key_32_chars", "environment"),
+                (path, 'MFA_SECRET_PROTECTION_KEY_MFA_V1={}', 'OTHER_SIGNING_KEY={}',
+                 "placeholder_key_32_bytes", "environment"),
+            ])
         patterns = {
             "assignment": r'(?m)^(?:AccessToken|OtherToken)\s*=\s*"([^"\r\n]+)"',
-            "json": r'(?m)^"(?:accessToken|refreshToken|secretKey|otherToken)"\s*:\s*"([^"\r\n]+)"',
+            # The default generic-api-key match omits the JSON key's opening quote.
+            "json": r'(?m)(?:accessToken|refreshToken|secretKey|otherToken)"\s*:\s*"([^"\r\n]+)"',
             "memory": r'(?m)^(?:idempotency_key|other_key)":"([^"\r\n]+)"',
+            "installer": r'(?m)^(?:AccessToken|OtherToken)\s*=\s*"([^"\r\n]+)"',
+            "environment": r'(?m)^(?:JWT_SIGNING_KEY|MFA_SECRET_PROTECTION_KEY_MFA_V1|OTHER_SIGNING_KEY)=([^\r\n]+)',
         }
         count = 0
         for path, matching, unrelated, value, kind in cases:
-            ids = historical_ids[:2] if kind != "memory" else historical_ids[2:]
+            index = {"memory": 1, "installer": 2, "environment": 3}.get(kind, 0)
+            ids = allowlists[index]["commits"]
             for original_commit in ids:
                 count += 1
                 repo = work / ("criteria-" + str(count))
