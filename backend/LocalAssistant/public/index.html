@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Genesis local assistant: human authority, exact review, independent enforcement.">
+  <title>Acing IU: Genesis — Local Assistant</title>
+  <link rel="stylesheet" href="./assistant.css"><script type="module" src="./assistant.mjs"></script>
+</head>
+<body>
+<aside>
+  <a class="brand" href="./assistant.html">ACING IU <span>/ GENESIS</span></a>
+  <p class="eyebrow">INTERFACE USER · HUMAN AUTHORITY</p>
+  <nav aria-label="Workspace"><a href="#conversation">Assistant</a><a href="#review">Action review</a><a href="#foundation">Security foundation</a><a href="#evidence">Evidence</a></nav>
+  <div class="aside-bottom">Security by Foundation.<br>Personal by Choice.<br>Engineered for Trust.</div>
+</aside>
+<main>
+  <header><span>YOUR LOCAL WORKSPACE</span><span class="pill" id="connection">Checking local service</span></header>
+  <div id="mode-notice" class="notice" role="status">Experimental interface. No live AI connection has been verified.</div>
+  <section class="intro"><div><p class="eyebrow">AN ASSISTANT WITH BOUNDARIES</p><h1>Your intelligence.<br>Your authority.</h1><p>Talk, explore, and draft. Review the exact action before it happens.</p></div><div class="intro-note"><span class="dot"></span> AI proposes. You decide.<br><small>Permissions stay outside the model.</small></div></section>
+  <div class="workspace">
+    <section class="panel chat" id="conversation" aria-labelledby="chat-title">
+      <div class="section-head"><div><p class="eyebrow">01 / CONVERSATION</p><h2 id="chat-title">Genesis assistant</h2></div><span class="pill muted">TEXT ONLY</span></div>
+      <div class="transcript" id="messages" role="log" aria-label="Conversation" aria-live="polite"><article class="message assistant"><small>GENESIS · INTERFACE INTRODUCTION</small><p>Your assistant runs on a local model you select. Replies are untrusted text. They cannot grant permission or execute actions.</p></article></div>
+      <form id="chat-form"><label for="prompt">What would you like to work on?</label><textarea id="prompt" maxlength="4000" rows="3" placeholder="Ask a question or request a draft…" required></textarea><div class="form-bottom"><small id="model-name">Local model not connected</small><button id="send" type="submit" disabled>Send to local AI</button></div></form>
+      <button type="button" class="secondary" id="sample">Explore a labeled example</button>
+      <p class="fine">No paid AI service. Local inference still needs a model, memory, and computing power. Chat history stays in this temporary local session.</p>
+    </section>
+    <section class="panel" id="review" aria-labelledby="review-title">
+      <div class="section-head"><div><p class="eyebrow">02 / HUMAN REVIEW</p><h2 id="review-title">Make permission specific.</h2></div><span class="pill" id="proposal-state">NO PROPOSAL</span></div>
+      <label for="draft">Exact text to append</label><textarea id="draft" maxlength="4000" rows="5" placeholder="Write here, or copy a model reply using its review button."></textarea>
+      <p class="fine">Model text is untrusted. Inspect it before staging. Staging does not approve it.</p>
+      <button id="stage" type="button" class="secondary" disabled>Stage for exact review</button>
+      <div id="contract" class="contract"><p>No action is authorized.</p></div>
+      <label class="consent"><input type="checkbox" id="consent" disabled><span>I reviewed the exact text, destination, version, and expiry shown above.</span></label>
+      <div class="actions"><button type="button" id="reject" class="secondary" disabled>Reject</button><button type="button" id="approve" disabled>Approve one append</button></div>
+      <div class="actions"><button type="button" id="revoke" class="secondary" disabled>Revoke permission</button><button type="button" id="execute" class="secondary" disabled>Execute approved append</button></div>
+      <p id="action-status" role="status" aria-live="polite">Only the local test document can be changed.</p>
+    </section>
+  </div>
+  <section class="panel foundation" id="foundation" aria-labelledby="foundation-title"><div><p class="eyebrow">03 / SECURITY FOUNDATION</p><h2 id="foundation-title">Outside the AI’s authority.</h2><p>The model receives conversation text and returns text. It has no tools or access to policy, grants, the browser session, or execution endpoints.</p><p class="fine">This is an application boundary, not an immutable operating system. A host administrator or compromised runtime can still alter software. Stronger process isolation and production identity remain future work.</p></div><dl><div><dt>Policy editing by AI</dt><dd>Unavailable</dd></div><div><dt>File, shell, device tools</dt><dd>Unavailable</dd></div><div><dt>Human approval</dt><dd>Required for every append</dd></div><div><dt>Grant</dt><dd>Single use · 5-minute window</dd></div><div><dt>Foundation fingerprint</dt><dd id="policy-hash">Not verified in hosted review</dd></div></dl></section>
+  <div class="workspace bottom"><section class="panel"><p class="eyebrow">04 / TEST DOCUMENT</p><h2>Session document <span class="pill" id="version">VERSION —</span></h2><pre id="document">Connect the local service to inspect its in-memory test document.</pre></section><section class="panel" id="evidence"><p class="eyebrow">05 / RECEIPTS</p><h2>See what happened.</h2><div id="events"><p>No verified local events.</p></div><p class="fine">Temporary session records; not signed, durable, or tamper-evident audit evidence.</p></section></div>
+  <footer>EXPERIMENTAL LOCAL ASSISTANT · NOT PRODUCTION READY · <a href="https://github.com/AcingTime420/Acing-IU-Genesis/tree/prototype/local-genesis-assistant/backend/LocalAssistant">Repository source &amp; setup</a><br><span id="source">Source provenance pending</span></footer>
+</main>
+</body></html>
