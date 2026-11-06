@@ -1,8 +1,9 @@
 # Phase 0 Completion Checklist — Issue #54
 
-**Recorded:** 2026-09-13  
-**Tracking:** [#54](https://github.com/AcingTime420/Acing-IU-Genesis/issues/54)  
-**Canonical repository:** `AcingTime420/Acing-IU-Genesis`  
+**Recorded:** 2026-09-13
+**Updated:** 2026-10-20 (Pacific); gate remains open
+**Tracking:** [#54](https://github.com/AcingTime420/Acing-IU-Genesis/issues/54)
+**Canonical repository:** `AcingTime420/Acing-IU-Genesis`
 **Canonical branch:** `master`
 
 ## Task map (Master To-Do 0.1–0.6)
@@ -14,7 +15,7 @@
 | **0.3** Capability register | Maturity labels for every claimed capability | `docs/CAPABILITY_REGISTER.md` (updated 2026-09-13 for claim-surface) | **Done** |
 | **0.4** ADR set | Architecture decisions for structure, recovery, security | `docs/adr/ADR-001` … `ADR-008`; `docs/adr/README.md` | **Done** |
 | **0.5** Repository integrity baseline | Hygiene, clean-clone scripts, CI | `docs/evidence/repository-integrity-baseline.md`; `.gitignore`; `scripts/validate-premerge.sh`; `.github/workflows/ci.yml`; `repo-integrity.yml` | **Done** |
-| **0.6** Feature freeze until baseline validated | Stabilization-only policy | `docs/governance/STABILIZATION_POLICY.md` | **Policy written**; remote enforcement still **POLICY_UNVERIFIED** |
+| **0.6** Feature freeze until baseline validated | Stabilization-only policy | `docs/governance/STABILIZATION_POLICY.md` | **Active**; ruleset settings verified; owner confirmation and repaired-baseline evidence pending |
 
 ## Related completed security surface (not Phase 0 scope, but unblocks gates)
 
@@ -31,22 +32,25 @@
 | Criterion | Status |
 |---|---|
 | Phase 0 controls documented and reviewed in-repo | Met (this file + governance set) |
-| Phase 1 repository-integrity repairs complete | Largely met; known residual: tracked `.idea/` / `*.iml` noted in baseline evidence |
-| Reproducible clean-clone validation | Scripts present; CI runs `validate-premerge.sh --skip-compose` |
-| Branch protection on `master` (PR required, no force-push, required checks) | **Not verified** — requires repository administrator action |
+| Phase 1 repository-integrity repairs complete | IDE residual no longer observed: no tracked `.idea/*` or `*.iml` at inspected base; full gate disposition remains pending |
+| Reproducible clean-clone validation | PR #166 backend tests passed (15 Identity + 6 DeviceTrust); Guardian false-success defect requires reviewed repair and fresh CI |
+| Branch protection on `master` (PR required, no force-push, required checks) | **Ruleset settings verified**; administrator bypasses documented; owner confirmation pending |
 
 ## Owner action required (cannot be completed by automation alone)
 
-1. Open **Settings → Branches → Branch protection rules** (or Rulesets) for `master`.
-2. Enable at minimum:
-   - Require a pull request before merging
-   - Require approvals (dismiss stale reviews)
-   - Require status checks to pass (include the CI / repo-integrity jobs once stable)
-   - Restrict force pushes and branch deletion
-3. Attach a screenshot or settings export to issue #54 confirming the effective rules.
-4. After confirmation, update `docs/governance/STABILIZATION_POLICY.md` remote-enforcement row from `POLICY_UNVERIFIED` to `ENFORCED` with the date.
+1. Review the [master ruleset](https://github.com/AcingTime420/Acing-IU-Genesis/rules/23200339)
+   and [version-tag ruleset](https://github.com/AcingTime420/Acing-IU-Genesis/rules/24706855).
+   The controls already exist; do not recreate or weaken them.
+2. Read the [verification report](stabilization-verification-2026-10-20.md) and
+   its settings export, including administrator bypasses and validation limits.
+3. Record owner confirmation with the evidence link on issue #54, or identify
+   the specific setting that needs correction. No automatic confirmation is inferred.
+4. Obtain independent review and fresh successful validation of the Guardian build
+   repair. Only after all exit criteria are met should a reviewed change record
+   the final gate disposition and close #54.
 
-Until step 3–4 are done, issue #54 should remain **open** even though documentary tasks 0.1–0.5 are complete.
+Until steps 3–4 are complete, issue #54 remains **open**. Settings verification
+does not itself lift the freeze or certify application authorization capabilities.
 
 ## Branch hygiene note
 
