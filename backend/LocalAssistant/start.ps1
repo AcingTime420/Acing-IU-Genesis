@@ -13,8 +13,10 @@ $previousModel = $env:GENESIS_MODEL
 $previousPort = $env:GENESIS_PORT
 try {
     if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw 'Node.js 24 or newer is required.' }
-    $nodeMajor = (& node -p 'process.versions.node.split(".")[0]')
-    if ($LASTEXITCODE -ne 0 -or [int]$nodeMajor -lt 24) { throw 'Node.js 24 or newer is required.' }
+    $nodeVersion = & node --version
+    if ($LASTEXITCODE -ne 0 -or $nodeVersion -notmatch '^v[0-9]+\.') { throw 'Unable to read the Node.js version.' }
+    $nodeMajor = [int]($nodeVersion.TrimStart('v').Split('.')[0])
+    if ($nodeMajor -lt 24) { throw 'Node.js 24 or newer is required.' }
     $catalog = Invoke-RestMethod -Uri 'http://127.0.0.1:11434/api/tags' -TimeoutSec 5
     $localModels = @($catalog.models | Where-Object {
         $_.name -notmatch 'cloud' -and [long]$_.size -gt 0
