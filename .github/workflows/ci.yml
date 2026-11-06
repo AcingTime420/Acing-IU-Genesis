@@ -134,6 +134,9 @@ jobs:
             echo "No backend solution found — skipping"
           fi
 
+      - name: Validate OpenAPI and unauthenticated API boundaries
+        run: python3 tests/scripts/openapi-smoke.py
+
   # ── Job 4: Frontend build and test (Node.js) ──────────────────────────
   frontend-build-test:
     name: Frontend Build & Test (Node.js)
