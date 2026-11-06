@@ -276,7 +276,7 @@ export default function AuditPage() {
           part.toLowerCase() === query.toLowerCase() ? (
             <mark
               key={i}
-              className="bg-amber-400 text-black px-0.5 rounded font-bold"
+              className="bg-amber-400 text-black px-0.5 rounded-sm font-bold"
             >
               {part}
             </mark>
@@ -343,10 +343,10 @@ export default function AuditPage() {
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[#22314D] pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-cyberBorder pb-6">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-3">
-            <FileText className="h-6 w-6 text-[#2F58CD]" />
+            <FileText className="h-6 w-6 text-royalBlue" />
             Audit Logging Pipeline Simulator
           </h1>
           <p className="text-sm text-slate-400 mt-1">
@@ -356,7 +356,7 @@ export default function AuditPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs bg-[#2F58CD]/20 text-[#2F58CD] font-bold px-3 py-1.5 rounded-full border border-[#2F58CD]/30 flex items-center gap-1.5">
+          <span className="text-xs bg-royalBlue/20 text-royalBlue font-bold px-3 py-1.5 rounded-full border border-royalBlue/30 flex items-center gap-1.5">
             <Database className="h-3.5 w-3.5" />
             Simulator / Fixture Data
           </span>
@@ -369,7 +369,7 @@ export default function AuditPage() {
         <div className="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs text-slate-400 font-bold uppercase tracking-wider">
-              <Clock className="h-4 w-4 text-[#2F58CD]" />
+              <Clock className="h-4 w-4 text-royalBlue" />
               <span>Compliance Period</span>
             </div>
             <h3 className="text-lg font-bold text-white">
@@ -385,14 +385,14 @@ export default function AuditPage() {
           <div className="flex flex-col gap-2.5 pt-2">
             <button
               onClick={() => setShowCSVPreview(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#151D30] text-white hover:bg-[#2F58CD] border border-[#22314D] hover:border-[#2F58CD] text-xs font-bold transition-all duration-300"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-cyberCard text-white hover:bg-royalBlue border border-cyberBorder hover:border-royalBlue text-xs font-bold transition-all duration-300"
             >
               <Download className="h-4 w-4" />
               Export Filtered CSV Report
             </button>
             <button
               onClick={handleExportPDF}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#2F58CD] to-[#6C3483] hover:from-[#3a6bf0] hover:to-[#7d3f99] text-white text-xs font-bold shadow-lg shadow-[#2F58CD]/15 transition-all duration-300"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-linear-to-r from-[#2F58CD] to-[#6C3483] hover:from-[#3a6bf0] hover:to-[#7d3f99] text-white text-xs font-bold shadow-lg shadow-[#2F58CD]/15 transition-all duration-300"
             >
               <Printer className="h-4 w-4" />
               Generate PDF Compliance Document
@@ -406,16 +406,16 @@ export default function AuditPage() {
           <div className="glass-card p-6 rounded-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-slate-400 font-bold uppercase tracking-wider">
-                <TrendingUp className="h-4 w-4 text-[#10B981]" />
+                <TrendingUp className="h-4 w-4 text-cyberGreen" />
                 <span>24-Hour Security Event frequency</span>
               </div>
               <div className="flex gap-4 text-[10px] font-bold">
-                <span className="flex items-center gap-1.5 text-[#10B981]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#10B981]"></span>
+                <span className="flex items-center gap-1.5 text-cyberGreen">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyberGreen"></span>
                   SUCCESS
                 </span>
-                <span className="flex items-center gap-1.5 text-[#EF4444]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#EF4444]"></span>
+                <span className="flex items-center gap-1.5 text-cyberRed">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyberRed"></span>
                   DENIED
                 </span>
               </div>
@@ -490,34 +490,34 @@ export default function AuditPage() {
 
           {/* Daily Calendar Heatmap Component */}
           <div className="glass-card p-6 rounded-2xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#22314D] pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyberBorder pb-3">
               <div className="flex items-center gap-2 text-xs text-slate-300 font-bold uppercase tracking-wider">
-                <Calendar className="h-4 w-4 text-[#2F58CD]" />
+                <Calendar className="h-4 w-4 text-royalBlue" />
                 <span>30-Day Security Event Frequency Heatmap</span>
               </div>
               <div className="flex flex-wrap items-center gap-2.5 text-[10px] text-slate-400 font-bold">
                 <div className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded bg-[#111827] border border-[#22314D]" />
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#111827] border border-cyberBorder" />
                   <span>0</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded bg-[#2F58CD]/20 border border-[#2F58CD]/30" />
+                  <span className="w-2.5 h-2.5 rounded-sm bg-royalBlue/20 border border-royalBlue/30" />
                   <span>1-10</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded bg-[#2F58CD]/45 border border-[#2F58CD]/50" />
+                  <span className="w-2.5 h-2.5 rounded-sm bg-royalBlue/45 border border-royalBlue/50" />
                   <span>11-20</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded bg-[#2F58CD]/70 border border-[#2F58CD]/80" />
+                  <span className="w-2.5 h-2.5 rounded-sm bg-royalBlue/70 border border-royalBlue/80" />
                   <span>21-30</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded bg-[#2F58CD] border border-white/20" />
+                  <span className="w-2.5 h-2.5 rounded-sm bg-royalBlue border border-white/20" />
                   <span>31+</span>
                 </div>
-                <div className="flex items-center gap-1 ml-1 border-l border-[#22314D] pl-2">
-                  <span className="w-2.5 h-2.5 rounded bg-[#2F58CD]/30 border-2 border-red-500" />
+                <div className="flex items-center gap-1 ml-1 border-l border-cyberBorder pl-2">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-royalBlue/30 border-2 border-red-500" />
                   <span className="text-red-400">Incidents</span>
                 </div>
               </div>
@@ -528,19 +528,19 @@ export default function AuditPage() {
               <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
                 {heatmapData.map((day, idx) => {
                   // Compute background intensity
-                  let cellBg = "bg-[#111827] border-[#22314D] text-slate-600";
+                  let cellBg = "bg-[#111827] border-cyberBorder text-slate-600";
                   if (day.total > 0 && day.total <= 10) {
                     cellBg =
-                      "bg-[#2F58CD]/20 border-[#2F58CD]/30 text-blue-300 hover:bg-[#2F58CD]/30";
+                      "bg-royalBlue/20 border-royalBlue/30 text-blue-300 hover:bg-royalBlue/30";
                   } else if (day.total > 10 && day.total <= 20) {
                     cellBg =
-                      "bg-[#2F58CD]/45 border-[#2F58CD]/50 text-blue-100 hover:bg-[#2F58CD]/55";
+                      "bg-royalBlue/45 border-royalBlue/50 text-blue-100 hover:bg-royalBlue/55";
                   } else if (day.total > 20 && day.total <= 30) {
                     cellBg =
-                      "bg-[#2F58CD]/70 border-[#2F58CD]/80 text-white hover:bg-[#2F58CD]/80";
+                      "bg-royalBlue/70 border-royalBlue/80 text-white hover:bg-royalBlue/80";
                   } else if (day.total > 30) {
                     cellBg =
-                      "bg-[#2F58CD] border-white/25 text-white font-bold hover:brightness-110";
+                      "bg-royalBlue border-white/25 text-white font-bold hover:brightness-110";
                   }
 
                   const hasDenied = day.denied > 0;
@@ -567,7 +567,7 @@ export default function AuditPage() {
               </div>
 
               {/* Dynamic details preview bar */}
-              <div className="p-3 bg-[#0B0F19] border border-[#22314D] rounded-xl flex items-center justify-between min-h-[58px] transition-all duration-300">
+              <div className="p-3 bg-cyberDark border border-cyberBorder rounded-xl flex items-center justify-between min-h-[58px] transition-all duration-300">
                 {hoveredDay ? (
                   <>
                     <div className="flex items-center gap-3">
@@ -612,7 +612,7 @@ export default function AuditPage() {
                   </>
                 ) : (
                   <div className="text-xs text-slate-400 italic flex items-center gap-2 mx-auto font-medium">
-                    <Info className="h-4 w-4 text-[#2F58CD] shrink-0 animate-bounce" />
+                    <Info className="h-4 w-4 text-royalBlue shrink-0 animate-bounce" />
                     <span>
                       Hover over any cell in the 30-day calendar to explore
                       specific audit frequency and security event counts.
@@ -628,7 +628,7 @@ export default function AuditPage() {
       {/* Interactive Controls & Filters */}
       <div className="glass-card rounded-2xl p-6 space-y-4">
         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-[#2F58CD]" />
+          <Calendar className="h-4 w-4 text-royalBlue" />
           <span>Audit Query & Filter parameters</span>
         </h3>
 
@@ -647,20 +647,20 @@ export default function AuditPage() {
                   }
                 }}
                 placeholder="Search operators, actions, devices, hashes (Press Enter to save)..."
-                className="w-full bg-[#151D30] border border-[#22314D] rounded-xl py-3 pl-11 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#2F58CD]/70 font-semibold transition-all duration-200"
+                className="w-full bg-cyberCard border border-cyberBorder rounded-xl py-3 pl-11 pr-4 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-royalBlue/70 font-semibold transition-all duration-200"
               />
             </div>
 
             {/* Recent Searches row */}
             <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400">
               <span className="font-bold uppercase text-[9px] text-slate-500 flex items-center gap-1 shrink-0">
-                <History className="h-3 w-3 text-[#2F58CD]" /> Recent searches:
+                <History className="h-3 w-3 text-royalBlue" /> Recent searches:
               </span>
               {recentSearches.map((term, i) => (
                 <button
                   key={i}
                   onClick={() => setSearchTerm(term)}
-                  className="px-2.5 py-1 bg-[#111827] hover:bg-[#2F58CD]/20 border border-[#22314D] hover:border-[#2F58CD]/40 rounded-lg text-slate-300 hover:text-white font-semibold transition-all duration-200"
+                  className="px-2.5 py-1 bg-[#111827] hover:bg-royalBlue/20 border border-cyberBorder hover:border-royalBlue/40 rounded-lg text-slate-300 hover:text-white font-semibold transition-all duration-200"
                 >
                   {term}
                 </button>
@@ -678,7 +678,7 @@ export default function AuditPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-[#151D30] border border-[#22314D] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#2F58CD]/70 font-semibold cursor-pointer"
+                className="bg-cyberCard border border-cyberBorder rounded-xl px-3 py-2.5 text-xs text-white focus:outline-hidden focus:border-royalBlue/70 font-semibold cursor-pointer"
               >
                 <option value="ALL">ALL EVENTS</option>
                 <option value="SUCCESS">SUCCESS ONLY</option>
@@ -695,7 +695,7 @@ export default function AuditPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-[#151D30] border border-[#22314D] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#2F58CD]/70 font-semibold cursor-pointer"
+                className="bg-cyberCard border border-cyberBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden focus:border-royalBlue/70 font-semibold cursor-pointer"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -706,7 +706,7 @@ export default function AuditPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-[#151D30] border border-[#22314D] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#2F58CD]/70 font-semibold cursor-pointer"
+                className="bg-cyberCard border border-cyberBorder rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden focus:border-royalBlue/70 font-semibold cursor-pointer"
               />
             </div>
 
@@ -722,7 +722,7 @@ export default function AuditPage() {
                   setStatusFilter("ALL");
                   setSearchTerm("");
                 }}
-                className="text-[10px] bg-[#EF4444]/10 hover:bg-[#EF4444]/20 text-[#EF4444] font-bold px-3 py-2 rounded-xl border border-[#EF4444]/20 transition-all"
+                className="text-[10px] bg-cyberRed/10 hover:bg-cyberRed/20 text-cyberRed font-bold px-3 py-2 rounded-xl border border-cyberRed/20 transition-all"
               >
                 Reset Filters
               </button>
@@ -734,23 +734,23 @@ export default function AuditPage() {
       {/* SIEM Log Table Panel */}
       <div className="glass-card rounded-2xl overflow-hidden">
         {/* Panel Header */}
-        <div className="p-5 border-b border-[#22314D] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#111827]/30">
+        <div className="p-5 border-b border-cyberBorder flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#111827]/30">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-300">
-            <Terminal className="h-4.5 w-4.5 text-[#2F58CD]" />
+            <Terminal className="h-4.5 w-4.5 text-royalBlue" />
             <span>Active Logging Ledger</span>
-            <span className="text-xs bg-[#151D30] text-slate-400 border border-[#22314D] px-2.5 py-0.5 rounded-lg font-mono ml-1.5 font-semibold">
+            <span className="text-xs bg-cyberCard text-slate-400 border border-cyberBorder px-2.5 py-0.5 rounded-lg font-mono ml-1.5 font-semibold">
               {sortedLogs.length} Records Found
             </span>
           </div>
         </div>
 
         {/* Column sorting header buttons */}
-        <div className="px-5 py-3.5 border-b border-[#22314D] bg-[#111827]/40 flex items-center justify-between text-xs text-slate-400 font-bold uppercase tracking-wider">
+        <div className="px-5 py-3.5 border-b border-cyberBorder bg-[#111827]/40 flex items-center justify-between text-xs text-slate-400 font-bold uppercase tracking-wider">
           <span className="text-[10px]">Sort Ledger Logs By:</span>
           <div className="flex flex-wrap gap-4 md:gap-6">
             <button
               onClick={() => handleSort("timestamp")}
-              className={`flex items-center gap-1.5 transition-colors text-[11px] ${sortField === "timestamp" ? "text-[#2F58CD] font-extrabold" : "hover:text-white"}`}
+              className={`flex items-center gap-1.5 transition-colors text-[11px] ${sortField === "timestamp" ? "text-royalBlue font-extrabold" : "hover:text-white"}`}
             >
               <span>Timestamp</span>
               <ArrowUpDown className="h-3 w-3" />
@@ -760,7 +760,7 @@ export default function AuditPage() {
 
             <button
               onClick={() => handleSort("action")}
-              className={`flex items-center gap-1.5 transition-colors text-[11px] ${sortField === "action" ? "text-[#2F58CD] font-extrabold" : "hover:text-white"}`}
+              className={`flex items-center gap-1.5 transition-colors text-[11px] ${sortField === "action" ? "text-royalBlue font-extrabold" : "hover:text-white"}`}
             >
               <span>User Action</span>
               <ArrowUpDown className="h-3 w-3" />
@@ -769,7 +769,7 @@ export default function AuditPage() {
 
             <button
               onClick={() => handleSort("status")}
-              className={`flex items-center gap-1.5 transition-colors text-[11px] ${sortField === "status" ? "text-[#2F58CD] font-extrabold" : "hover:text-white"}`}
+              className={`flex items-center gap-1.5 transition-colors text-[11px] ${sortField === "status" ? "text-royalBlue font-extrabold" : "hover:text-white"}`}
             >
               <span>Status</span>
               <ArrowUpDown className="h-3 w-3" />
@@ -779,19 +779,19 @@ export default function AuditPage() {
         </div>
 
         {/* Log list items */}
-        <div className="divide-y divide-[#22314D]">
+        <div className="divide-y divide-cyberBorder">
           {sortedLogs.length > 0 ? (
             sortedLogs.map((log) => (
               <div
                 key={log.id}
-                className="p-5 hover:bg-[#151D30]/30 transition-all duration-200 space-y-3"
+                className="p-5 hover:bg-cyberCard/30 transition-all duration-200 space-y-3"
               >
                 {/* Top metadata block */}
                 <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2.5">
                     <span
                       className={`h-2 w-2 rounded-full ${
-                        log.status === "SUCCESS" ? "bg-[#10B981]" : "bg-red-500"
+                        log.status === "SUCCESS" ? "bg-cyberGreen" : "bg-red-500"
                       }`}
                     ></span>
                     <span className="font-extrabold text-white">
@@ -813,14 +813,14 @@ export default function AuditPage() {
                 </div>
 
                 {/* Payload Details */}
-                <div className="p-3.5 bg-[#0B0F19]/90 rounded-xl border border-[#22314D] flex flex-col md:flex-row md:items-center justify-between gap-3 text-[11px] font-mono">
+                <div className="p-3.5 bg-cyberDark/90 rounded-xl border border-cyberBorder flex flex-col md:flex-row md:items-center justify-between gap-3 text-[11px] font-mono">
                   <div className="text-slate-400 truncate max-w-3xl">
                     Payload:{" "}
-                    <span className="text-[#10B981] font-semibold">
+                    <span className="text-cyberGreen font-semibold">
                       {highlightText(log.details, searchTerm)}
                     </span>
                   </div>
-                  <span className="text-[9px] text-slate-600 bg-slate-900/40 px-2 py-0.5 rounded font-mono shrink-0">
+                  <span className="text-[9px] text-slate-600 bg-slate-900/40 px-2 py-0.5 rounded-sm font-mono shrink-0">
                     ID: {log.id}
                   </span>
                 </div>
@@ -836,8 +836,8 @@ export default function AuditPage() {
                   <span
                     className={`font-bold flex items-center gap-1.5 ${
                       log.status === "SUCCESS"
-                        ? "text-[#10B981]"
-                        : "text-[#EF4444]"
+                        ? "text-cyberGreen"
+                        : "text-cyberRed"
                     }`}
                   >
                     {log.status === "SUCCESS" ? (
@@ -1049,17 +1049,17 @@ export default function AuditPage() {
       {/* CSV Export Preview Modal */}
       {showCSVPreview && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#111827] border border-[#22314D] rounded-3xl max-w-4xl w-full p-6 space-y-6 shadow-2xl relative animate-slideIn text-left">
-            <div className="flex items-center justify-between border-b border-[#22314D] pb-4">
+          <div className="bg-[#111827] border border-cyberBorder rounded-3xl max-w-4xl w-full p-6 space-y-6 shadow-2xl relative animate-slideIn text-left">
+            <div className="flex items-center justify-between border-b border-cyberBorder pb-4">
               <div className="flex items-center gap-2.5">
-                <Download className="h-5 w-5 text-[#2F58CD]" />
+                <Download className="h-5 w-5 text-royalBlue" />
                 <h3 className="text-base font-bold text-white">
                   Export Filtered CSV Preview
                 </h3>
               </div>
               <button
                 onClick={() => setShowCSVPreview(false)}
-                className="text-slate-400 hover:text-white font-extrabold uppercase text-[10px] px-3 py-1.5 rounded-lg border border-[#22314D] hover:bg-[#22314D]"
+                className="text-slate-400 hover:text-white font-extrabold uppercase text-[10px] px-3 py-1.5 rounded-lg border border-cyberBorder hover:bg-cyberBorder"
               >
                 Close
               </button>
@@ -1070,10 +1070,10 @@ export default function AuditPage() {
               exporting as a formatted CSV spreadsheet:
             </p>
 
-            <div className="overflow-x-auto border border-[#22314D] rounded-xl max-h-[300px] scrollbar-thin">
+            <div className="overflow-x-auto border border-cyberBorder rounded-xl max-h-[300px] scrollbar-thin">
               <table className="w-full text-xs text-slate-300 border-collapse">
                 <thead>
-                  <tr className="bg-[#0B0F19] text-[10px] uppercase text-slate-400 font-bold tracking-wider border-b border-[#22314D] text-left">
+                  <tr className="bg-cyberDark text-[10px] uppercase text-slate-400 font-bold tracking-wider border-b border-cyberBorder text-left">
                     <th className="p-3 font-mono text-[9px]">Log ID</th>
                     <th className="p-3">Timestamp (UTC)</th>
                     <th className="p-3">Operator</th>
@@ -1082,11 +1082,11 @@ export default function AuditPage() {
                     <th className="p-3">Device Target</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#22314D]">
+                <tbody className="divide-y divide-cyberBorder">
                   {sortedLogs.map((log) => (
                     <tr
                       key={log.id}
-                      className="hover:bg-[#151D30]/30 transition-colors"
+                      className="hover:bg-cyberCard/30 transition-colors"
                     >
                       <td className="p-3 font-mono text-[9px] text-slate-500">
                         {log.id}
@@ -1102,7 +1102,7 @@ export default function AuditPage() {
                         <span
                           className={`px-2 py-0.5 rounded text-[9px] font-bold ${
                             log.status === "SUCCESS"
-                              ? "bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30"
+                              ? "bg-cyberGreen/20 text-cyberGreen border border-cyberGreen/30"
                               : "bg-red-500/20 text-red-500 border border-red-500/30"
                           }`}
                         >
@@ -1116,7 +1116,7 @@ export default function AuditPage() {
               </table>
             </div>
 
-            <div className="flex justify-between items-center border-t border-[#22314D] pt-4">
+            <div className="flex justify-between items-center border-t border-cyberBorder pt-4">
               <span className="text-[10px] text-slate-500 font-bold uppercase">
                 Ready to generate: {sortedLogs.length} record
                 {sortedLogs.length === 1 ? "" : "s"}
@@ -1133,7 +1133,7 @@ export default function AuditPage() {
                     handleExportCSV();
                     setShowCSVPreview(false);
                   }}
-                  className="bg-[#2F58CD] hover:bg-blue-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5"
+                  className="bg-royalBlue hover:bg-blue-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5"
                 >
                   <Download className="h-4 w-4" />
                   <span>Download Filtered CSV</span>

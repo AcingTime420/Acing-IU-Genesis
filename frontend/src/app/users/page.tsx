@@ -43,17 +43,17 @@ export default function UsersPage() {
       </div>
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[#22314D] pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-cyberBorder pb-6">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-3">
-            <Users className="h-6 w-6 text-[#2F58CD]" />
+            <Users className="h-6 w-6 text-royalBlue" />
             Operator Access and Credentials (Fixture)
           </h1>
           <p className="text-sm text-slate-400 mt-1">
             Demonstration roles and clearance labels only. No system-level actions are authorized from this page.
           </p>
         </div>
-        <span className="text-xs bg-[#6C3483]/20 text-[#6C3483] font-bold px-3 py-1.5 rounded-full border border-[#6C3483]/30">
+        <span className="text-xs bg-vividViolet/20 text-vividViolet font-bold px-3 py-1.5 rounded-full border border-vividViolet/30">
           3 Fixture Records
         </span>
       </div>
@@ -61,14 +61,14 @@ export default function UsersPage() {
       {/* Main Personnel Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {users.map((user) => (
-          <div key={user.id} className="glass-card rounded-2xl p-6 hover:border-[#6C3483]/50 transition-all duration-300 flex flex-col justify-between space-y-6">
+          <div key={user.id} className="glass-card rounded-2xl p-6 hover:border-vividViolet/50 transition-all duration-300 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               {/* Header card info */}
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-slate-500 font-mono">{user.id}</span>
                 <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                  user.role === 'Admin' ? 'bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20' :
-                  user.role === 'Operator' ? 'bg-[#2F58CD]/10 text-[#2F58CD] border border-[#2F58CD]/20' :
+                  user.role === 'Admin' ? 'bg-cyberRed/10 text-cyberRed border border-cyberRed/20' :
+                  user.role === 'Operator' ? 'bg-royalBlue/10 text-royalBlue border border-royalBlue/20' :
                   'bg-slate-800 text-slate-400 border border-slate-700'
                 }`}>
                   {user.role}
@@ -79,20 +79,20 @@ export default function UsersPage() {
               <div className="space-y-1">
                 <h3 className="text-base font-bold text-white tracking-tight truncate">{user.email}</h3>
                 <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-[#2F58CD]" />
+                  <Shield className="h-3.5 w-3.5 text-royalBlue" />
                   {user.clearance}
                 </p>
               </div>
 
               {/* Key signatures */}
-              <div className="p-3 bg-[#111827]/40 rounded-xl border border-[#22314D] font-mono text-[10px] text-slate-400 space-y-1">
+              <div className="p-3 bg-[#111827]/40 rounded-xl border border-cyberBorder font-mono text-[10px] text-slate-400 space-y-1">
                 <div className="flex justify-between items-center">
                   <span>Sign ID (fixture):</span>
                   <span className="text-white font-bold">{user.keySignature}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>MFA Status (fixture):</span>
-                  <span className={user.mfaEnabled ? "text-[#10B981] font-bold" : "text-[#EF4444] font-bold"}>
+                  <span className={user.mfaEnabled ? "text-cyberGreen font-bold" : "text-cyberRed font-bold"}>
                     {user.mfaEnabled ? "FIXTURE_VERIFIED" : "FIXTURE_NOT_ENROLLED"}
                   </span>
                 </div>
@@ -100,9 +100,9 @@ export default function UsersPage() {
             </div>
 
             {/* Bottom Actions Row */}
-            <div className="flex items-center justify-between pt-4 border-t border-[#22314D] text-xs">
-              <span className="flex items-center gap-1.5 text-[#10B981] font-bold">
-                <span className="h-1.5 w-1.5 bg-[#10B981] rounded-full"></span>
+            <div className="flex items-center justify-between pt-4 border-t border-cyberBorder text-xs">
+              <span className="flex items-center gap-1.5 text-cyberGreen font-bold">
+                <span className="h-1.5 w-1.5 bg-cyberGreen rounded-full"></span>
                 {user.status}
               </span>
               <button className="text-slate-400 hover:text-white font-bold transition-colors" disabled title="Fixture only — no audit actions">
@@ -114,8 +114,8 @@ export default function UsersPage() {
       </div>
 
       {/* Security Tip banner */}
-      <div className="p-4 rounded-xl border border-[#22314D] bg-[#111827]/30 flex items-start gap-3.5">
-        <ShieldAlert className="h-5 w-5 text-[#EF4444] shrink-0 mt-0.5" />
+      <div className="p-4 rounded-xl border border-cyberBorder bg-[#111827]/30 flex items-start gap-3.5">
+        <ShieldAlert className="h-5 w-5 text-cyberRed shrink-0 mt-0.5" />
         <div className="space-y-1">
           <h4 className="text-xs font-bold text-slate-300">Administrative Safeguards (Planned)</h4>
           <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
