@@ -1,0 +1,28 @@
+name: Genesis local assistant boundaries
+on:
+  push:
+    paths:
+      - 'backend/LocalAssistant/**'
+      - '.github/workflows/local-assistant.yml'
+  pull_request:
+    paths:
+      - 'backend/LocalAssistant/**'
+      - '.github/workflows/local-assistant.yml'
+permissions:
+  contents: read
+jobs:
+  boundaries:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+      - name: Boundary and HTTP tests without model downloads or provider charges
+        run: node --test backend/LocalAssistant/tests/boundary.test.mjs
+      - name: Check browser module syntax
+        run: node --check backend/LocalAssistant/public/assistant.mjs

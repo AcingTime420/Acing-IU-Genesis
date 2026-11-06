@@ -15,6 +15,9 @@ try {
   await rm(out, {recursive: true, force: true});
   await mkdir(out, {recursive: true});
   for (const name of ['index.html', 'app.mjs']) await copyFile(path.join(here, name), path.join(out, name));
+  const assistant = path.join(here, '../../backend/LocalAssistant/public');
+  await copyFile(path.join(assistant, 'index.html'), path.join(out, 'assistant.html'));
+  for (const name of ['assistant.mjs', 'assistant.css']) await copyFile(path.join(assistant, name), path.join(out, name));
   await writeFile(path.join(out, 'genesis-adapter.mjs'), compiled);
   await writeFile(path.join(out, 'provenance.json'), JSON.stringify({repository: 'AcingTime420/Acing-IU-Genesis', commit, mode: 'mock'}, null, 2) + '\n');
   console.log(`Built repository mock preview at ${out} from ${commit}`);
