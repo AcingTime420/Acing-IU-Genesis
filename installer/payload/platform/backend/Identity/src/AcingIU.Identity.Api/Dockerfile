@@ -1,28 +1,39 @@
 # =============================================================================
-# Acing IU — Identity API (S2)
-# Multi-stage build: restore → publish → runtime
+# Acing IU - Identity API
+# Repository-root Docker build context
 # =============================================================================
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:5dfdb3b19e6900a3dc449760547a0a3fdd1f47900062d274d57e7ab725484c16 AS build
+
 WORKDIR /src
 
-COPY AcingIU.Identity.Api.csproj .
-RUN dotnet restore
+COPY backend/SharedKernel/src/AcingIU.SharedKernel/AcingIU.SharedKernel.csproj backend/SharedKernel/src/AcingIU.SharedKernel/
+COPY backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Api.csproj backend/Identity/src/AcingIU.Identity.Api/
 
-COPY . .
-RUN dotnet publish -c Release -o /app/publish --no-restore
+RUN dotnet restore backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Api.csproj
 
-# ---------------------------------------------------------------------------
+COPY backend/SharedKernel/src/AcingIU.SharedKernel/ backend/SharedKernel/src/AcingIU.SharedKernel/
+COPY backend/Identity/src/AcingIU.Identity.Api/ backend/Identity/src/AcingIU.Identity.Api/
+
+RUN dotnet publish backend/Identity/src/AcingIU.Identity.Api/AcingIU.Identity.Api.csproj \
+    -c Release \
+    -o /app/publish \
+    --no-restore
+
 FROM mcr.microsoft.com/dotnet/aspnet:8.0.32-alpine3.24@sha256:cf6f271f1c106dcb4dd403e7b3dc03b0c508dabef348c51fd6a709b12cda69b0 AS runtime
+
 WORKDIR /app
 
-RUN wget --help >/dev/null 2>&1
+# Apply current Alpine security fixes from the pinned runtime repository, then verify the health-check dependency.
+RUN apk upgrade --no-cache \
+    && wget --help >/dev/null 2>&1
 
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 COPY --from=build /app/publish .
 
+# .NET 8 images include the unprivileged 'app' user.
 USER app
 
 EXPOSE 8080

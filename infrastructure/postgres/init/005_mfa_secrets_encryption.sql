@@ -1,6 +1,6 @@
 -- Acing IU Genesis — 005_mfa_secrets_encryption.sql
 -- Requires: 001_init_identity_schema.sql (users table exists, pgcrypto from 000)
--- Implements envelope encryption for MFA secrets with key rotation support
+-- Reserved schema for a future database-backed MFA key-rotation model. Canonical Identity currently protects the users.mfa_secret_base32 value in application code with AesGcmMfaSecretProtector.
 
 -- MFA secret keys table (for key rotation)
 CREATE TABLE IF NOT EXISTS mfa_encryption_keys (
@@ -44,17 +44,16 @@ CREATE INDEX IF NOT EXISTS idx_mfa_recovery_used ON mfa_recovery_codes (used_at)
     WHERE used_at IS NULL;
 
 -- Comments
-COMMENT ON TABLE mfa_encryption_keys IS 'Master encryption keys for MFA secrets (key rotation support)';
+COMMENT ON TABLE mfa_encryption_keys IS 'Reserved target schema; canonical runtime does not read this table.';
 COMMENT ON COLUMN mfa_encryption_keys.key_material IS 'Encrypted key material (encrypt with external KMS in production)';
-COMMENT ON TABLE mfa_secrets_encrypted IS 'Encrypted TOTP secrets; never store plaintext';
-COMMENT ON TABLE mfa_recovery_codes IS 'Single-use recovery codes for MFA (hashed for prevention of exposure)';
+COMMENT ON TABLE mfa_secrets_encrypted IS 'Reserved target schema; canonical runtime does not read this table.';
+COMMENT ON TABLE mfa_recovery_codes IS 'Reserved target schema; recovery-code workflow is not currently verified.';
 
--- Grants
-GRANT SELECT, INSERT ON TABLE mfa_encryption_keys TO acing_identity;
-GRANT SELECT, INSERT, UPDATE ON TABLE mfa_secrets_encrypted TO acing_identity;
-GRANT SELECT, INSERT, UPDATE ON TABLE mfa_recovery_codes TO acing_identity;
-GRANT USAGE, SELECT ON SEQUENCE mfa_encryption_keys_id_seq TO acing_identity;
-GRANT USAGE, SELECT ON SEQUENCE mfa_recovery_codes_id_seq TO acing_identity;
+-- No runtime grants are issued until canonical Identity uses these tables.
+REVOKE ALL PRIVILEGES ON TABLE mfa_encryption_keys, mfa_secrets_encrypted, mfa_recovery_codes
+    FROM acing_identity;
+REVOKE ALL PRIVILEGES ON SEQUENCE mfa_encryption_keys_id_seq, mfa_recovery_codes_id_seq
+    FROM acing_identity;
 
 INSERT INTO schema_migrations (version, description)
 VALUES ('005', 'mfa secrets encryption and recovery codes')

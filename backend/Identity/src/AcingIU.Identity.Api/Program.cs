@@ -1,8 +1,10 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using AcingIU.Identity.Api.Data;
 using AcingIU.Identity.Api.Options;
 using AcingIU.Identity.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
@@ -25,8 +27,9 @@ builder.Services
 builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-var redisConn = builder.Configuration["Redis:Connection"]
-    ?? throw new InvalidOperationException("Redis:Connection is required.");
+var redisConn = builder.Configuration["Redis:Connection"];
+if (string.IsNullOrWhiteSpace(redisConn))
+    throw new InvalidOperationException("Redis:Connection is required.");
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     ConnectionMultiplexer.Connect(redisConn));
 builder.Services.AddSingleton<ITokenRevocationStore, RedisTokenRevocationStore>();
@@ -44,10 +47,18 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // AuthN
 // ---------------------------------------------------------------------------
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
-var signingKey = jwtSection["SigningKey"]
-    ?? throw new InvalidOperationException("Jwt:SigningKey is required.");
-if (signingKey.Length < 32)
-    throw new InvalidOperationException("Jwt:SigningKey must be at least 32 characters.");
+var signingKey = jwtSection["SigningKey"];
+if (string.IsNullOrWhiteSpace(signingKey))
+    throw new InvalidOperationException("Jwt:SigningKey is required.");
+if (signingKey.Length < 32 ||
+    signingKey.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase) ||
+    signingKey.Contains("placeholder", StringComparison.OrdinalIgnoreCase))
+    throw new InvalidOperationException("Jwt:SigningKey must be a non-placeholder secret of at least 32 characters.");
+
+var issuer = jwtSection["Issuer"];
+var audience = jwtSection["Audience"];
+if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience))
+    throw new InvalidOperationException("Jwt:Issuer and Jwt:Audience are required.");
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -56,9 +67,9 @@ builder.Services
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = jwtSection["Issuer"],
+            ValidIssuer = issuer,
             ValidateAudience = true,
-            ValidAudience = jwtSection["Audience"],
+            ValidAudience = audience,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
             ValidateLifetime = true,
@@ -85,6 +96,19 @@ builder.Services.AddAuthorization();
 // API surface
 // ---------------------------------------------------------------------------
 builder.Services.AddControllers();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("auth-abuse", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 10;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+        limiterOptions.AutoReplenishment = true;
+    });
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -131,9 +155,13 @@ var app = builder.Build();
 // ---------------------------------------------------------------------------
 // Pipeline
 // ---------------------------------------------------------------------------
-app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acing IU Identity v1"));
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Acing IU Identity v1"));
+}
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
