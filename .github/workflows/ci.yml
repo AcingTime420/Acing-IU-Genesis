@@ -217,6 +217,35 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
           dotnet-version: '8.0.x'
+      - name: Set up Node for connected reviewer test
+        if: matrix.configuration == 'Release'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+      - name: Run connected Chromium and PostgreSQL reviewer test
+        if: matrix.configuration == 'Release'
+        working-directory: frontend
+        env:
+          ASPNETCORE_ENVIRONMENT: Test
+          PGHOST: 127.0.0.1
+          PGDATABASE: genesis_authority_test
+          PGUSER: authority_test
+          PGPASSWORD: isolated_ci_password_only
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: |
+          set -euo pipefail
+          scratch="$(mktemp -d)"
+          trap 'rm -rf -- "$scratch"' EXIT
+          npm ci --no-audit --no-fund
+          npm run build
+          npm install --prefix "$scratch/browser" --no-audit --no-fund --ignore-scripts playwright@1.65.0
+          "$scratch/browser/node_modules/.bin/playwright" install chromium --only-shell
+          dotnet build ../backend/HumanAuthority/HumanAuthority.csproj --configuration Release
+          python3 ../scripts/genesis-authority.py migrate
+          python3 ../scripts/genesis-authority.py --credentials "$scratch/fixtures.json" fixtures
+          node tests/genesis-connected-browser.mjs "$scratch/fixtures.json" "$scratch/browser"
       - name: Run actual authority HTTP and PostgreSQL integration tests
         run: dotnet test tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration "${{ matrix.configuration }}" --verbosity normal
 
