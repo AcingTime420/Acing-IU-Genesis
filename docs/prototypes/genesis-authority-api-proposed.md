@@ -64,7 +64,10 @@ Nullable linkage is explicit for events without an approval/grant/attempt.
 Proposals are immutable. Approval binds the authenticated proposing agent,
 proposal, application-managed document, append operation, exact text, expected
 document version, frozen server expiry and single use. Approval cannot extend
-expiry. One immutable decision and at most one grant exist per proposal.
+expiry. First approval requires the locked document's current version to match
+the proposal's expected version. A mismatch returns `409 proposal_stale`
+without creating a decision or grant. The owner can still reject that proposal.
+One immutable decision and at most one grant exist per proposal.
 Repeated identical decisions return the original grant, including its terminal
 state; an opposite decision conflicts. Agents cannot approve, revoke, change
 owners, issue grants, select their identity or expand authority.

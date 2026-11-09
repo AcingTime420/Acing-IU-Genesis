@@ -143,6 +143,8 @@ public static class AuthorityEndpoints
                 throw new AuthorityRequestException(409, "decision_conflict");
             if (!await session.Scalar<bool>("SELECT clock_timestamp() < $1", proposal.ExpiresAt))
                 throw new AuthorityRequestException(409, "proposal_expired");
+            if (document.Version != proposal.ExpectedVersion)
+                throw new AuthorityRequestException(409, "proposal_stale");
         }
         await session.Execute("""
             INSERT INTO genesis_authority.decisions(proposal_id,approver_id,decision) VALUES ($1,$2,$3)

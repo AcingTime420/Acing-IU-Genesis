@@ -69,6 +69,36 @@ public sealed partial class AuthorityTests(AuthorityFixture fixture)
     }
 
     [Fact]
+    public async Task AStaleProposalCannotCreateAnApprovalOrGrant()
+    {
+        var current = await Setup();
+        var stale = await Proposal(current.Document, "stale append");
+        Status(await Execute(current), 200);
+
+        var decisionPath = $"/proposals/{stale}/decision";
+        var response = await f.PostAsync(decisionPath, f.Human, new { decision = "approved" });
+        Status(response, 409);
+        Assert.Equal("proposal_stale", response.Body.GetProperty("error").GetString());
+        await AssertDocument(current, "initialappend\n", 1);
+
+        var replay = await f.PostAsync($"/proposals/{current.Proposal}/decision", f.Human, new { decision = "approved" });
+        Status(replay, 200);
+        Assert.Equal(current.Grant, replay.Body.GetProperty("grantId").GetGuid());
+        Assert.Equal("consumed", await State(current));
+
+        var evidence = await f.GetAsync($"/documents/{current.Document}/evidence", f.Human);
+        Status(evidence, 200);
+        Assert.DoesNotContain(evidence.Body.EnumerateArray(), e =>
+            e.GetProperty("action").GetString() == "proposal_decided" &&
+            e.GetProperty("proposalId").GetGuid() == stale);
+
+        // A rejection still works, proving the stale approval did not reserve a decision.
+        var rejected = await f.PostAsync(decisionPath, f.Human, new { decision = "rejected" });
+        Status(rejected, 200);
+        Assert.Equal(JsonValueKind.Null, rejected.Body.GetProperty("grantId").ValueKind);
+    }
+
+    [Fact]
     public async Task ExactUnicodeCrLfAppendAndReplayMutateOnce()
     {
         const string original = "a\r\n🙂e\u0301\n";

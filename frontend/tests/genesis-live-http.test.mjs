@@ -42,6 +42,12 @@ try{
  const session=cookie.split(';')[0];
  assert.equal((await post({action:'execute'},session)).status,400);
  failure='proposal_expired';assert.match((await (await post({action:'approve'},session)).json()).error,/fresh proposal/);
+ failure='proposal_stale';
+ const stale=await post({action:'approve'},session);
+ failure=null;
+ assert.equal(stale.status,409);
+ assert.match((await stale.json()).error,/document version changed.*fresh proposal/i);
+ assert.equal(grant,null);
  failure='decision_conflict';assert.match((await (await post({action:'approve'},session)).json()).error,/different decision/);failure=null;
  assert.equal((await (await post({action:'approve'},session)).json()).grant.state,'active');
  assert.equal((await (await post({action:'revoke',grantId:id},session)).json()).grant.state,'revoked');
