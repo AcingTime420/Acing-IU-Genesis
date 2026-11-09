@@ -26,6 +26,7 @@ export default function LiveGenesisPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const inFlight = useRef(false);
+  const staleProposal = state !== null && state.proposal.expectedVersion !== state.document.version;
 
   async function request(body?: Record<string, string>) {
     if (inFlight.current) return;
@@ -112,7 +113,8 @@ export default function LiveGenesisPage() {
             <h3 className="mt-5 text-sm font-semibold text-slate-200">Exact proposed text (untrusted text)</h3>
             <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-slate-950 p-4 font-mono text-sm text-white">{state.proposal.text}</pre>
             <p className="mt-2 text-sm text-amber-100">Append behavior: the backend appends the exact text above followed by one LF newline (U+000A). Approval is bound to the agent, proposal, document, operation, exact text, expected version, expiration, and single-use scope.</p>
-            <div className="mt-4 flex flex-wrap gap-3"><button type="button" disabled={busy || state.decision !== null} onClick={() => decide("approve")} className={`${control} bg-emerald-800`}>Approve exact proposal</button><button type="button" disabled={busy || state.decision !== null} onClick={() => decide("reject")} className={`${control} border-rose-400`}>Reject proposal</button></div>
+            {staleProposal && state.decision === null && <p role="status" className="mt-2 text-sm text-amber-100">The document version changed. Ask the agent for a fresh proposal before approving.</p>}
+            <div className="mt-4 flex flex-wrap gap-3"><button type="button" disabled={busy || state.decision !== null || staleProposal} onClick={() => decide("approve")} className={`${control} bg-emerald-800`}>Approve exact proposal</button><button type="button" disabled={busy || state.decision !== null} onClick={() => decide("reject")} className={`${control} border-rose-400`}>Reject proposal</button></div>
           </section>
           <section className={panel} aria-labelledby="grant-heading"><h2 id="grant-heading" className="text-xl font-semibold text-white">Current authority</h2><p className="mt-3 break-all text-sm text-slate-200">Grant: {state.grant?.id ?? "Not issued"}</p><p className="mt-2 text-sm text-slate-200">Server-reported state: <strong>{state.grant?.state ?? "No grant"}</strong></p>{state.grant && <p className="mt-2 text-sm text-slate-300">Expires: {date(state.grant.expiresAt)}</p>}<p className="mt-3 text-sm text-slate-400">Revocation blocks subsequent execution when it takes effect. It does not undo a completed append. Refresh to see changes made by the separate agent.</p><button type="button" disabled={busy || state.grant?.state !== "active"} onClick={() => decide("revoke")} className={`${control} mt-4 border-rose-400`}>Revoke grant</button></section>
           <section className={panel} aria-labelledby="document-heading"><h2 id="document-heading" className="text-xl font-semibold text-white">Current document: {state.document.title}</h2><p className="mt-2 break-all text-sm text-slate-400">{state.document.id} · Version {state.document.version}</p><pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-slate-950 p-4 font-mono text-sm text-slate-100">{state.document.content}</pre></section>

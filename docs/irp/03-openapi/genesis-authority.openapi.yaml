@@ -99,7 +99,10 @@ paths:
   /v1/authority/proposals/{id}/decision:
     parameters: [{$ref: '#/components/parameters/Id'}]
     post:
-      description: Human owner only. Same decision preserves original grant; opposite conflicts.
+      description: |
+        Human owner only. Same decision preserves the original grant.
+        An opposite decision conflicts. A first approval of a stale document
+        version returns 409 proposal_stale. The owner can still reject it.
       requestBody:
         required: true
         content:

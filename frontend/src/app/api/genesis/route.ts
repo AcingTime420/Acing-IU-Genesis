@@ -25,6 +25,7 @@ async function upstream(session: Pick<HumanSession, "credential">, path: string,
       forbidden: "This credential cannot perform this human-owner action.",
       not_found: "Proposal or document is unavailable to this owner.",
       proposal_expired: "Proposal expired. Ask the agent for a fresh proposal and review it in a new session.",
+      proposal_stale: "The document version changed. Ask the agent for a fresh proposal and review it in a new session.",
       decision_conflict: "A different decision already exists. Refresh to inspect the recorded decision.",
       authority_unavailable: "Authority service unavailable. Refresh to reconcile before retrying.",
     };
