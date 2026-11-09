@@ -249,6 +249,24 @@ jobs:
       - name: Run actual authority HTTP and PostgreSQL integration tests
         run: dotnet test tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration "${{ matrix.configuration }}" --verbosity normal
 
+  human-authority-windows-artifacts:
+    name: Human Authority artifact and database guards (Windows)
+    runs-on: windows-latest
+    needs: repo-integrity
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          dotnet-version: '8.0.x'
+      - name: Validate native artifact paths in Debug and Release
+        shell: pwsh
+        run: |
+          foreach ($configuration in @('Debug', 'Release')) {
+            dotnet test tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration $configuration --filter 'FullyQualifiedName~BackendArtifactTests|FullyQualifiedName~DatabaseGuardTests' --verbosity normal
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
   # ── Job 5: Container build (Docker) ───────────────────────────────────
   containerization:
     name: Container Build (Docker)
