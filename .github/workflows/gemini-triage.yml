@@ -55,49 +55,123 @@ jobs:
             core.info(`Found ${labelNames.length} labels: ${labelNames.join(', ')}`);
             return labelNames;
 
+      - name: 'Checkout repository'
+        if: |-
+          ${{ steps.get_labels.outputs.available_labels != '' }}
+        uses: 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' # ratchet:actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
       - name: 'Run Gemini issue analysis'
         id: 'gemini_analysis'
         if: |-
           ${{ steps.get_labels.outputs.available_labels != '' }}
-        uses: 'google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489' # ratchet:exclude
         env:
           GITHUB_TOKEN: '' # Do NOT pass any auth tokens here since this runs on untrusted inputs
           ISSUE_TITLE: '${{ github.event.issue.title }}'
           ISSUE_BODY: '${{ github.event.issue.body }}'
           AVAILABLE_LABELS: '${{ steps.get_labels.outputs.available_labels }}'
-        with:
-          gcp_location: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
-          gcp_project_id: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
-          gcp_service_account: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
-          gcp_workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
-          gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
-          gemini_cli_version: '${{ vars.GEMINI_CLI_VERSION }}'
-          gemini_debug: '${{ fromJSON(vars.GEMINI_DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
-          gemini_model: '${{ vars.GEMINI_MODEL }}'
-          google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
-          use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
-          use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
-          upload_artifacts: '${{ vars.UPLOAD_ARTIFACTS }}'
-          workflow_name: 'gemini-triage'
-          # Explicitly set the issue number to handle `issue_comment` triggers where the context might be ambiguous
-          github_issue_number: '${{ github.event.issue.number }}'
-          settings: |-
-            {
-              "model": {
-                "maxSessionTurns": 25
-              },
-              "telemetry": {
-                "enabled": true,
-                "target": "local",
-                "outfile": ".gemini/telemetry.log"
-              },
-              "tools": {
-                "core": [
-                  "run_shell_command(echo)"
-                ]
-              }
+          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+          GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'
+          GOOGLE_CLOUD_PROJECT: '${{ vars.GOOGLE_CLOUD_PROJECT }}'
+          GOOGLE_CLOUD_LOCATION: '${{ vars.GOOGLE_CLOUD_LOCATION }}'
+          GOOGLE_GENAI_USE_VERTEXAI: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'
+          GOOGLE_GENAI_USE_GCA: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
+          GEMINI_MODEL: '${{ vars.GEMINI_MODEL }}'
+          GEMINI_CLI_VERSION: '${{ vars.GEMINI_CLI_VERSION }}'
+          GEMINI_DEBUG: '${{ fromJSON(vars.GEMINI_DEBUG || vars.ACTIONS_STEP_DEBUG || false) }}'
+          UPLOAD_ARTIFACTS: '${{ vars.UPLOAD_ARTIFACTS }}'
+          GCP_WORKLOAD_IDENTITY_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
+          GCP_SERVICE_ACCOUNT: '${{ vars.SERVICE_ACCOUNT_EMAIL }}'
+        run: |-
+          set -euo pipefail
+
+          npm install --silent --no-audit --prefer-offline --global \
+            "@google/gemini-cli@${GEMINI_CLI_VERSION:-latest}"
+
+          mkdir -p .gemini/commands
+          cp .github/commands/gemini-triage.toml .gemini/commands/gemini-triage.toml
+          cat > .gemini/settings.json <<'EOF'
+          {
+            "model": {
+              "maxSessionTurns": 25
+            },
+            "telemetry": {
+              "enabled": true,
+              "target": "local",
+              "outfile": ".gemini/telemetry.log"
+            },
+            "tools": {
+              "core": [
+                "run_shell_command(echo)"
+              ]
             }
-          prompt: '/gemini-triage'
+          }
+          EOF
+
+          if [[ -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}" ]]; then
+            audience="//iam.googleapis.com/${GCP_WORKLOAD_IDENTITY_PROVIDER}"
+            encoded_audience="$(jq -rn --arg value "${audience}" '$value | @uri')"
+            oidc_auth_header="$(printf '%s %s' 'Bearer' "${ACTIONS_ID_TOKEN_REQUEST_TOKEN}")"
+            oidc_response="$(curl --fail --silent --show-error \
+              --header "Authorization: ${oidc_auth_header}" \
+              "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${encoded_audience}")"
+            oidc_token="$(jq -er '.value' <<< "${oidc_response}")"
+            federated_response="$(curl --fail --silent --show-error \
+              --request POST \
+              --header 'Content-Type: application/x-www-form-urlencoded' \
+              --data-urlencode "audience=${audience}" \
+              --data-urlencode 'grant_type=urn:ietf:params:oauth:grant-type:token-exchange' \
+              --data-urlencode 'requested_token_type=urn:ietf:params:oauth:token-type:access_token' \
+              --data-urlencode 'scope=https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile' \
+              --data-urlencode "subject_token=${oidc_token}" \
+              --data-urlencode 'subject_token_type=urn:ietf:params:oauth:token-type:jwt' \
+              'https://sts.googleapis.com/v1/token')"
+            google_access_token="$(jq -er '.access_token' <<< "${federated_response}")"
+
+            if [[ -n "${GCP_SERVICE_ACCOUNT}" ]]; then
+              encoded_service_account="$(jq -rn --arg value "${GCP_SERVICE_ACCOUNT}" '$value | @uri')"
+              google_auth_header="$(printf '%s %s' 'Bearer' "${google_access_token}")"
+              impersonation_response="$(curl --fail --silent --show-error \
+                --request POST \
+                --header "Authorization: ${google_auth_header}" \
+                --header 'Content-Type: application/json' \
+                --data '{"scope":["https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/userinfo.email","https://www.googleapis.com/auth/userinfo.profile"],"lifetime":"3600s"}' \
+                "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${encoded_service_account}:generateAccessToken")"
+              google_access_token="$(jq -er '.accessToken' <<< "${impersonation_response}")"
+            fi
+
+            export GOOGLE_CLOUD_ACCESS_TOKEN="${google_access_token}"
+          fi
+
+          mkdir -p gemini-artifacts
+          if [[ "${GEMINI_DEBUG}" == 'true' ]]; then
+            echo "::warning::Gemini CLI debug logging is enabled. This will stream responses, which could reveal sensitive information if processed with untrusted inputs."
+            gemini --debug --yolo --prompt '/gemini-triage' --output-format json \
+              2> >(tee gemini-artifacts/stderr.log >&2) \
+              | tee gemini-artifacts/stdout.log
+            sleep 1
+          else
+            gemini --yolo --prompt '/gemini-triage' --output-format json \
+              > gemini-artifacts/stdout.log \
+              2> gemini-artifacts/stderr.log
+            cat gemini-artifacts/stdout.log
+            cat gemini-artifacts/stderr.log >&2
+          fi
+
+          if [[ -f .gemini/telemetry.log ]]; then
+            cp .gemini/telemetry.log gemini-artifacts/telemetry.log
+          else
+            touch gemini-artifacts/telemetry.log
+          fi
+
+      - name: 'Upload Gemini CLI outputs'
+        if: |-
+          ${{ vars.UPLOAD_ARTIFACTS == 'true' }}
+        uses: 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a' # ratchet:actions/upload-artifact@v6.0.0
+        with:
+          name: 'gemini-output'
+          path: 'gemini-artifacts/'
 
   label:
     runs-on: 'ubuntu-latest'
