@@ -11,7 +11,8 @@ public sealed class BackendArtifactTests
         var configuration = assembly.GetCustomAttribute<AssemblyConfigurationAttribute>()!.Configuration;
         var artifact = assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
             .Single(a => a.Key == "HumanAuthorityArtifact").Value!;
-        Assert.Contains($"{Path.DirectorySeparatorChar}{configuration}{Path.DirectorySeparatorChar}", artifact);
+        var normalizedArtifact = Path.GetFullPath(artifact);
+        Assert.Contains($"{Path.DirectorySeparatorChar}{configuration}{Path.DirectorySeparatorChar}", normalizedArtifact);
         AuthorityFixture.ValidateBackendArtifact(artifact, configuration);
     }
 
