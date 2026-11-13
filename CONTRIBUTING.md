@@ -58,7 +58,7 @@ See `ARCHITECTURE.md` for the full directory map.
 
 ## 4. Development workflow
 
-1. **Create a branch** from `main`:
+1. **Create a branch** from the current canonical `master`:
 
    ```bash
    git checkout -b feature/your-description
@@ -132,3 +132,20 @@ All PRs must pass:
 
 Do **not** open a public issue for security vulnerabilities.  
 Follow the process in `SECURITY.md`.
+
+## 9. Contribution provenance and AI assistance
+
+Before submitting changes:
+- Identify third-party code, assets, their source URLs, and applicable licenses.
+- Preserve existing copyright and license notices.
+- State whether AI assisted the contribution and describe substantive human
+  authorship or revisions when known; do not claim unverified authorship.
+- Confirm you have authority to submit the material and flag uncertain provenance
+  for maintainer review before merge.
+- Never include credentials, private agreements, or personal identity documents.
+
+Submission does not automatically assign copyright or settle the project's
+undecided repository-wide license. Substantial outside contributions require
+the maintainer to resolve applicable contribution terms before acceptance.
+
+See [Ownership and provenance](docs/governance/OWNERSHIP_AND_PROVENANCE.md).
