@@ -243,7 +243,11 @@ GENESIS_TEST_DATABASE='Host=/var/run/postgresql;Database=genesis_authority_test;
 
 ## Local operation (implemented incrementally)
 
-Prerequisites: .NET 8 SDK/runtime, PostgreSQL 16 with `psql`, Python 3.9+.
+Prerequisites: a current .NET 10 LTS SDK/runtime, PostgreSQL 16 or later with `psql`, Python 3.9+.
+The service and authority tests target `net10.0`; an installed .NET 10 SDK alone
+does not migrate a `net8.0` application. Earlier .NET 8 evidence below is historical.
+See `../evidence/human-authority-net10-20261118.md` for this migration and its
+remaining validation gates.
 The commands below assume checkout
 `/home/runner/work/Acing-IU-Genesis/Acing-IU-Genesis`; substitute its absolute
 path on another machine. Do not use a platform/production database.

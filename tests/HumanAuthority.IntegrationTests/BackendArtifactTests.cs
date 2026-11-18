@@ -1,9 +1,40 @@
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace HumanAuthority.IntegrationTests;
 
 public sealed class BackendArtifactTests
 {
+    [Fact]
+    public void TestsActuallyRunOnDotnet10()
+    {
+        Assert.Equal(10, Environment.Version.Major);
+        Assert.StartsWith(".NET 10.", RuntimeInformation.FrameworkDescription);
+    }
+
+    [Theory]
+    [InlineData("net8.0", "8.0.0")]
+    [InlineData("net10.0", "8.0.0")]
+    public void StaleRuntimeArtifactCannotBeLaunched(string tfm, string version)
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"authority-runtime-{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(directory);
+            var artifact = Path.Combine(directory, "HumanAuthority.dll");
+            File.WriteAllText(artifact, "");
+            File.WriteAllText(Path.ChangeExtension(artifact, ".deps.json"), "{}");
+            File.WriteAllText(Path.ChangeExtension(artifact, ".runtimeconfig.json"),
+                System.Text.Json.JsonSerializer.Serialize(new { runtimeOptions = new {
+                    tfm, frameworks = new[] { new { name = "Microsoft.AspNetCore.App", version } }
+                }}));
+            var error = Assert.Throws<InvalidOperationException>(() =>
+                AuthorityFixture.ValidateBackendArtifact(artifact, "Release"));
+            Assert.Contains("no older-runtime fallback", error.Message);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
     [Fact]
     public void ArtifactPathMatchesTestBuildConfiguration()
     {

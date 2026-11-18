@@ -57,8 +57,15 @@ function sql(query) {
 
 let browser;
 try {
-  const backend = start('dotnet', ['../backend/HumanAuthority/bin/Release/net8.0/HumanAuthority.dll'], {
+  const artifact = '../backend/HumanAuthority/bin/Release/net10.0/HumanAuthority.dll';
+  // Fail on stale build metadata before starting any service; never search other build directories.
+  const { runtimeOptions } = JSON.parse(await readFile(artifact.replace(/\.dll$/, '.runtimeconfig.json'), 'utf8'));
+  assert.equal(runtimeOptions.tfm, 'net10.0');
+  assert.ok(runtimeOptions.frameworks.some(framework =>
+    framework.name === 'Microsoft.AspNetCore.App' && framework.version.startsWith('10.')));
+  const backend = start('dotnet', [artifact], {
     ...process.env, ASPNETCORE_ENVIRONMENT: 'Test', ASPNETCORE_URLS: backendUrl,
+    DOTNET_ROLL_FORWARD: 'LatestPatch',
     ConnectionStrings__Default: process.env.GENESIS_TEST_DATABASE,
   });
   await waitFor(backendUrl + '/health/ready', backend);

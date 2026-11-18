@@ -106,6 +106,8 @@ public sealed class AuthorityFixture : IAsyncLifetime
             UseShellExecute = false
         };
         start.ArgumentList.Add(artifact);
+        // Never let a machine with only a newer major runtime mask a missing .NET 10 installation.
+        start.Environment["DOTNET_ROLL_FORWARD"] = "LatestPatch";
         start.Environment["ASPNETCORE_ENVIRONMENT"] = "Test";
         start.Environment["DOTNET_ENVIRONMENT"] = "Test";
         start.Environment["ASPNETCORE_URLS"] = $"http://127.0.0.1:{port}";
@@ -134,6 +136,13 @@ public sealed class AuthorityFixture : IAsyncLifetime
                 throw new InvalidOperationException(
                     $"Missing HumanAuthority {configuration} backend artifact: {Path.GetFullPath(required)}. " +
                     $"Build HumanAuthority.IntegrationTests.csproj --configuration {configuration} before using --no-build; no configuration fallback is allowed.");
+        using var runtime = JsonDocument.Parse(File.ReadAllText(Path.ChangeExtension(artifact, ".runtimeconfig.json")));
+        var options = runtime.RootElement.GetProperty("runtimeOptions");
+        if (options.GetProperty("tfm").GetString() != "net10.0" ||
+            !options.GetProperty("frameworks").EnumerateArray().Any(framework =>
+                framework.GetProperty("name").GetString() == "Microsoft.AspNetCore.App" &&
+                Version.Parse(framework.GetProperty("version").GetString()!).Major == 10))
+            throw new InvalidOperationException("HumanAuthority requires a net10.0 ASP.NET Core artifact; no older-runtime fallback is allowed.");
     }
 
     private void Capture(string? line)

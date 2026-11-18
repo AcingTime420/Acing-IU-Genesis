@@ -7,6 +7,14 @@ boundary; it does not give the browser the agent credential or an execution API.
 
 ## Run locally
 
+Use a current .NET 10 LTS SDK/runtime for HumanAuthority and its tests.
+The connected harness starts only `bin/Release/net10.0/HumanAuthority.dll` and
+checks its runtime metadata; build that exact Release artifact first. No older
+runtime or Debug fallback is allowed. The existing baseline solution and
+containers are not migrated by this isolated change. See
+`../evidence/human-authority-net10-20261118.md` for current results and blockers;
+older validation sections below remain attributed historical evidence.
+
 Use the backend prerequisites, explicit migration, fixtures and CLI described in
 `genesis-authority-api-proposed.md`. Use a dedicated development database.
 Create a document and an agent proposal through that CLI. Keep the returned
