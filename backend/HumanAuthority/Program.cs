@@ -4,9 +4,21 @@ using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Test"))
-    throw new InvalidOperationException("HumanAuthority is restricted to Development/Test.");
+{
+    Console.Error.WriteLine("HumanAuthority is restricted to Development/Test.");
+    Environment.ExitCode = 78;
+    return;
+}
 
-LocalAuthorityListener.Configure(builder);
+try { LocalAuthorityListener.Configure(builder); }
+catch (LocalAuthorityListenerConfigurationException error)
+{
+    // A rejected configuration must exit before creating listeners or touching the database.
+    // Controlled failure also avoids OS crash-reporting delays for expected invalid input.
+    Console.Error.WriteLine(error.Message);
+    Environment.ExitCode = 78;
+    return;
+}
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;

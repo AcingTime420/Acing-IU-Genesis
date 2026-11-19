@@ -43,7 +43,9 @@ internal static class LocalAuthorityListener
         });
     }
 
-    private static InvalidOperationException Rejected() => new(
-        "Local authority listener configuration rejected: use explicit HTTP loopback URLs only; " +
-        "port-only and Kestrel overrides are forbidden.");
+    private static LocalAuthorityListenerConfigurationException Rejected() => new();
 }
+
+internal sealed class LocalAuthorityListenerConfigurationException() : InvalidOperationException(
+    "Local authority listener configuration rejected: use explicit HTTP loopback URLs only; " +
+    "port-only and Kestrel overrides are forbidden.");

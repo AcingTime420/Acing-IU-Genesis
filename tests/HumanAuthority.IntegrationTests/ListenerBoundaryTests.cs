@@ -25,7 +25,7 @@ public sealed class ListenerBoundaryTests
         try
         {
             await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
-            Assert.NotEqual(0, process.ExitCode);
+            Assert.Equal(78, process.ExitCode);
             Assert.Contains("Local authority listener configuration rejected", await stderr);
             Assert.DoesNotContain("Now listening", await stdout);
         }
@@ -41,7 +41,7 @@ public sealed class ListenerBoundaryTests
         try
         {
             await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
-            Assert.NotEqual(0, process.ExitCode);
+            Assert.Equal(78, process.ExitCode);
             Assert.Contains("Local authority listener configuration rejected", await stderr);
             Assert.DoesNotContain("Now listening", await stdout);
         }
