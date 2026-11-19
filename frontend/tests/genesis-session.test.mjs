@@ -7,8 +7,9 @@ test('reject cross-origin, remote and DNS-rebinding hosts', () => {
   assert.equal(trustedLocalRequest(new Request('http://localhost:3000/api/genesis',{headers:{origin:'http://localhost:3000'}})),true);
 });
 test('backend config cannot send credentials to remote hosts or URL paths',()=>{
- for(const value of ['https://evil.test','http://localhost:5088/other','http://user:pass@localhost:5088']) assert.throws(()=>backendOrigin(value));
+ for(const value of ['https://evil.test','http://localhost:5088','http://127.0.0.1.nip.io:5088','http://0.0.0.0:5088','http://localhost:5088/other','http://user:pass@localhost:5088']) assert.throws(()=>backendOrigin(value));
  assert.equal(backendOrigin('http://127.0.0.1:5088'),'http://127.0.0.1:5088');
+ assert.equal(backendOrigin('http://[::1]:5088'),'http://[::1]:5088');
 });
 test('sessions expire and logout removes authority',()=>{
  const data={credential:'secret',proposalId:'p',documentId:'d',reviewContext:'context'};

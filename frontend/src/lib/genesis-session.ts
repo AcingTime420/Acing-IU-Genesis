@@ -8,8 +8,8 @@ const sessions = new Map<string, HumanSession>();
 const local = new Set(["localhost", "127.0.0.1", "[::1]"]);
 export function backendOrigin(value: string): string {
   const url = new URL(value);
-  if (url.protocol !== "http:" || !local.has(url.hostname) || url.username || url.password || url.pathname !== "/" || url.search || url.hash)
-    throw new Error("Backend must be a plain loopback HTTP origin.");
+  if (url.protocol !== "http:" || !new Set(["127.0.0.1", "[::1]"]).has(url.hostname) || url.username || url.password || url.pathname !== "/" || url.search || url.hash)
+    throw new Error("Backend must be a literal loopback HTTP origin (127.0.0.1 or [::1]); hostnames are forbidden.");
   return url.origin;
 }
 export function trustedLocalRequest(request: Request): boolean {
