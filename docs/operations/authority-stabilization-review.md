@@ -34,20 +34,22 @@ must not be replaced by copying the human credential. Preserve old identifiers
 and evidence; design and review credential revocation/replacement before using
 real data. The current prototype has no approved production identity recovery.
 
-## Windows validation — native checks executed; connected gate separate
+## Windows validation — native and connected checks executed
 
 Native Windows ACL cases passed 12/12 in both configurations; Windows CLI IPC
 checks passed 6 cases with 2 POSIX skips. Authority tests passed 92/92 in each
 configuration against a new disposable PostgreSQL cluster. See
 [the current evidence](../evidence/windows-credential-native-validation-20261118.md)
-for exact tested revisions, runtime and the separate connected-browser limitation.
+for native tested revisions and runtime. The subsequent
+[Windows connected run](../evidence/windows-connected-validation-20261118.md) passed
+the frontend build, HTTP boundaries and real Chromium/service/PostgreSQL scenario.
 The CLI requires the exact Release/net10.0 native helper. No Unix-mode fallback.
 
 Use a new isolated checkout/worktree containing the ordered patches. Preserve the
 owner's normal checkout. Verify .NET 10 LTS and current patch, supported Node,
 PostgreSQL tools and Python. The following PowerShell sequence is a reproduction
-recipe for a Windows operator. It is not a claim that this entire recipe or the
-connected browser gate completed on Windows.
+recipe for a Windows operator. The connected evidence records the actual isolated
+commands and source; it does not claim every line of this fresh-cluster recipe ran.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -86,7 +88,15 @@ $env:ASPNETCORE_ENVIRONMENT = 'Test'
 $env:GENESIS_TEST_DATABASE = 'Host=127.0.0.1;Port=55443;Database=genesis_authority_test;Username=authority_test'
 $env:NEXT_TELEMETRY_DISABLED = '1'
 Checked { initdb -D $cluster -U authority_test -A trust --encoding=UTF8 }
-Checked { pg_ctl -D $cluster -l (Join-Path $scratch 'postgres.log') -o '-h 127.0.0.1 -p 55443' start }
+# PowerShell can wait on inherited server handles when pg_ctl is invoked directly.
+# Launch the control process separately and bound the wait for that process only.
+$pgStart = Start-Process -FilePath (Get-Command pg_ctl).Source -ArgumentList @(
+    '-D', ('"' + $cluster + '"'), '-l', ('"' + (Join-Path $scratch 'postgres.log') + '"'),
+    '-o', '"-h 127.0.0.1 -p 55443"', '-w', 'start'
+) -PassThru -NoNewWindow -RedirectStandardOutput (Join-Path $scratch 'pg-start.log') -RedirectStandardError (Join-Path $scratch 'pg-start.stderr')
+$null = $pgStart.Handle
+if (-not $pgStart.WaitForExit(30000)) { throw 'PostgreSQL start control timeout; inspect the isolated cluster before continuing.' }
+if ($pgStart.ExitCode -ne 0) { throw 'PostgreSQL start failed.' }
 try {
     Checked { psql -X -v ON_ERROR_STOP=1 -c 'CREATE DATABASE genesis_authority_test' }
     $env:PGDATABASE = 'genesis_authority_test'
@@ -116,7 +126,12 @@ try {
         Checked { node tests/genesis-connected-browser.mjs $fixtures $browser }
     } finally { Pop-Location }
 } finally {
-    Checked { pg_ctl -D $cluster -m fast stop }
+    $pgStop = Start-Process -FilePath (Get-Command pg_ctl).Source -ArgumentList @(
+        '-D', ('"' + $cluster + '"'), '-m', 'fast', '-w', 'stop'
+    ) -PassThru -NoNewWindow -RedirectStandardOutput (Join-Path $scratch 'pg-stop.log') -RedirectStandardError (Join-Path $scratch 'pg-stop.stderr')
+    $null = $pgStop.Handle
+    if (-not $pgStop.WaitForExit(30000)) { throw 'PostgreSQL stop control timeout; inspect the isolated cluster.' }
+    if ($pgStop.ExitCode -ne 0) { throw 'PostgreSQL stop failed.' }
     # Keep the private cluster/logs for review. Do not automatically delete evidence.
     Remove-Item Env:GENESIS_LOCAL_LIVE -ErrorAction SilentlyContinue
 }

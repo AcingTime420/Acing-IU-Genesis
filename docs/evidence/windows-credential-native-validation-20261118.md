@@ -1,3 +1,5 @@
+> Subsequent Windows frontend and connected-browser validation completed. See [connected results](windows-connected-validation-20261118.md). The remaining-browser statements below describe the earlier native-validation snapshot.
+
 # Native Windows credential and authority validation
 
 Research/session date: November 18, 2026 (America/Los_Angeles).

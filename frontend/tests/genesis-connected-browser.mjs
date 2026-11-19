@@ -4,6 +4,7 @@ import { once } from 'node:events';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
+import { performance } from 'node:perf_hooks';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
@@ -43,7 +44,10 @@ function start(command, args, env) {
 }
 
 async function waitFor(url, child) {
-  for (let attempt = 0; attempt < 100; attempt++) {
+  // Bound elapsed time rather than retries: cold Windows startup can exceed
+  // ten seconds even when connection refusals return immediately.
+  const deadline = performance.now() + 60000;
+  while (performance.now() < deadline) {
     if (child.exitCode !== null) throw new Error('Service exited during startup.');
     const ready = await fetch(url, { signal: AbortSignal.timeout(500) }).catch(() => null);
     if (ready?.ok && child.exitCode === null) return;
@@ -61,7 +65,8 @@ async function api(role, path, expected, body, key) {
       ...(key ? { 'Idempotency-Key': key } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(10000),
+    // Allow cold endpoint initialization while retaining a finite request bound.
+    signal: AbortSignal.timeout(30000),
   });
   assert.equal(response.status, expected, path);
   return response.json();
