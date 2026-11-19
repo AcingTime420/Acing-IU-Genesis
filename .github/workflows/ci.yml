@@ -271,7 +271,7 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
           dotnet-version: '10.0.x'
-      - name: Native Windows credential ACL candidate tests (not CLI enablement)
+      - name: Native Windows credential ACL tests
         shell: pwsh
         run: |
           if (-not $IsWindows) { throw 'Actual Windows execution is required.' }
@@ -285,6 +285,11 @@ jobs:
               throw 'All 12 native ACL tests must execute and pass; skipped checks do not close the gate.'
             }
           }
+      - name: Windows credential helper IPC and artifact guards
+        shell: pwsh
+        run: |
+          python -B -m unittest discover -s tests -p test_authority_credentials.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Validate native artifact paths in Debug and Release
         shell: pwsh
         run: |

@@ -1,3 +1,5 @@
+> Historical snapshot at the initial candidate. Native Windows access later became available. See [current validation](windows-credential-native-validation-20261118.md) for the integrated CLI and actual native results. The blocked verdict below describes that earlier revision.
+
 # Windows credential ACL candidate — evidence and blocked native gate
 
 Date: November 18, 2026, America/Los_Angeles.

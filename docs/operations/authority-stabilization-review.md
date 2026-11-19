@@ -34,20 +34,20 @@ must not be replaced by copying the human credential. Preserve old identifiers
 and evidence; design and review credential revocation/replacement before using
 real data. The current prototype has no approved production identity recovery.
 
-## Windows validation — prepared, not executed here
+## Windows validation — native checks executed; connected gate separate
 
-No native Windows runner or PowerShell is available in the execution environment.
-The CLI now refuses Windows credential creation/reading until native ACL validation
-is implemented. Do not remove that check or bypass it to run the browser test.
-Implement and test file ownership, allow-ACE restrictions, inherited access and
-reparse-point handling against actual Windows APIs first. Unix `stat`/chmod and
-mocking `os.name` are not Windows ACL verification.
+Native Windows ACL cases passed 12/12 in both configurations; Windows CLI IPC
+checks passed 6 cases with 2 POSIX skips. Authority tests passed 92/92 in each
+configuration against a new disposable PostgreSQL cluster. See
+[the current evidence](../evidence/windows-credential-native-validation-20261118.md)
+for exact tested revisions, runtime and the separate connected-browser limitation.
+The CLI requires the exact Release/net10.0 native helper. No Unix-mode fallback.
 
 Use a new isolated checkout/worktree containing the ordered patches. Preserve the
 owner's normal checkout. Verify .NET 10 LTS and current patch, supported Node,
 PostgreSQL tools and Python. The following PowerShell sequence is a reproduction
-recipe for a Windows operator **after** the native ACL gate is repaired; it is not
-a claim that the sequence or the gate was run on Windows.
+recipe for a Windows operator. It is not a claim that this entire recipe or the
+connected browser gate completed on Windows.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -62,24 +62,19 @@ Checked { node --version }
 Checked { npm --version }
 Checked { psql --version }
 $scratch = Join-Path ([IO.Path]::GetTempPath()) ('genesis-review-' + [guid]::NewGuid())
-New-Item -ItemType Directory -Path $scratch | Out-Null
 $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User
 $systemSid = [Security.Principal.SecurityIdentifier]::new('S-1-5-18')
-$acl = Get-Acl -LiteralPath $scratch
+$acl = [Security.AccessControl.DirectorySecurity]::new()
 $acl.SetAccessRuleProtection($true, $false)
 $acl.SetOwner($sid)
 foreach ($identity in @($sid, $systemSid)) {
-    $rule = [Security.AccessControl.FileSystemAccessRule]::new(
-        $identity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
-    $acl.AddAccessRule($rule)
+    $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new(
+        $identity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow'))
 }
-Set-Acl -LiteralPath $scratch -AclObject $acl
-$allowed = @($sid.Value, $systemSid.Value)
-$unexpected = (Get-Acl -LiteralPath $scratch).Access | Where-Object {
-    $_.AccessControlType -eq 'Allow' -and
-    $_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value -notin $allowed
-}
-if ($unexpected) { throw 'Unexpected credential-directory access; stop.' }
+# New private directory only: apply the descriptor at native creation.
+[IO.DirectoryInfo]::new($scratch).Create($acl)
+Checked { dotnet build backend/AuthorityCredentialFiles/AuthorityCredentialFiles.csproj --configuration Release }
+Checked { python -B -m unittest discover -s tests -p test_authority_credentials.py -v }
 $cluster = Join-Path $scratch 'postgres'
 $fixtures = Join-Path $scratch 'fixtures.json'
 $browser = Join-Path $scratch 'browser'
@@ -105,7 +100,7 @@ try {
     Checked { python scripts/genesis-authority.py reset --confirm-database genesis_authority_test }
     Checked { python scripts/genesis-authority.py migrate }
     Checked { python scripts/genesis-authority.py --credentials $fixtures fixtures }
-    # The repaired native guard must validate the resulting fixture ACL here.
+    # Fixture creation/read uses the native helper; do not print its read response.
     Push-Location frontend
     try {
         Checked { npm ci }
