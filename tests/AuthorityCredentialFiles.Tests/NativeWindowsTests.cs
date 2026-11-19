@@ -167,7 +167,7 @@ public sealed class NativeWindowsTests : IDisposable
     public void OversizeOrInvalidJsonNeverCreatesAFile()
     {
         Assert.Throws<InvalidDataException>(() => WindowsCredentialFile.Create(FilePath, new string('x', WindowsCredentialFile.MaximumBytes + 1)));
-        Assert.Throws<System.Text.Json.JsonException>(() => WindowsCredentialFile.Create(FilePath, "not-json"));
+        Assert.ThrowsAny<System.Text.Json.JsonException>(() => WindowsCredentialFile.Create(FilePath, "not-json"));
         Assert.False(File.Exists(FilePath));
     }
 
