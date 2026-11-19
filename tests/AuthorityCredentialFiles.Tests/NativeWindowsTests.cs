@@ -35,6 +35,9 @@ public sealed class NativeWindowsTests : IDisposable
         WindowsCredentialFile.Create(FilePath, Fixture);
         WindowsCredentialFile.Inspect(FilePath);
         Assert.Equal(Fixture, WindowsCredentialFile.Read(FilePath));
+        var tempAlias = Environment.GetEnvironmentVariable("TEMP") ?? Path.GetTempPath();
+        var aliasPath = Path.Combine(tempAlias, Path.GetFileName(directory), "synthetic.json");
+        Assert.Equal(Fixture, WindowsCredentialFile.Read(aliasPath));
         var security = new FileInfo(FilePath).GetAccessControl();
         Assert.True(security.AreAccessRulesProtected);
         using var identity = WindowsIdentity.GetCurrent();

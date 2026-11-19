@@ -109,11 +109,15 @@ public static class WindowsCredentialFile
     {
         // Reject UNC, device namespaces, ADS and relative paths. No network filesystem is supported.
         if (path.Length < 4 || !char.IsAsciiLetter(path[0]) || path[1] != ':' ||
-            path[2] != '\\' || path[3..].Contains(':')) throw new UnauthorizedAccessException();
+            path[2] != '\\' || path[3..].Contains(':') || path.Contains('/')) throw new UnauthorizedAccessException();
         if (path.Split('\\').Skip(1).Any(part => part is "." or ".." ||
             part.EndsWith(' ') || part.EndsWith('.') || part.Length == 0)) throw new UnauthorizedAccessException();
         var full = Path.GetFullPath(path);
-        if (!string.Equals(full, path, StringComparison.OrdinalIgnoreCase)) throw new UnauthorizedAccessException();
+        // GetFullPath expands valid Windows 8.3 names (including Python's TEMP path).
+        // This is not link resolution: every expanded ancestor/final handle is still
+        // opened without following reparse points and validated before credential I/O.
+        if (!string.Equals(full, path, StringComparison.OrdinalIgnoreCase) && !path.Contains('~'))
+            throw new UnauthorizedAccessException();
         if (new DriveInfo(Path.GetPathRoot(full)!).DriveType != DriveType.Fixed) throw new UnauthorizedAccessException();
         return full;
     }
