@@ -74,13 +74,14 @@ class WindowsCredentialIPC(unittest.TestCase):
         self.directory = Path(self.temporary.name)
         self.file = self.directory / "synthetic.json"
         self.powershell(r'''$sid=[Security.Principal.WindowsIdentity]::GetCurrent().User
-$acl=[Security.AccessControl.DirectorySecurity]::new()
+$directory=[IO.DirectoryInfo]::new($env:GENESIS_ACL_TEST_DIRECTORY)
+$acl=$directory.GetAccessControl()
 $acl.SetOwner($sid)
 $acl.SetAccessRuleProtection($true,$false)
 foreach($identity in @($sid,[Security.Principal.SecurityIdentifier]::new('S-1-5-18'))){
  $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($identity,'FullControl','ContainerInherit,ObjectInherit','None','Allow'))
 }
-Set-Acl -LiteralPath $env:GENESIS_ACL_TEST_DIRECTORY -AclObject $acl''')
+$directory.SetAccessControl($acl)''')
 
     def tearDown(self): self.temporary.cleanup()
 
@@ -102,20 +103,21 @@ Set-Acl -LiteralPath $env:GENESIS_ACL_TEST_DIRECTORY -AclObject $acl''')
 
     def test_extra_file_allow_is_rejected_without_silent_repair(self):
         cli.save(self.file, {"human": {"credential": "synthetic-only"}})
-        self.powershell(r'''$acl=Get-Acl -LiteralPath $env:GENESIS_ACL_TEST_FILE
+        self.powershell(r'''$file=[IO.FileInfo]::new($env:GENESIS_ACL_TEST_FILE)
+$acl=$file.GetAccessControl()
 $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-1-0'),'ReadData','Allow'))
-Set-Acl -LiteralPath $env:GENESIS_ACL_TEST_FILE -AclObject $acl''')
+$file.SetAccessControl($acl)''')
         with self.assertRaisesRegex(ValueError, "native controls could not be verified"):
             cli.token(self.file, "human")
 
     def test_permissive_directory_fails_preflight_before_creation(self):
-        self.powershell(r'''$acl=Get-Acl -LiteralPath $env:GENESIS_ACL_TEST_DIRECTORY
+        self.powershell(r'''$directory=[IO.DirectoryInfo]::new($env:GENESIS_ACL_TEST_DIRECTORY)
+$acl=$directory.GetAccessControl()
 $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-1-0'),'ReadData','Allow'))
-Set-Acl -LiteralPath $env:GENESIS_ACL_TEST_DIRECTORY -AclObject $acl''')
+$directory.SetAccessControl($acl)''')
         with self.assertRaisesRegex(ValueError, "native controls could not be verified"):
             cli.windows_credential_operation("inspect-parent", self.file)
         self.assertFalse(self.file.exists())
 
 
 if __name__ == "__main__": unittest.main()
-
