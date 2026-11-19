@@ -3,6 +3,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
@@ -13,8 +14,26 @@ if (!credentialFile || !playwrightRoot || process.env.PGDATABASE !== 'genesis_au
 
 const { chromium } = createRequire(resolve(playwrightRoot, 'package.json'))('playwright');
 const fixtures = JSON.parse(await readFile(credentialFile, 'utf8'));
-const backendUrl = 'http://127.0.0.1:5088';
-const frontendUrl = 'http://127.0.0.1:3000';
+function testPort(name, fallback) {
+  const value = process.env[name] ?? String(fallback);
+  if (!/^[1-9]\d{0,4}$/.test(value) || Number(value) < 1024 || Number(value) > 65535)
+    throw new Error('Connected test port must be an integer between 1024 and 65535: ' + name);
+  return Number(value);
+}
+const backendPort = testPort('GENESIS_CONNECTED_BACKEND_PORT', 5088);
+const frontendPort = testPort('GENESIS_CONNECTED_FRONTEND_PORT', 3000);
+assert.notEqual(backendPort, frontendPort, 'Connected services require distinct loopback ports.');
+const backendUrl = `http://127.0.0.1:${backendPort}`;
+const frontendUrl = `http://127.0.0.1:${frontendPort}`;
+
+async function assertPortAvailable(port) {
+  const probe = createServer();
+  await new Promise((resolve, reject) => {
+    probe.once('error', () => reject(new Error('Loopback test port is occupied; existing services are preserved: ' + port)));
+    probe.listen(port, '127.0.0.1', resolve);
+  });
+  await new Promise((resolve, reject) => probe.close(error => error ? reject(error) : resolve()));
+}
 const processes = [];
 
 function start(command, args, env) {
@@ -27,7 +46,7 @@ async function waitFor(url, child) {
   for (let attempt = 0; attempt < 100; attempt++) {
     if (child.exitCode !== null) throw new Error('Service exited during startup.');
     const ready = await fetch(url, { signal: AbortSignal.timeout(500) }).catch(() => null);
-    if (ready?.ok) return;
+    if (ready?.ok && child.exitCode === null) return;
     await delay(100);
   }
   throw new Error('Loopback service failed readiness: ' + url);
@@ -57,6 +76,8 @@ function sql(query) {
 
 let browser;
 try {
+  await assertPortAvailable(backendPort);
+  await assertPortAvailable(frontendPort);
   const artifact = '../backend/HumanAuthority/bin/Release/net10.0/HumanAuthority.dll';
   // Fail on stale build metadata before starting any service; never search other build directories.
   const { runtimeOptions } = JSON.parse(await readFile(artifact.replace(/\.dll$/, '.runtimeconfig.json'), 'utf8'));
@@ -69,7 +90,7 @@ try {
     ConnectionStrings__Default: process.env.GENESIS_TEST_DATABASE,
   });
   await waitFor(backendUrl + '/health/ready', backend);
-  const frontend = start(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-H', '127.0.0.1', '-p', '3000'], {
+  const frontend = start(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-H', '127.0.0.1', '-p', String(frontendPort)], {
     ...process.env, GENESIS_LOCAL_LIVE: '1', GENESIS_AUTHORITY_URL: backendUrl,
   });
   await waitFor(frontendUrl + '/genesis/live', frontend);
