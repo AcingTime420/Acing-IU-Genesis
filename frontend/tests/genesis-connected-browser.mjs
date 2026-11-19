@@ -20,8 +20,8 @@ function testPort(name, fallback) {
     throw new Error('Connected test port must be an integer between 1024 and 65535: ' + name);
   return Number(value);
 }
-const backendPort = testPort('GENESIS_CONNECTED_BACKEND_PORT', 5088);
-const frontendPort = testPort('GENESIS_CONNECTED_FRONTEND_PORT', 3000);
+const backendPort = testPort('GENESIS_CONNECTED_BACKEND_PORT', process.platform === 'win32' ? 55889 : 5088);
+const frontendPort = testPort('GENESIS_CONNECTED_FRONTEND_PORT', process.platform === 'win32' ? 55890 : 3000);
 assert.notEqual(backendPort, frontendPort, 'Connected services require distinct loopback ports.');
 const backendUrl = `http://127.0.0.1:${backendPort}`;
 const frontendUrl = `http://127.0.0.1:${frontendPort}`;
