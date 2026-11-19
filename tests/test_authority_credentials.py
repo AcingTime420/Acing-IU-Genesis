@@ -78,6 +78,9 @@ $directory=[IO.DirectoryInfo]::new($env:GENESIS_ACL_TEST_DIRECTORY)
 $acl=$directory.GetAccessControl()
 $acl.SetOwner($sid)
 $acl.SetAccessRuleProtection($true,$false)
+# Python 3.13+ can create explicit Administrators ACEs for mode-0700 directories.
+# Remove explicit fixture ACEs too; the target policy intentionally excludes them.
+foreach($existing in @($acl.GetAccessRules($true,$false,[Security.Principal.SecurityIdentifier]))){$acl.RemoveAccessRuleSpecific($existing)}
 foreach($identity in @($sid,[Security.Principal.SecurityIdentifier]::new('S-1-5-18'))){
  $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($identity,'FullControl','ContainerInherit,ObjectInherit','None','Allow'))
 }
