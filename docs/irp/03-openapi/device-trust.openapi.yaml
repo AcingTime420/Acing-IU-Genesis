@@ -26,7 +26,11 @@ tags:
 paths:
   /api/trust/telemetry/submit:
     post:
-      summary: Submit device telemetry
+      summary: Submit telemetry for an enrolled, authorized device
+      description: |
+        Requires a UUID subject and device ownership, or the Admin/Operator role.
+        Unknown, unowned and foreign devices return the same 404 problem response;
+        telemetry never enrolls a device. Mutation and success audit are atomic.
       operationId: submitTelemetry
       tags:
         - Trust
@@ -49,12 +53,18 @@ paths:
           $ref: '#/components/responses/Problem'
         '401':
           $ref: '#/components/responses/Problem'
-        '403':
+        '404':
+          $ref: '#/components/responses/Problem'
+        '503':
           $ref: '#/components/responses/Problem'
 
   /api/trust/devices/{hwId}:
     get:
-      summary: Retrieve a device by hardware identifier
+      summary: Retrieve an owned device by hardware identifier
+      description: |
+        Requires a UUID subject and ownership, or Admin/Operator. Unknown and
+        unauthorized devices return the same 404 problem response. Database or
+        required denial-audit failures return a generic 503 response.
       operationId: getDevice
       tags:
         - Trust
@@ -82,6 +92,8 @@ paths:
         '403':
           $ref: '#/components/responses/Problem'
         '404':
+          $ref: '#/components/responses/Problem'
+        '503':
           $ref: '#/components/responses/Problem'
 
   /api/trust/devices:

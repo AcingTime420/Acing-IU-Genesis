@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="Npgsql" Version="8.0.6" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" />
+    <Using Include="Xunit" />
+    <!-- Real canonical source; this isolated test host does not claim to validate the
+         unmodified net8.0 application launcher or its JWT integration. -->
+    <Compile Include="../../backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Data/*.cs" Link="Canonical/Data/%(Filename)%(Extension)" />
+    <Compile Include="../../backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Models/*.cs" Link="Canonical/Models/%(Filename)%(Extension)" />
+    <Compile Include="../../backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Services/*.cs" Link="Canonical/Services/%(Filename)%(Extension)" />
+    <Compile Include="../../backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Controllers/TrustController.cs" Link="Canonical/TrustController.cs" />
+  </ItemGroup>
+</Project>
