@@ -12,7 +12,9 @@ The connected harness starts only `bin/Release/net10.0/HumanAuthority.dll` and
 checks its runtime metadata; build that exact Release artifact first. No older
 runtime or Debug fallback is allowed. The existing baseline solution and
 containers are not migrated by this isolated change. See
-`../evidence/human-authority-net10-20261118.md` for current results and blockers;
+`../evidence/frontend-authority-validation-20261118.md` for the latest Linux connected
+validation and remaining gates; the preceding runtime migration is documented in
+`../evidence/human-authority-net10-20261118.md`;
 older validation sections below remain attributed historical evidence.
 
 Use the backend prerequisites, explicit migration, fixtures and CLI described in
