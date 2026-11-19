@@ -76,8 +76,8 @@ tree `0fca5952e4760573d840503166052659e54b2eea`. DeviceTrust source/test bytes w
 committed as `800672df75e0f037e8d730f7f2c697744441aeea`, tree
 `3965f66a881f38b2b7aa923b9fabcb097221f0be`; those 17-case suites ran before that
 commit, with identical source bytes. Final connected run also covers the added
-POSIX credential-platform guard at d5d0195. Subsequent report/runbook commits are
-documentation-only; final exact head/tree are in the portable manifest.
+POSIX credential-platform guard at d5d0195. Subsequent reporting and CI wiring do not change the tested application/test
+sources; final exact head/tree are in the portable manifest.
 
 Linux x64, Node 24.22.3/npm 11.9.0; .NET SDK 10.0.404, actual Microsoft.NETCore.App
 and Microsoft.AspNetCore.App **10.0.15**. External host traces resolve those actual

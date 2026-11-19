@@ -247,6 +247,8 @@ jobs:
           python3 ../scripts/genesis-authority.py migrate
           python3 ../scripts/genesis-authority.py --credentials "$scratch/fixtures.json" fixtures
           node tests/genesis-connected-browser.mjs "$scratch/fixtures.json" "$scratch/browser"
+      - name: Local credential file guard regressions
+        run: python3 -m unittest discover -s tests -p test_authority_credentials.py
       - name: Run actual authority HTTP and PostgreSQL integration tests
         run: dotnet test tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration "${{ matrix.configuration }}" --verbosity normal
       - name: DeviceTrust canonical-source HTTP and PostgreSQL ownership tests
