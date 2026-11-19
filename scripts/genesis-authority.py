@@ -71,7 +71,16 @@ def output_path(value):
     return path
 
 
+def require_private_file_support():
+    # Unix mode bits are not Windows ACL evidence. Until native ACL validation is
+    # implemented and tested, credential creation/reading must fail closed there.
+    if os.name != "posix" or sys.platform in ("cygwin", "msys"):
+        raise ValueError("Credential files require validated native access controls. "
+                         "Windows ACL validation is not implemented; credential operations are disabled.")
+
+
 def save(value, data):
+    require_private_file_support()
     path = output_path(value)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as stream:
@@ -80,6 +89,7 @@ def save(value, data):
 
 
 def token(path, kind):
+    require_private_file_support()
     path = Path(path).expanduser()
     if path.is_symlink() or stat.S_IMODE(path.stat().st_mode) & 0o077:
         raise ValueError("Credentials must be a private mode-0600 file, not a symlink.")
@@ -182,6 +192,7 @@ def main():
         print("Local authority schema dropped; reapply migration and create NEW credentials.")
         return
     if args.command == "fixtures":
+        require_private_file_support()
         output_path(args.credentials)
         values = {}
         inserts = []
