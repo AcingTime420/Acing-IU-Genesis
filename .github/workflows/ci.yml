@@ -271,6 +271,20 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
           dotnet-version: '10.0.x'
+      - name: Native Windows credential ACL candidate tests (not CLI enablement)
+        shell: pwsh
+        run: |
+          if (-not $IsWindows) { throw 'Actual Windows execution is required.' }
+          foreach ($configuration in @('Debug', 'Release')) {
+            $results = Join-Path $env:RUNNER_TEMP ("authority-acl-" + $configuration)
+            dotnet test tests/AuthorityCredentialFiles.Tests/AuthorityCredentialFiles.Tests.csproj --configuration $configuration --filter 'FullyQualifiedName~NativeWindowsTests' --logger 'trx;LogFileName=native-acl.trx' --results-directory $results
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            [xml]$report = Get-Content -LiteralPath (Join-Path $results 'native-acl.trx') -Raw
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ([int]$counts.total -ne 12 -or [int]$counts.passed -ne 12 -or [int]$counts.failed -ne 0 -or [int]$counts.notExecuted -ne 0) {
+              throw 'All 12 native ACL tests must execute and pass; skipped checks do not close the gate.'
+            }
+          }
       - name: Validate native artifact paths in Debug and Release
         shell: pwsh
         run: |

@@ -42,6 +42,11 @@ jobs:
           dotnet restore tests/DeviceTrust.OwnershipTests/DeviceTrust.OwnershipTests.csproj
           --force-evaluate -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=low
           '-p:WarningsAsErrors=NU1900%3BNU1901%3BNU1902%3BNU1903%3BNU1904%3BNU1905'
+      - name: Audit Windows credential helper and tests
+        run: >-
+          dotnet restore tests/AuthorityCredentialFiles.Tests/AuthorityCredentialFiles.Tests.csproj
+          --force-evaluate -p:NuGetAudit=true -p:NuGetAuditMode=all -p:NuGetAuditLevel=low
+          '-p:WarningsAsErrors=NU1900%3BNU1901%3BNU1902%3BNU1903%3BNU1904%3BNU1905'
 
   dependency-review:
     name: Dependency Review
