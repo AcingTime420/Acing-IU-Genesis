@@ -6,9 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Test"))
     throw new InvalidOperationException("HumanAuthority is restricted to Development/Test.");
 
-if (string.IsNullOrEmpty(builder.Configuration["urls"]))
-    builder.WebHost.UseUrls("http://127.0.0.1:5088");
-builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 7 * 1024 * 1024);
+LocalAuthorityListener.Configure(builder);
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
