@@ -249,6 +249,15 @@ jobs:
           node tests/genesis-connected-browser.mjs "$scratch/fixtures.json" "$scratch/browser"
       - name: Run actual authority HTTP and PostgreSQL integration tests
         run: dotnet test tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration "${{ matrix.configuration }}" --verbosity normal
+      - name: DeviceTrust canonical-source HTTP and PostgreSQL ownership tests
+        env:
+          PGHOST: 127.0.0.1
+          PGUSER: authority_test
+          PGPASSWORD: isolated_ci_password_only
+          GENESIS_DEVICETRUST_TEST_DATABASE: Host=127.0.0.1;Database=genesis_devicetrust_test;Username=authority_test;Password=isolated_ci_password_only
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -d postgres -c 'CREATE DATABASE genesis_devicetrust_test'
+          dotnet test tests/DeviceTrust.OwnershipTests/DeviceTrust.OwnershipTests.csproj --configuration "${{ matrix.configuration }}"
 
   human-authority-windows-artifacts:
     name: Human Authority artifact and database guards (Windows)
