@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "test:genesis": "node --experimental-strip-types --test tests/genesis-adapter.test.mjs",
     "test:genesis-session": "node --experimental-strip-types --test tests/genesis-session.test.mjs",
-    "test:genesis-live-http": "node --test tests/genesis-live-http.test.mjs"
+    "test:genesis-live-http": "node --test tests/genesis-live-http.test.mjs",
+    "test:lint": "node --test tests/next-lint.test.mjs"
   },
   "dependencies": {
     "d3": "^7.9.0",
@@ -20,22 +21,15 @@
     "recharts": "^3.2.1"
   },
   "devDependencies": {
-    "@eslint/compat": "^2.1.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/d3": "^7.4.3",
     "@types/node": "^22.18.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "eslint": "^9.35.0",
-    "eslint-config-next": "^16.3.0",
+    "eslint-config-next": "16.4.6",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.2"
-  },
-  "overrides": {
-    "@next/eslint-plugin-next": {
-      ".": "14.2.35",
-      "glob": "10.5.0"
-    }
   }
 }

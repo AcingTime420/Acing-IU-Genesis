@@ -1,36 +1,21 @@
 import { defineConfig, globalIgnores } from "eslint/config";
-import { fixupConfigRules } from "@eslint/compat";
 import nextConfig from "eslint-config-next";
 import nextTypeScript from "eslint-config-next/typescript";
-import {
-  noHtmlLinkForPages,
-  noLocationAssignRelativeDestination,
-} from "./lint/next-navigation.mjs";
+import { noHtmlLinkForPages } from "./lint/next-navigation.mjs";
 
-// Keep the braces-free Next 14 dependency, restoring navigation checks locally.
-const compatibleNextConfig = nextConfig.map((config) => {
+// Keep the existing App Router link coverage: the native rule misses /devices in
+// the committed regression fixture. All other Next rules use the aligned plugin.
+const nextWithAppRouteLinks = nextConfig.map(config => {
   const plugin = config.plugins?.["@next/next"];
-  if (!plugin) return config;
-  return {
-    ...config,
-    plugins: {
-      ...config.plugins,
-      "@next/next": {
-        ...plugin,
-        rules: {
-          ...plugin.rules,
-          "no-html-link-for-pages": noHtmlLinkForPages,
-          "no-location-assign-relative-destination": noLocationAssignRelativeDestination,
-        },
-      },
-    },
-  };
+  return !plugin ? config : { ...config, plugins: { ...config.plugins,
+    "@next/next": { ...plugin, rules: { ...plugin.rules,
+      "no-html-link-for-pages": noHtmlLinkForPages } } } };
 });
 
 export default defineConfig([
-  ...fixupConfigRules([...compatibleNextConfig, ...nextTypeScript]),
+  ...nextWithAppRouteLinks,
+  ...nextTypeScript,
   {
-    // The braces-free Next 14 plugin uses legacy configs; retain its Vitals rules.
     /*
      * Preserve the lint behavior of the pre-upgrade Next.js 14 toolchain.
      * These React 19 compiler-oriented rules require application refactors and

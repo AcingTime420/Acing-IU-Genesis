@@ -1,13 +1,11 @@
 import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
-import { findVariable, getStringIfConstant } from "@eslint-community/eslint-utils";
 
 const nextRequire = createRequire(import.meta.resolve("eslint-config-next"));
 const { getRootDirs } = nextRequire("@next/eslint-plugin-next/dist/utils/get-root-dirs.js");
 const docs = "https://nextjs.org/docs/messages/";
 const extensions = /\.(?:jsx?|tsx?)$/;
-const globalObjects = new Set(["window", "globalThis", "document", "self"]);
 
 function normalizeUrl(value) {
   const pathname = value.split(/[?#]/, 1)[0].replace(/\/index\.html$/, "/");
@@ -68,69 +66,6 @@ export const noHtmlLinkForPages = {
             message: `Do not use an \`<a>\` element to navigate to \`${destination}\`. Use \`<Link />\` from \`next/link\` instead. See: ${docs}no-html-link-for-pages`,
           });
         }
-      },
-    };
-  },
-};
-
-function member(node, property) {
-  return node?.type === "MemberExpression" && (node.computed
-    ? node.property.type === "Literal" && node.property.value === property
-    : node.property.type === "Identifier" && node.property.name === property);
-}
-
-function globalLocation(node, source) {
-  const root = node.type === "Identifier" && node.name === "location" ? node
-    : member(node, "location") && node.object.type === "Identifier"
-      && globalObjects.has(node.object.name) ? node.object : null;
-  if (!root) return false;
-  const variable = findVariable(source.getScope(root), root);
-  return variable?.defs.length === 0;
-}
-
-function stringPrefix(node, source, seen = new Set()) {
-  if (seen.has(node)) return null;
-  seen.add(node);
-  const value = getStringIfConstant(node, source.getScope(node));
-  if (value !== null) return value;
-  if (node.type === "TemplateLiteral") return node.quasis[0].value.cooked ?? node.quasis[0].value.raw;
-  if (node.type === "BinaryExpression" && node.operator === "+") return stringPrefix(node.left, source, seen);
-  if (node.type !== "Identifier") return null;
-  const variable = findVariable(source.getScope(node), node);
-  const definition = variable?.defs.at(-1);
-  if (definition?.type !== "Variable") return null;
-  let valueNode = definition.node.init;
-  for (const reference of variable.references) {
-    if (reference.identifier.range[0] >= node.range[0]) break;
-    if (reference.isWrite() && reference.writeExpr) valueNode = reference.writeExpr;
-  }
-  return valueNode ? stringPrefix(valueNode, source, seen) : null;
-}
-
-export const noLocationAssignRelativeDestination = {
-  meta: {
-    type: "problem",
-    docs: { url: `${docs}no-location-assign-relative-destination` },
-    schema: [],
-    messages: {
-      navigation: `Do not use \`{{expression}}\` to navigate to internal Next.js pages. Use \`redirect()\` in the render phase, or \`useRouter().push()\` in Client Components' event handlers instead. See: ${docs}no-location-assign-relative-destination`,
-    },
-  },
-  create(context) {
-    const source = context.sourceCode;
-    function check(node, destination, expression, call = false) {
-      if (!destination || destination.type === "SpreadElement" || !globalLocation(expression.object, source)) return;
-      const prefix = stringPrefix(destination, source);
-      if (prefix !== null && !/^(?:[a-z][\d+.a-z-]*:|\/\/)/i.test(prefix)) {
-        context.report({ node, messageId: "navigation", data: { expression: source.getText(expression) + (call ? "()" : "") } });
-      }
-    }
-    return {
-      CallExpression(node) {
-        if (member(node.callee, "assign")) check(node, node.arguments[0], node.callee, true);
-      },
-      AssignmentExpression(node) {
-        if (member(node.left, "href")) check(node, node.right, node.left);
       },
     };
   },

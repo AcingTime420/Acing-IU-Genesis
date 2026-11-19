@@ -182,6 +182,7 @@ jobs:
         run: |
           npm run test:genesis
           npm run test:genesis-session
+          npm run test:lint
 
       - name: Genesis production HTTP boundary tests
         working-directory: frontend
