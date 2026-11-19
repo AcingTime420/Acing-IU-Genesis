@@ -71,17 +71,64 @@ def output_path(value):
     return path
 
 
+def windows_helper_artifact():
+    """Select one exact supported Release artifact; no Debug/runtime fallback."""
+    artifact = ROOT / "backend/AuthorityCredentialFiles/bin/Release/net10.0/AuthorityCredentialFiles.dll"
+    try:
+        for item in (artifact, artifact.with_suffix(".deps.json"), artifact.with_suffix(".runtimeconfig.json")):
+            if not item.is_file():
+                raise ValueError("Missing supported Release credential helper; build it explicitly.")
+        runtime = json.loads(artifact.with_suffix(".runtimeconfig.json").read_text(encoding="utf-8"))["runtimeOptions"]
+        framework = runtime["framework"]
+        if (runtime["tfm"] != "net10.0" or framework["name"] != "Microsoft.NETCore.App"
+                or not isinstance(framework["version"], str) or not framework["version"].startswith("10.")):
+            raise ValueError("Stale credential helper runtime; no older-runtime fallback.")
+    except (KeyError, TypeError, OSError, json.JSONDecodeError):
+        raise ValueError("Invalid supported Release credential helper metadata.") from None
+    return artifact
+
+
+def windows_credential_operation(operation, path, data=None):
+    """Private captured IPC: never surface child diagnostics or credential output."""
+    if os.name != "nt" or sys.platform != "win32":
+        raise ValueError("Native Windows credential validation is unavailable on this platform.")
+    artifact = windows_helper_artifact()
+    payload = None if data is None else json.dumps(data, ensure_ascii=True)
+    if payload is not None and len(payload.encode("utf-8")) > 1024 * 1024:
+        raise ValueError("Credential JSON exceeds the supported size limit.")
+    env = {**os.environ, "DOTNET_ROLL_FORWARD": "LatestPatch"}
+    try:
+        result = subprocess.run(["dotnet", str(artifact), operation, str(path)], input=payload,
+                                encoding="utf-8", errors="strict", capture_output=True,
+                                timeout=20, env=env, cwd=ROOT, close_fds=True)
+        if result.returncode != 0 or len(result.stdout.encode("utf-8")) > 1024 * 1024:
+            raise ValueError("Windows credential operation rejected; native controls could not be verified.")
+        response = json.loads(result.stdout)
+        if not isinstance(response, dict):
+            raise ValueError("Credential helper did not return a JSON object.")
+        if operation == "create" and response != {"created": True}:
+            raise ValueError("Credential creation was not confirmed.")
+        if operation == "inspect-parent" and response != {"validated": True}:
+            raise ValueError("Private credential directory was not confirmed.")
+        return response
+    except (OSError, subprocess.SubprocessError, UnicodeError, json.JSONDecodeError):
+        raise ValueError("Windows credential helper unavailable; no permission fallback.") from None
+
+
 def require_private_file_support():
-    # Unix mode bits are not Windows ACL evidence. Until native ACL validation is
-    # implemented and tested, credential creation/reading must fail closed there.
+    if os.name == "nt" and sys.platform == "win32":
+        windows_helper_artifact()
+        return
     if os.name != "posix" or sys.platform in ("cygwin", "msys"):
-        raise ValueError("Credential files require validated native access controls. "
-                         "Windows ACL validation is not implemented; credential operations are disabled.")
+        raise ValueError("Native Windows credential validation is unavailable on this platform.")
 
 
 def save(value, data):
     require_private_file_support()
     path = output_path(value)
+    if os.name == "nt":
+        windows_credential_operation("create", path, data)
+        return
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as stream:
         json.dump(data, stream, ensure_ascii=False, indent=2)
@@ -91,6 +138,8 @@ def save(value, data):
 def token(path, kind):
     require_private_file_support()
     path = Path(path).expanduser()
+    if os.name == "nt":
+        return windows_credential_operation("read", path.absolute())[kind]["credential"]
     if path.is_symlink() or stat.S_IMODE(path.stat().st_mode) & 0o077:
         raise ValueError("Credentials must be a private mode-0600 file, not a symlink.")
     return json.loads(path.read_text(encoding="utf-8"))[kind]["credential"]
@@ -193,7 +242,9 @@ def main():
         return
     if args.command == "fixtures":
         require_private_file_support()
-        output_path(args.credentials)
+        credential_path = output_path(args.credentials)
+        if os.name == "nt":
+            windows_credential_operation("inspect-parent", credential_path)
         values = {}
         inserts = []
         for kind, name in (("human", "Genesis Human Reviewer"),

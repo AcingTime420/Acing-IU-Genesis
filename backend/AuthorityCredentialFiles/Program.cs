@@ -8,14 +8,21 @@ if (!OperatingSystem.IsWindows())
     Console.Error.WriteLine("Native Windows credential validation requires Windows.");
     return 78;
 }
-if (args.Length != 2 || args[0] is not ("read" or "create" or "inspect"))
+if (args.Length != 2 || args[0] is not ("read" or "create" or "inspect" or "inspect-parent"))
 {
-    Console.Error.WriteLine("Expected read, create or inspect and one local file path.");
+    Console.Error.WriteLine("Expected read, create, inspect or inspect-parent and one local file path.");
     return 64;
 }
 try
 {
-    if (args[0] == "create")
+    Console.InputEncoding = new System.Text.UTF8Encoding(false, true);
+    Console.OutputEncoding = new System.Text.UTF8Encoding(false, true);
+    if (args[0] == "inspect-parent")
+    {
+        WindowsCredentialFile.InspectParent(args[1]);
+        Console.WriteLine("{\"validated\":true}");
+    }
+    else if (args[0] == "create")
     {
         // Bound input before parsing, allocation and any file creation.
         var buffer = new char[WindowsCredentialFile.MaximumBytes + 1];

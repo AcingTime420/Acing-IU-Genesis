@@ -97,10 +97,13 @@ public sealed class NativeWindowsTests : IDisposable
     [WindowsFact]
     public void PermissiveParentPreventsCreationBeforeWriting()
     {
+        WindowsCredentialFile.InspectParent(FilePath);
+        Assert.False(File.Exists(FilePath));
         var dir = new DirectoryInfo(directory);
         var security = dir.GetAccessControl();
         security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier("S-1-1-0"), FileSystemRights.ReadData, AccessControlType.Allow));
         dir.SetAccessControl(security);
+        Assert.Throws<UnauthorizedAccessException>(() => WindowsCredentialFile.InspectParent(FilePath));
         Assert.Throws<UnauthorizedAccessException>(() => WindowsCredentialFile.Create(FilePath, Fixture));
         Assert.False(File.Exists(FilePath));
     }

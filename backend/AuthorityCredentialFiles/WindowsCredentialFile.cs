@@ -61,6 +61,12 @@ public static class WindowsCredentialFile
         return text;
     }
 
+    public static void InspectParent(string path)
+    {
+        path = CanonicalPath(path);
+        using var parents = LockParents(path);
+    }
+
     public static void Inspect(string path)
     {
         path = CanonicalPath(path);
