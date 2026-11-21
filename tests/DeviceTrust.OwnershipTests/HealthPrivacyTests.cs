@@ -56,6 +56,7 @@ public sealed class HealthPrivacyTests
         Assert.Equal("not_ready", document.RootElement.GetProperty("status").GetString());
         Assert.Equal("Device trust is unavailable.", document.RootElement.GetProperty("detail").GetString());
         Assert.Equal(1, factory.Attempts);
+        await ContractObservation.Write("/health/ready", "get", response);
     }
 
     [Fact]
@@ -71,6 +72,7 @@ public sealed class HealthPrivacyTests
         Assert.Equal("ok", body.RootElement.GetProperty("status").GetString());
         Assert.Equal("acing-device-trust", body.RootElement.GetProperty("service").GetString());
         Assert.Equal(0, factory.Attempts);
+        await ContractObservation.Write("/health/live", "get", response);
     }
 
     private static WebApplication CreateApp(IDbConnectionFactory factory)

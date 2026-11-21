@@ -1,42 +1,49 @@
 openapi: 3.1.0
-
 info:
   title: Acing IU Device Trust API
   version: 1.0.0
-  description: |
-    Genesis device-trust service for telemetry submission, device trust
-    evaluation, inventory lookup, and health monitoring.
+  description: 'Genesis device-trust prototype for caller-submitted telemetry and policy scoring.
 
-    Trust scoring follows configured policy rules. Errors use RFC 9457
-    problem details with the application/problem+json media type for trust
-    controller errors. Readiness failure uses the JSON health payload below.
+    Telemetry flags are assertions, not hardware-backed attestation or proof of
+
+    Samsung Knox integration or certification. DeviceTrust supports the human-authority
+
+    platform; a score does not grant AI action authority.
+
+    Trust controller errors use problem JSON where explicitly produced. Authentication
+
+    middleware may return an empty 401/403 challenge. Readiness uses JSON health payloads.
+
+    This contract describes canonical source; production launcher/JWT integration and
+
+    full end-to-end contract conformance remain unverified.'
   license:
     name: Proprietary
     identifier: LicenseRef-Proprietary
-
 servers:
-  - url: /
-    description: Current gateway host
-
+- url: /
+  description: Current gateway host
 tags:
-  - name: Trust
-    description: Device telemetry, trust state, and device inventory
-  - name: Health
-    description: Service health and readiness checks
-
+- name: Trust
+  description: Device telemetry, trust state, and device inventory
+- name: Health
+  description: Service health and readiness checks
 paths:
   /api/trust/telemetry/submit:
     post:
       summary: Submit telemetry for an enrolled, authorized device
-      description: |
-        Requires a UUID subject and device ownership, or the Admin/Operator role.
+      description: 'Requires a UUID subject and device ownership, or the Admin/Operator role.
+
         Unknown, unowned and foreign devices return the same 404 problem response;
+
         telemetry never enrolls a device. Mutation and success audit are atomic.
+
+        '
       operationId: submitTelemetry
       tags:
-        - Trust
+      - Trust
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -49,63 +56,77 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TrustEvaluationResponse'
+                $ref: '#/components/schemas/TrustScoreResponse'
         '400':
-          $ref: '#/components/responses/Problem'
+          description: Automatic model validation failure. The controller JSON production attribute selects
+            application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
         '401':
-          $ref: '#/components/responses/Problem'
+          description: Missing/invalid bearer token may produce an empty middleware challenge; an invalid
+            UUID subject produces a 401 problem body.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
         '404':
           $ref: '#/components/responses/Problem'
         '503':
           $ref: '#/components/responses/Problem'
-
   /api/trust/devices/{hwId}:
     get:
       summary: Retrieve an owned device by hardware identifier
-      description: |
-        Requires a UUID subject and ownership, or Admin/Operator. Unknown and
+      description: 'Requires a UUID subject and ownership, or Admin/Operator. Unknown and
+
         unauthorized devices return the same 404 problem response. Database or
+
         required denial-audit failures return a generic 503 response.
+
+        '
       operationId: getDevice
       tags:
-        - Trust
+      - Trust
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: hwId
-          in: path
-          required: true
-          description: Stable hardware identifier for the device
-          schema:
-            type: string
-            minLength: 1
+      - name: hwId
+        in: path
+        required: true
+        description: Stable hardware identifier for the device
+        schema:
+          type: string
+          minLength: 1
       responses:
         '200':
           description: Device trust record
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceDetails'
-        '400':
-          $ref: '#/components/responses/Problem'
+                $ref: '#/components/schemas/TrustScoreResponse'
         '401':
-          $ref: '#/components/responses/Problem'
-        '403':
-          $ref: '#/components/responses/Problem'
+          description: Missing/invalid bearer token may produce an empty middleware challenge; an invalid
+            UUID subject produces a 401 problem body.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
         '404':
           $ref: '#/components/responses/Problem'
         '503':
           $ref: '#/components/responses/Problem'
-
   /api/trust/devices:
     get:
       summary: List registered devices
       operationId: listDevices
       tags:
-        - Trust
+      - Trust
       security:
-        - bearerAuth: []
-      description: Requires Admin or Operator role
+      - bearerAuth: []
+      description: Requires Admin or Operator role. Returns up to 50 recently seen devices. Unlike owned-device
+        operations, list database failures currently escape the controller boundary; generic 503 handling
+        is not established.
       responses:
         '200':
           description: Device list
@@ -116,44 +137,75 @@ paths:
                 items:
                   $ref: '#/components/schemas/DeviceListItem'
         '401':
-          $ref: '#/components/responses/Problem'
+          description: Bearer authentication challenge; body is not guaranteed.
         '403':
-          $ref: '#/components/responses/Problem'
-
+          description: Authenticated principal lacks Admin or Operator role; body is not guaranteed.
   /health/live:
     get:
       summary: Check service liveness
       operationId: trustLive
       tags:
-        - Health
+      - Health
       security: []
       responses:
         '200':
           description: Service process is alive
-        '429':
-          $ref: '#/components/responses/Problem'
-        '503':
-          $ref: '#/components/responses/Problem'
-
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  service:
+                    type: string
+                    const: acing-device-trust
+                  version:
+                    type: string
+                required:
+                - status
+                - service
+                - version
   /health/ready:
     get:
       summary: Check service readiness
       operationId: trustReady
       tags:
-        - Health
+      - Health
       security: []
       responses:
         '200':
           description: Service is ready to receive traffic
-        '429':
-          $ref: '#/components/responses/Problem'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  status:
+                    type: string
+                    const: ready
+                  service:
+                    type: string
+                    const: acing-device-trust
+                  postgres:
+                    type: string
+                    const: up
+                required:
+                - status
+                - service
+                - postgres
         '503':
           description: Dependency unavailable; diagnostics are not returned to callers
           content:
             application/json:
               schema:
                 type: object
-                required: [status, detail]
+                required:
+                - status
+                - detail
                 properties:
                   status:
                     type: string
@@ -161,7 +213,6 @@ paths:
                   detail:
                     type: string
                     const: Device trust is unavailable.
-
 components:
   securitySchemes:
     bearerAuth:
@@ -169,7 +220,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: JWT access token supplied in the Authorization header
-
   responses:
     Problem:
       description: RFC 9457 problem details response
@@ -177,153 +227,82 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
-
   schemas:
     TelemetrySubmission:
       type: object
-      additionalProperties: false
-      required:
-        - hardwareId
+      additionalProperties: true
       properties:
-        hardwareId:
+        hwIdentifier:
           type: string
           minLength: 1
-        deviceName:
-          type:
-            - string
-            - 'null'
-        platform:
-          type:
-            - string
-            - 'null'
-        operatingSystemVersion:
-          type:
-            - string
-            - 'null'
-        rooted:
-          type: boolean
-        bootloaderUnlocked:
-          type: boolean
-        secureBootEnabled:
-          type: boolean
-        diskEncryptionEnabled:
-          type: boolean
-        knoxIntact:
-          type: boolean
-        submittedAt:
+          maxLength: 100
+        socModel:
           type: string
-          format: date-time
-
-    TrustEvaluationResponse:
-      type: object
-      additionalProperties: false
+          minLength: 1
+          maxLength: 100
+        selinuxStatus:
+          type: string
+          minLength: 1
+          maxLength: 50
+          default: Enforcing
+          description: Scoring recognizes Enforcing case-insensitively; other nonblank values receive
+            no SELinux points.
+        bootloaderLocked:
+          type: boolean
+          default: true
+        partitionsUnmodified:
+          type: boolean
+          default: true
+        knoxWarrantyFuseIntact:
+          type: boolean
+          default: true
+          description: Caller-supplied assertion only; not verified Knox attestation.
+        isRooted:
+          type: boolean
+          default: false
       required:
-        - hardwareId
-        - trustScore
-        - trusted
-      properties:
-        hardwareId:
-          type: string
-        trustScore:
-          type: integer
-          minimum: 0
-          maximum: 100
-        trusted:
-          type: boolean
-        evaluatedAt:
-          type: string
-          format: date-time
-        reasons:
-          type: array
-          items:
-            type: string
-
-    DeviceDetails:
-      type: object
-      additionalProperties: false
-      required:
-        - hardwareId
-        - trustScore
-        - trusted
-      properties:
-        hardwareId:
-          type: string
-        deviceName:
-          type:
-            - string
-            - 'null'
-        platform:
-          type:
-            - string
-            - 'null'
-        operatingSystemVersion:
-          type:
-            - string
-            - 'null'
-        trustScore:
-          type: integer
-          minimum: 0
-          maximum: 100
-        trusted:
-          type: boolean
-        rooted:
-          type: boolean
-        bootloaderUnlocked:
-          type: boolean
-        secureBootEnabled:
-          type: boolean
-        diskEncryptionEnabled:
-          type: boolean
-        knoxIntact:
-          type: boolean
-        firstSeenAt:
-          type:
-            - string
-            - 'null'
-          format: date-time
-        lastSeenAt:
-          type:
-            - string
-            - 'null'
-          format: date-time
-
+      - hwIdentifier
+      - socModel
     DeviceListItem:
       type: object
       additionalProperties: false
-      required:
-        - hardwareId
-        - trustScore
-        - trusted
       properties:
-        hardwareId:
+        id:
           type: string
-        deviceName:
-          type:
-            - string
-            - 'null'
-        platform:
-          type:
-            - string
-            - 'null'
+          format: uuid
+        hwIdentifier:
+          type: string
+        socModel:
+          type: string
         trustScore:
           type: integer
           minimum: 0
           maximum: 100
-        trusted:
+        selinuxStatus:
+          type: string
+        knoxWarrantyFuseBlown:
           type: boolean
+          description: Stored telemetry-derived value, not independently verified hardware state.
         lastSeenAt:
           type:
-            - string
-            - 'null'
+          - string
+          - 'null'
           format: date-time
-
+      required:
+      - id
+      - hwIdentifier
+      - socModel
+      - trustScore
+      - selinuxStatus
+      - knoxWarrantyFuseBlown
+      - lastSeenAt
     ProblemDetails:
       type: object
       additionalProperties: true
       required:
-        - type
-        - title
-        - status
+      - type
+      - title
+      - status
       properties:
         type:
           type: string
@@ -337,9 +316,65 @@ components:
           maximum: 599
         detail:
           type:
-            - string
-            - 'null'
+          - string
+          - 'null'
         traceId:
           type:
-            - string
-            - 'null'
+          - string
+          - 'null'
+      description: Explicit controller problem body. Automatic model-validation responses may instead
+        include an errors map and need not contain the same optional fields.
+    TrustBreakdown:
+      type: object
+      additionalProperties: false
+      properties:
+        selinuxPoints:
+          type: integer
+        bootloaderPoints:
+          type: integer
+        partitionPoints:
+          type: integer
+        knoxPoints:
+          type: integer
+        rootPenalty:
+          type: integer
+      required:
+      - selinuxPoints
+      - bootloaderPoints
+      - partitionPoints
+      - knoxPoints
+      - rootPenalty
+    TrustScoreResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+        hwIdentifier:
+          type: string
+        socModel:
+          type: string
+        trustScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        allowed:
+          type: boolean
+          description: Policy score result only; does not authorize AI actions.
+        threshold:
+          type: integer
+        breakdown:
+          $ref: '#/components/schemas/TrustBreakdown'
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+      - deviceId
+      - hwIdentifier
+      - socModel
+      - trustScore
+      - allowed
+      - threshold
+      - breakdown
+      - updatedAt
