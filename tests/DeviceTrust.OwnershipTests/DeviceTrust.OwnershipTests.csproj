@@ -19,5 +19,6 @@
     <Compile Include="../../backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Models/*.cs" Link="Canonical/Models/%(Filename)%(Extension)" />
     <Compile Include="../../backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Services/*.cs" Link="Canonical/Services/%(Filename)%(Extension)" />
     <Compile Include="../../backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Controllers/TrustController.cs" Link="Canonical/TrustController.cs" />
+    <Compile Include="../../backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Controllers/HealthController.cs" Link="Canonical/HealthController.cs" />
   </ItemGroup>
 </Project>

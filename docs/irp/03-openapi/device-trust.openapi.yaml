@@ -8,7 +8,8 @@ info:
     evaluation, inventory lookup, and health monitoring.
 
     Trust scoring follows configured policy rules. Errors use RFC 9457
-    problem details with the application/problem+json media type.
+    problem details with the application/problem+json media type for trust
+    controller errors. Readiness failure uses the JSON health payload below.
   license:
     name: Proprietary
     identifier: LicenseRef-Proprietary
@@ -147,7 +148,19 @@ paths:
         '429':
           $ref: '#/components/responses/Problem'
         '503':
-          $ref: '#/components/responses/Problem'
+          description: Dependency unavailable; diagnostics are not returned to callers
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, detail]
+                properties:
+                  status:
+                    type: string
+                    const: not_ready
+                  detail:
+                    type: string
+                    const: Device trust is unavailable.
 
 components:
   securitySchemes:
