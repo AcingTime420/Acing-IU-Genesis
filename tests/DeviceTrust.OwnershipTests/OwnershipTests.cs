@@ -120,7 +120,11 @@ public sealed class OwnershipFixture : IAsyncLifetime
     }
 }
 
-public sealed class OwnershipTests(OwnershipFixture fixture) : IClassFixture<OwnershipFixture>
+[CollectionDefinition("DeviceTrust database")]
+public sealed class DatabaseCollection : ICollectionFixture<OwnershipFixture> { }
+
+[Collection("DeviceTrust database")]
+public sealed class OwnershipTests(OwnershipFixture fixture)
 {
     [Theory]
     [InlineData("owner", "owned", false, 200)]

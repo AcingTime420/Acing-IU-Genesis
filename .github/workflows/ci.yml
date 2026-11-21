@@ -260,6 +260,13 @@ jobs:
         run: |
           psql -X -v ON_ERROR_STOP=1 -d postgres -c 'CREATE DATABASE genesis_devicetrust_test'
           dotnet test tests/DeviceTrust.OwnershipTests/DeviceTrust.OwnershipTests.csproj --configuration "${{ matrix.configuration }}"
+      - name: Validate DeviceTrust real HTTP payloads against OpenAPI
+        env:
+          GENESIS_DEVICETRUST_TEST_DATABASE: Host=127.0.0.1;Database=genesis_devicetrust_test;Username=authority_test;Password=isolated_ci_password_only
+        run: |
+          python3 -m venv "$RUNNER_TEMP/devicetrust-contract"
+          "$RUNNER_TEMP/devicetrust-contract/bin/python" -m pip install -r tests/DeviceTrust.OwnershipTests/contract-requirements.txt
+          "$RUNNER_TEMP/devicetrust-contract/bin/python" scripts/validate-devicetrust-contract.py --configuration "${{ matrix.configuration }}" --no-restore
 
   human-authority-windows-artifacts:
     name: Human Authority artifact and database guards (Windows)

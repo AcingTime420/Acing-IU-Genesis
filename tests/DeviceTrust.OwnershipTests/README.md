@@ -35,6 +35,25 @@ no PostgreSQL and can be selected with `--filter FullyQualifiedName~HealthPrivac
 The full suite still requires the disposable database described above. These
 failure-path cases do not validate successful readiness against real PostgreSQL.
 
+Seven `ContractHttpTests` cases exercise minimal/defaulted telemetry, unknown
+request properties, required-field rejection, owned and foreign lookup, privileged
+listing, role denial and anonymous authentication. The two database test classes
+share a named xUnit collection so their guarded schema resets cannot race.
+
+To validate actual HTTP request/response observations against OpenAPI 3.1:
+
+```sh
+python3 -m pip install -r tests/DeviceTrust.OwnershipTests/contract-requirements.txt
+python3 scripts/validate-devicetrust-contract.py --configuration Release
+```
+
+Supply the same disposable database as above. The runner validates 11 HTTP
+observations (seven contract cases plus four health cases) using JSON Schema
+2020-12, including format checks, and removes temporary observations afterward.
+CI performs this check in Debug and Release. The fixture authentication remains
+synthetic: these tests do not establish production JWT challenge conformance,
+successful readiness, every invalid-input path or full API conformance.
+
 Source repair was adapted from four canonical DeviceTrust files in PR #135 head
 `016f3a0ebbcaa551d18ba746896ac8cd7793c48a`, not the unrelated files in that PR.
 This candidate additionally makes required denial-audit failures unavailable,
