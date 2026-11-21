@@ -27,9 +27,11 @@ public sealed class HealthController : ControllerBase
             await cmd.ExecuteScalarAsync(ct);
             return Ok(new { status = "ready", service = "acing-device-trust", postgres = "up" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(503, new { status = "not_ready", detail = ex.Message });
+            // This endpoint is anonymous. Dependency diagnostics may contain
+            // private hosts, usernames, paths or connection material.
+            return StatusCode(503, new { status = "not_ready", detail = "Device trust is unavailable." });
         }
     }
 }

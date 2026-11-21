@@ -27,6 +27,14 @@ Admin/Operator access is the explicit policy inherited from PR #135; its broader
 role policy still requires owner/independent review before release. Telemetry no
 longer enrolls devices. An enrollment workflow is outside this repair.
 
+Four additional `HealthPrivacyTests` cases host the canonical health controller
+on anonymous loopback HTTP. Synthetic database, timeout and configuration
+exceptions must produce a generic JSON 503 without private diagnostics; liveness
+must remain available without opening a database connection. These cases require
+no PostgreSQL and can be selected with `--filter FullyQualifiedName~HealthPrivacyTests`.
+The full suite still requires the disposable database described above. These
+failure-path cases do not validate successful readiness against real PostgreSQL.
+
 Source repair was adapted from four canonical DeviceTrust files in PR #135 head
 `016f3a0ebbcaa551d18ba746896ac8cd7793c48a`, not the unrelated files in that PR.
 This candidate additionally makes required denial-audit failures unavailable,
