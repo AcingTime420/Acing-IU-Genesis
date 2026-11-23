@@ -8,6 +8,7 @@ param(
     [Parameter(Mandatory=$true)][string]$ModelsDirectory,
     [Parameter(Mandatory=$true)][string]$Model,
     [Parameter(Mandatory=$true)][string]$DockerSnapshot,
+    [ValidateSet('browser','adversarial')][string]$Scenario = 'browser',
     [string]$PythonExecutable = 'C:\Python315\python.exe',
     [string]$ExpectedCommit = '5821dabd4164040a50c2b9cd0a814a6421bf3da6'
 )
@@ -72,15 +73,16 @@ try{
     $snapshotValid=$true
 
     $coordinator=Join-Path $PSScriptRoot 'validate-real-local-inference-windows.py'
-    $harness=Join-Path $Repository 'frontend/tests/genesis-real-inference-connected.mjs'
-    if(!(Test-Path -LiteralPath $harness)){$harness=Join-Path $PSScriptRoot 'genesis-real-inference-connected.mjs'}
+    $harnessName=if($Scenario -eq 'adversarial'){'genesis-real-adversarial.mjs'}else{'genesis-real-inference-connected.mjs'}
+    $harness=if($Scenario -eq 'adversarial'){Join-Path $Repository ('scripts/'+$harnessName)}else{Join-Path $Repository ('frontend/tests/'+$harnessName)}
+    if(!(Test-Path -LiteralPath $harness)){$harness=Join-Path $PSScriptRoot $harnessName}
     foreach($path in @($Repository,$private,$PlaywrightRoot,$OllamaExecutable,$ModelsDirectory,$DockerSnapshot,$coordinator,$harness)){
         if(!(Test-Path -LiteralPath $path)){throw 'Required exact trial resource is missing.'}
     }
     $env:TEMP=Join-Path $RunDirectory 'temp';$env:TMP=$env:TEMP
     $arguments=@(('"'+$coordinator+'"'),'--repo',('"'+$Repository+'"'),'--run-dir',('"'+$RunDirectory+'"'),
         '--playwright-root',('"'+$PlaywrightRoot+'"'),'--harness',('"'+$harness+'"'),
-        '--expected-commit',$ExpectedCommit,'--model',$Model,'--ollama',('"'+$OllamaExecutable+'"'),'--models-dir',('"'+$ModelsDirectory+'"'))
+        '--expected-commit',$ExpectedCommit,'--model',$Model,'--ollama',('"'+$OllamaExecutable+'"'),'--models-dir',('"'+$ModelsDirectory+'"'),'--scenario',$Scenario)
     $process=Start-Process -FilePath $PythonExecutable -ArgumentList $arguments -NoNewWindow -PassThru -RedirectStandardOutput (Join-Path $private 'coordinator.stdout.log') -RedirectStandardError (Join-Path $private 'coordinator.stderr.log')
     $null=$process.Handle
     if(!$process.WaitForExit(600000)){
