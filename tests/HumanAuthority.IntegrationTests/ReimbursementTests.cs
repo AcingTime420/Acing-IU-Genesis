@@ -99,6 +99,119 @@ public sealed class ReimbursementTests(AuthorityFixture fixture)
             (SELECT count(*) FROM genesis_reimbursements.evidence))::text
         """);
 
+    [Fact]
+    public async Task AgentProposalContextReadsPendingScopeWithoutAllocatingAuthority()
+    {
+        var scope = await Setup(approved: false);
+        var record = await f.GetAsync($"{Prefix}/records/{scope.Record}", scope.Manager);
+        Status(record, 200);
+        var before = await AllocationSnapshot();
+        var context = await f.GetAsync($"{Prefix}/records/{scope.Record}/proposal-context", scope.Agent);
+        Status(context, 200);
+        Same(record, context);
+        Assert.Equal(scope.Organization, context.Body.GetProperty("organizationId").GetGuid());
+        Assert.Equal(scope.Project, context.Body.GetProperty("projectId").GetGuid());
+        Assert.Equal(scope.Manager.Id, context.Body.GetProperty("managerId").GetGuid());
+        Assert.Equal(scope.Amount, context.Body.GetProperty("amountMinor").GetInt64());
+        Assert.Equal("USD", context.Body.GetProperty("currency").GetString());
+        Assert.Equal("pending", context.Body.GetProperty("status").GetString());
+        Assert.Equal(0L, context.Body.GetProperty("version").GetInt64());
+        Assert.Equal(before, await AllocationSnapshot());
+    }
+
+    [Fact]
+    public async Task ProposalContextDoesNotLetAgentEnterManagerOnlyRecordReview()
+    {
+        var scope = await Setup(approved: false);
+        var before = await AllocationSnapshot();
+        Status(await f.GetAsync($"{Prefix}/records/{scope.Record}/proposal-context", scope.Manager), 403);
+        Status(await f.GetAsync($"{Prefix}/records/{scope.Record}", scope.Agent), 403);
+        Status(await f.GetAsync($"{Prefix}/records/{scope.Record}/evidence", scope.Agent), 403);
+        Assert.Equal(before, await AllocationSnapshot());
+    }
+
+    [Fact]
+    public async Task ForeignAndUnknownProposalContextRequestsReturnIndistinguishableDenials()
+    {
+        var scope = await Setup(approved: false);
+        var before = await AllocationSnapshot();
+        var foreign = await f.GetAsync($"{Prefix}/records/{scope.Record}/proposal-context", f.OtherAgent);
+        var unknown = await f.GetAsync($"{Prefix}/records/{Guid.NewGuid()}/proposal-context", f.OtherAgent);
+        Status(foreign, 404);
+        Status(unknown, 404);
+        Same(foreign, unknown);
+        Assert.Equal(before, await AllocationSnapshot());
+    }
+
+    [Fact]
+    public async Task ApprovedRecordNoLongerSuppliesPendingProposalContext()
+    {
+        var scope = await Setup();
+        Status(await Execute(scope), 200);
+        var before = await AllocationSnapshot();
+        Status(await f.GetAsync($"{Prefix}/records/{scope.Record}/proposal-context", scope.Agent), 409);
+        Assert.Equal(before, await AllocationSnapshot());
+        await AssertRecord(scope, "approved", 1);
+    }
+
+    [Theory]
+    [InlineData("agent-membership")]
+    [InlineData("manager-membership")]
+    [InlineData("organization")]
+    [InlineData("project")]
+    [InlineData("agent-role")]
+    [InlineData("manager-role")]
+    public async Task ProposalContextRechecksCurrentOrganizationAuthority(string disabled)
+    {
+        var scope = await Setup(approved: false);
+        switch (disabled)
+        {
+            case "agent-membership":
+                await f.SqlAsync("UPDATE genesis_reimbursements.memberships SET enabled=false WHERE organization_id=@org AND principal_id=@actor",
+                    ("org", scope.Organization), ("actor", scope.Agent.Id)); break;
+            case "manager-membership":
+                await f.SqlAsync("UPDATE genesis_reimbursements.memberships SET enabled=false WHERE organization_id=@org AND principal_id=@actor",
+                    ("org", scope.Organization), ("actor", scope.Manager.Id)); break;
+            case "organization":
+                await f.SqlAsync("UPDATE genesis_reimbursements.organizations SET enabled=false WHERE id=@id", ("id", scope.Organization)); break;
+            case "project":
+                await f.SqlAsync("UPDATE genesis_reimbursements.projects SET enabled=false WHERE id=@id", ("id", scope.Project)); break;
+            case "agent-role":
+                await f.SqlAsync("UPDATE genesis_reimbursements.memberships SET role='member' WHERE organization_id=@org AND principal_id=@actor",
+                    ("org", scope.Organization), ("actor", scope.Agent.Id)); break;
+            case "manager-role":
+                await f.SqlAsync("UPDATE genesis_reimbursements.memberships SET role='member' WHERE organization_id=@org AND principal_id=@actor",
+                    ("org", scope.Organization), ("actor", scope.Manager.Id)); break;
+        }
+        var before = await AllocationSnapshot();
+        Status(await f.GetAsync($"{Prefix}/records/{scope.Record}/proposal-context", scope.Agent), 404);
+        Assert.Equal(before, await AllocationSnapshot());
+        Assert.Equal("pending", await f.SqlAsync("SELECT status FROM genesis_reimbursements.reimbursements WHERE id=@id", ("id", scope.Record)));
+    }
+
+    [Fact]
+    public async Task ForeignProposalContextDoesNotWaitOnAnotherOrganizationsResourceLock()
+    {
+        var scope = await Setup(approved: false);
+        var (connection, transaction) = await LockRecord(scope);
+        await using (connection)
+        await using (transaction)
+        {
+            var request = f.GetAsync($"{Prefix}/records/{scope.Record}/proposal-context", f.OtherAgent);
+            try
+            {
+                Assert.Same(request, await Task.WhenAny(request, Task.Delay(TimeSpan.FromSeconds(5))));
+                Status(await request, 404);
+            }
+            finally
+            {
+                await transaction.RollbackAsync();
+                await request.WaitAsync(TimeSpan.FromSeconds(10));
+            }
+        }
+        await AssertRecord(scope);
+    }
+
     [Theory]
     [InlineData("organizationId")]
     [InlineData("projectId")]

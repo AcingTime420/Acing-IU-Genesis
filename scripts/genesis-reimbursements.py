@@ -62,7 +62,7 @@ def main():
     execute.add_argument("--key", required=True)
     lookup = commands.add_parser("reconcile")
     lookup.add_argument("--key", required=True)
-    for name in ("record", "evidence"):
+    for name in ("record", "evidence", "context"):
         command = commands.add_parser(name)
         command.add_argument("--reimbursement-id", type=identifier, required=True)
     args = parser.parse_args()
@@ -126,7 +126,8 @@ def main():
         data = client.api(args, "GET", PREFIX + "/attempts/by-key?key=" + quote(args.key, safe=""), "agent")
     else:
         path = PREFIX + "/records/" + args.reimbursement_id
-        data = client.api(args, "GET", path + ("/evidence" if args.command == "evidence" else ""), "human")
+        suffix = {"record": "", "evidence": "/evidence", "context": "/proposal-context"}[args.command]
+        data = client.api(args, "GET", path + suffix, "agent" if args.command == "context" else "human")
     print(json.dumps(data, ensure_ascii=False, indent=2))
 
 

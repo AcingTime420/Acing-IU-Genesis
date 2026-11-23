@@ -23,8 +23,10 @@ at 1,000,000,000,000 to stay exactly representable in JavaScript.
 Membership and projects are provisioned by trusted local fixture administration.
 There is no self-enrollment, organization-management UI, production organization
 identity or employee reimbursement submission integration. A model cannot assign
-memberships, approve a proposal or change enforcement. No model is connected in
-this delta; the separate local inference prototype remains separate.
+memberships, approve a proposal or change enforcement. The subsequent experimental
+[local proposal bridge](../../backend/LocalInference/README.md) connects local
+inference to proposal staging only. Its governance pipeline is tested with simulated
+model responses; actual inference validation remains pending.
 
 ## Local setup
 
@@ -91,6 +93,7 @@ is inherited from HumanAuthority. Human and agent credentials are distinct.
 |---|---|---|
 | POST `/records` | Human manager: organizationId, projectId, category, amountMinor, currency=USD | 201 record; manager derived from caller, pending/version 0 |
 | GET `/records/{id}` | Designated manager, current enabled membership | Current record; foreign/unknown 404 |
+| GET `/records/{id}/proposal-context` | Current agent member and enabled manager/project/organization | Pending context only; human 403, foreign/unknown/disabled scope 404, nonpending 409 |
 | GET `/records/{id}/evidence` | Same manager boundary | Ordered persisted evidence |
 | POST `/proposals` | Agent member: reimbursementId, expectedVersion, maxAmountMinor, ttlSeconds | 201 immutable derived scope |
 | GET `/proposals/{id}` | Bound manager or requesting agent, current scope | Immutable proposal |
