@@ -1,0 +1,835 @@
+openapi: 3.1.0
+info:
+  title: 'Acing IU: Genesis — Experimental Internal Reimbursement Authority'
+  version: 0.1.0
+  description: Bounded Development/Test contract for synthetic internal approval records, not production,
+    payments, certification or complete conformance evidence. Requires authority migration 001 and explicit
+    optional reimbursement migration 002. Membership/projects are provisioned out of band; there is no
+    self-enrollment API. Reuses independently enforced human/agent authority credentials. No AI model
+    is connected by these endpoints. JSON requests reject unknown properties; amounts are integer USD
+    cents. Every protected effect requires a valid exact human grant. Current evidence remains durable
+    database records, not cryptographic attestation. Production identity, administration, privacy/retention,
+    backup/recovery and independent human review remain open gates.
+servers:
+- url: /v1/authority/reimbursements
+  description: Relative to the configured literal-loopback Development/Test HumanAuthority origin only.
+    Do not expose or tunnel the local service.
+security:
+- LocalBearer: []
+paths:
+  /records:
+    post:
+      operationId: createReimbursementRecord
+      summary: Create one synthetic internal reimbursement
+      description: Enabled human manager only. Manager identity is derived from the authenticated caller;
+        organization, project and current manager membership must exist. New record is pending at version
+        0. This does not submit or pay a real employee expense.
+      responses:
+        '201':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Record'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '413':
+          $ref: '#/components/responses/Error413'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecord'
+  /records/{id}:
+    get:
+      operationId: getReimbursementRecord
+      summary: Read an internal reimbursement
+      description: Designated human manager only, with current enabled organization/project/membership.
+        No cross-manager or cross-organization listing is provided.
+      responses:
+        '200':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Record'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '503':
+          $ref: '#/components/responses/Error503'
+      parameters:
+      - $ref: '#/components/parameters/ResourceId'
+  /records/{id}/evidence:
+    get:
+      operationId: getReimbursementEvidence
+      summary: Read ordered persisted reimbursement evidence
+      description: Same designated-manager boundary as record retrieval. Evidence is ordered by createdAt
+        and id. It is not an independent signature, certification or proof against database-owner compromise.
+      responses:
+        '200':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Evidence'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '503':
+          $ref: '#/components/responses/Error503'
+      parameters:
+      - $ref: '#/components/parameters/ResourceId'
+  /proposals:
+    post:
+      operationId: createReimbursementProposal
+      summary: Propose one exact internal approval
+      description: Enabled agent member only. Organization, manager, project, category, amount and currency
+        are derived from the visible reimbursement. Its version/status must be current. Proposal creation
+        does not create authority. Limit is per exact record, not an aggregate budget.
+      responses:
+        '201':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '413':
+          $ref: '#/components/responses/Error413'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProposal'
+  /proposals/{id}:
+    get:
+      operationId: getReimbursementProposal
+      summary: Read an immutable approval proposal
+      description: Bound human manager or proposing agent only, subject to current enabled organization/project/membership.
+        Returned scope must be shown exactly before a human decision.
+      responses:
+        '200':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '503':
+          $ref: '#/components/responses/Error503'
+      parameters:
+      - $ref: '#/components/parameters/ResourceId'
+  /proposals/{id}/decision:
+    post:
+      operationId: decideReimbursementProposal
+      summary: Explicitly approve or reject a proposal
+      description: Designated human manager only. First approval independently checks current scope, pending/version,
+        agent eligibility, amount limit and database-time expiry. Rejection remains available after agent
+        disablement. Same decision can replay its historical result; the opposite decision returns conflict.
+        Approval creates one single-use grant and does not execute the reimbursement effect.
+      responses:
+        '200':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Decision'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '413':
+          $ref: '#/components/responses/Error413'
+        '503':
+          $ref: '#/components/responses/Error503'
+      parameters:
+      - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequest'
+  /grants/{id}:
+    get:
+      operationId: getReimbursementGrant
+      summary: Read stored grant state
+      description: Bound human manager or proposing agent with current scope. Expiry is in the proposal;
+        active here does not imply an execution would be allowed.
+      responses:
+        '200':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grant'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '503':
+          $ref: '#/components/responses/Error503'
+      parameters:
+      - $ref: '#/components/parameters/ResourceId'
+  /grants/{id}/revoke:
+    post:
+      operationId: revokeReimbursementGrant
+      summary: Revoke an unused single-use grant
+      description: Designated human manager only. Serializes against execution through the reimbursement
+        and grant locks. Active becomes revoked. Consumed or already revoked returns unchanged state.
+        Revocation cannot undo an already committed approval.
+      responses:
+        '200':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grant'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '413':
+          $ref: '#/components/responses/Error413'
+        '503':
+          $ref: '#/components/responses/Error503'
+      parameters:
+      - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokeRequest'
+  /execute:
+    post:
+      operationId: executeReimbursementApproval
+      summary: Execute one independently authorized internal approval
+      description: Agent only. Exact organization/project/category/amount/currency/version/operation must
+        match the immutable proposal and current resource. Expiry is evaluated after lock waits. Record
+        approval, grant consumption, attempt, evidence and idempotency response commit atomically. An
+        identical completed retry returns the recorded outcome without another effect, subject to current
+        scope. A new key cannot reuse a consumed or revoked grant. A transport failure requires reconciliation;
+        it does not prove rollback.
+      responses:
+        '200':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attempt'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '413':
+          $ref: '#/components/responses/Error413'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '403':
+          description: Denied protected execution returns its durable denied Attempt. A human caller is
+            rejected by the actor-kind boundary with an Error instead. Neither response authorizes or
+            changes a reimbursement.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/Attempt'
+                - $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteRequest'
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+  /attempts/by-key:
+    get:
+      operationId: getReimbursementAttemptByKey
+      summary: Reconcile a principal-scoped execution attempt
+      description: Requesting agent only. Returns the historical attempt with HTTP 200 even when its recorded
+        outcome is denied. Current membership is checked for a known owned proposal before exposing history.
+        Unknown/foreign denied attempts contain only caller-submitted identifiers and generic outcome;
+        no foreign organization history is exposed.
+      responses:
+        '200':
+          description: Successful response; inspect the returned persisted state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attempt'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '503':
+          $ref: '#/components/responses/Error503'
+      parameters:
+      - $ref: '#/components/parameters/LookupKey'
+components:
+  securitySchemes:
+    LocalBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Opaque development credential
+      description: Separate human and agent credentials are authenticated by the existing HumanAuthority
+        boundary. This is not a production identity provider or a JWT contract.
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+      description: Nonzero UUID of the target resource.
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 200
+        pattern: ^[^\u0000]*$
+      description: Exactly one key value. Reuse the exact body and key after an uncertain transport outcome.
+        Scope is requesting principal plus reimbursement operation; it is separate from document append.
+    LookupKey:
+      name: key
+      in: query
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 200
+        pattern: ^[^\u0000]*$
+      description: Exactly one principal-scoped reimbursement idempotency key.
+  responses:
+    Error400:
+      description: Malformed or invalid request, zero/invalid UUID, invalid numeric/string bounds, unknown
+        JSON property or invalid idempotency key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error401:
+      description: Missing, malformed, unknown or disabled development bearer credential.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error403:
+      description: Authenticated caller has the wrong actor kind for this endpoint.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error404:
+      description: Resource absent, not bound to caller, or current organization/project/membership scope
+        unavailable. Foreign and absent resources use the same not_found response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error409:
+      description: 'Current-state conflict: stale/expired proposal, amount exceeds scope, conflicting
+        decision or changed-body idempotency-key replay.'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error413:
+      description: Request body exceeds the server request-size limit.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error503:
+      description: authority_unavailable. Required storage or policy checks could not complete; no fabricated
+        success is returned.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+      not:
+        const: 00000000-0000-0000-0000-000000000000
+    AmountMinor:
+      type: integer
+      format: int64
+      minimum: 1
+      maximum: 1000000000000
+      description: Positive integer USD cents. Not a floating-point dollar value.
+    Error:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: string
+    CreateRecord:
+      type: object
+      additionalProperties: false
+      required:
+      - organizationId
+      - projectId
+      - category
+      - amountMinor
+      - currency
+      properties:
+        organizationId:
+          $ref: '#/components/schemas/Uuid'
+        projectId:
+          $ref: '#/components/schemas/Uuid'
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^\u0000]*$
+          description: Must contain at least one non-whitespace character. Length is Unicode scalar values.
+        amountMinor:
+          $ref: '#/components/schemas/AmountMinor'
+        currency:
+          type: string
+          const: USD
+    CreateProposal:
+      type: object
+      additionalProperties: false
+      required:
+      - reimbursementId
+      - expectedVersion
+      - maxAmountMinor
+      - ttlSeconds
+      properties:
+        reimbursementId:
+          $ref: '#/components/schemas/Uuid'
+        expectedVersion:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9223372036854775807
+        maxAmountMinor:
+          $ref: '#/components/schemas/AmountMinor'
+        ttlSeconds:
+          type: integer
+          minimum: 1
+          maximum: 600
+    DecisionRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - decision
+      properties:
+        decision:
+          type: string
+          enum:
+          - approved
+          - rejected
+    RevokeRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - reason
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: ^[^\u0000]*$
+          description: Must not be whitespace-only.
+    ExecuteRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - proposalId
+      - grantId
+      - reimbursementId
+      - organizationId
+      - projectId
+      - category
+      - amountMinor
+      - currency
+      - expectedVersion
+      - operation
+      properties:
+        proposalId:
+          $ref: '#/components/schemas/Uuid'
+        grantId:
+          $ref: '#/components/schemas/Uuid'
+        reimbursementId:
+          $ref: '#/components/schemas/Uuid'
+        organizationId:
+          $ref: '#/components/schemas/Uuid'
+        projectId:
+          $ref: '#/components/schemas/Uuid'
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^\u0000]*$
+          description: Must contain at least one non-whitespace character. Length is Unicode scalar values.
+        amountMinor:
+          $ref: '#/components/schemas/AmountMinor'
+        currency:
+          type: string
+          minLength: 1
+          maxLength: 20
+          pattern: ^[^\u0000]*$
+          description: Only USD is authorized. Other nonempty strings are structurally valid but denied
+            by execution policy with HTTP 403.
+        expectedVersion:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9223372036854775807
+        operation:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^\u0000]*$
+          description: Only approve_reimbursement is authorized. Other structurally valid strings produce
+            HTTP 403 denial receipts.
+    Record:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - organizationId
+      - projectId
+      - managerId
+      - category
+      - amountMinor
+      - currency
+      - status
+      - version
+      - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        organizationId:
+          $ref: '#/components/schemas/Uuid'
+        projectId:
+          $ref: '#/components/schemas/Uuid'
+        managerId:
+          $ref: '#/components/schemas/Uuid'
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^\u0000]*$
+          description: Must contain at least one non-whitespace character. Length is Unicode scalar values.
+        amountMinor:
+          $ref: '#/components/schemas/AmountMinor'
+        currency:
+          type: string
+          const: USD
+        status:
+          type: string
+          enum:
+          - pending
+          - approved
+        version:
+          type: integer
+          format: int64
+          enum:
+          - 0
+          - 1
+        createdAt:
+          type: string
+          format: date-time
+    Proposal:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - organizationId
+      - reimbursementId
+      - agentId
+      - managerId
+      - projectId
+      - category
+      - amountMinor
+      - maxAmountMinor
+      - currency
+      - expectedVersion
+      - expiresAt
+      - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        organizationId:
+          $ref: '#/components/schemas/Uuid'
+        reimbursementId:
+          $ref: '#/components/schemas/Uuid'
+        agentId:
+          $ref: '#/components/schemas/Uuid'
+        managerId:
+          $ref: '#/components/schemas/Uuid'
+        projectId:
+          $ref: '#/components/schemas/Uuid'
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^\u0000]*$
+          description: Must contain at least one non-whitespace character. Length is Unicode scalar values.
+        amountMinor:
+          $ref: '#/components/schemas/AmountMinor'
+        maxAmountMinor:
+          $ref: '#/components/schemas/AmountMinor'
+        currency:
+          type: string
+          const: USD
+        expectedVersion:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9223372036854775807
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+      description: Immutable exact-resource scope. Every grant is single-use by database invariant; this
+        DTO does not expose a singleUse field. maxAmountMinor may be lower than amountMinor when proposed;
+        first approval then returns 409 scope_exceeded.
+    Decision:
+      type: object
+      additionalProperties: false
+      required:
+      - proposalId
+      - decision
+      - grantId
+      properties:
+        proposalId:
+          $ref: '#/components/schemas/Uuid'
+        decision:
+          type: string
+          enum:
+          - approved
+          - rejected
+        grantId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+    Grant:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - proposalId
+      - state
+      - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        proposalId:
+          $ref: '#/components/schemas/Uuid'
+        state:
+          type: string
+          enum:
+          - active
+          - consumed
+          - revoked
+        createdAt:
+          type: string
+          format: date-time
+      description: 'Stored terminal state. Active does not establish current validity: expiry, current
+        organization/project/membership and resource state are independently checked at execution.'
+    Attempt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - organizationId
+      - requesterId
+      - proposalId
+      - grantId
+      - reimbursementId
+      - outcome
+      - reason
+      - reimbursementVersion
+      - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        organizationId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        requesterId:
+          $ref: '#/components/schemas/Uuid'
+        proposalId:
+          $ref: '#/components/schemas/Uuid'
+        grantId:
+          $ref: '#/components/schemas/Uuid'
+        reimbursementId:
+          $ref: '#/components/schemas/Uuid'
+        outcome:
+          type: string
+          enum:
+          - allowed
+          - denied
+        reason:
+          type: string
+          enum:
+          - authorized
+          - authorization_denied
+        reimbursementVersion:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          enum:
+          - 1
+          - null
+        createdAt:
+          type: string
+          format: date-time
+      description: Recorded execution result. Unknown/foreign requests disclose only submitted target
+        identifiers and a generic denial; organizationId may be null. No payment is performed.
+    Evidence:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - organizationId
+      - reimbursementId
+      - requesterId
+      - approverId
+      - proposalId
+      - grantId
+      - attemptId
+      - action
+      - outcome
+      - details
+      - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        organizationId:
+          $ref: '#/components/schemas/Uuid'
+        reimbursementId:
+          $ref: '#/components/schemas/Uuid'
+        requesterId:
+          $ref: '#/components/schemas/Uuid'
+        approverId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        proposalId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        grantId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        attemptId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        action:
+          type: string
+          enum:
+          - reimbursement_created
+          - proposal_created
+          - proposal_decided
+          - grant_revoked
+          - execute
+        outcome:
+          type: string
+          enum:
+          - created
+          - proposed
+          - approved
+          - rejected
+          - revoked
+          - allowed
+          - denied
+        details:
+          type: object
+          additionalProperties: true
+          description: Persisted event-specific details. These records are durable, not cryptographically
+            authenticated or tamperproof.
+        createdAt:
+          type: string
+          format: date-time
+x-conformance-status: Source-reconciled experimental contract; no complete runtime OpenAPI conformance
+  certification.
+x-single-use-invariant: All reimbursement grants are single-use. This is enforced by immutable proposal
+  and terminal grant state; no singleUse field is returned in DTOs.

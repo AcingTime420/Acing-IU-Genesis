@@ -114,6 +114,7 @@ app.MapGet("/health/ready", async (AuthorityDatabase database) =>
         : Results.Json(new { error = "authority_unavailable" }, statusCode: 503));
 
 app.MapAuthorityEndpoints();
+app.MapReimbursementEndpoints();
 app.Run();
 
 public partial class Program;

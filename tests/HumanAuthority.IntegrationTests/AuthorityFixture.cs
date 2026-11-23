@@ -61,10 +61,13 @@ public sealed class AuthorityFixture : IAsyncLifetime
             if (!(bool)(await lease.ExecuteScalarAsync())!)
                 throw new InvalidOperationException("Another authority integration suite is using this database; refusing reset.");
         await using var connection = await OpenAsync();
-        await using (var reset = new NpgsqlCommand("DROP SCHEMA IF EXISTS genesis_authority CASCADE", connection))
+        await using (var reset = new NpgsqlCommand("DROP SCHEMA IF EXISTS genesis_reimbursements CASCADE; DROP SCHEMA IF EXISTS genesis_authority CASCADE", connection))
             await reset.ExecuteNonQueryAsync();
         var migration = await File.ReadAllTextAsync(Path.Combine(Root, "database/migrations/001_human_authority.sql"));
         await using (var apply = new NpgsqlCommand(migration, connection))
+            await apply.ExecuteNonQueryAsync();
+        var reimbursementMigration = await File.ReadAllTextAsync(Path.Combine(Root, "database/migrations/002_reimbursement_authority.sql"));
+        await using (var apply = new NpgsqlCommand(reimbursementMigration, connection))
             await apply.ExecuteNonQueryAsync();
         Human = await SeedAsync("human", "owner");
         OtherHuman = await SeedAsync("human", "other owner");

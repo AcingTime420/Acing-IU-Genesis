@@ -237,7 +237,16 @@ def main():
         env = local_database()
         if args.confirm_database != env["PGDATABASE"]:
             raise ValueError("Confirmation must exactly match PGDATABASE.")
-        sql("DROP SCHEMA IF EXISTS genesis_authority CASCADE;")
+        # Reimbursement records reference these principals. CASCADE would remove
+        # their foreign keys while leaving misleading, orphaned approval records.
+        sql("""BEGIN;
+            DO $reset$ BEGIN
+                IF to_regnamespace('genesis_reimbursements') IS NOT NULL THEN
+                    RAISE EXCEPTION 'dependent reimbursement schema exists; preserve its evidence';
+                END IF;
+            END $reset$;
+            DROP SCHEMA IF EXISTS genesis_authority CASCADE;
+            COMMIT;""")
         print("Local authority schema dropped; reapply migration and create NEW credentials.")
         return
     if args.command == "fixtures":

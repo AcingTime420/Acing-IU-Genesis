@@ -182,11 +182,14 @@ jobs:
         run: |
           npm run test:genesis
           npm run test:genesis-session
+          node --experimental-strip-types --test tests/genesis-reimbursement-session.test.mjs
           npm run test:lint
 
       - name: Genesis production HTTP boundary tests
         working-directory: frontend
-        run: npm run test:genesis-live-http
+        run: |
+          npm run test:genesis-live-http
+          node --test tests/genesis-reimbursement-http.test.mjs
 
   human-authority-integration:
     name: Human Authority HTTP/PostgreSQL (${{ matrix.configuration }})
@@ -247,6 +250,8 @@ jobs:
           python3 ../scripts/genesis-authority.py migrate
           python3 ../scripts/genesis-authority.py --credentials "$scratch/fixtures.json" fixtures
           node tests/genesis-connected-browser.mjs "$scratch/fixtures.json" "$scratch/browser"
+          python3 ../scripts/genesis-reimbursements.py --credentials "$scratch/fixtures.json" migrate
+          node tests/genesis-reimbursement-connected.mjs "$scratch/fixtures.json" "$scratch/browser"
       - name: Local credential file guard regressions
         run: python3 -m unittest discover -s tests -p test_authority_credentials.py
       - name: Run actual authority HTTP and PostgreSQL integration tests

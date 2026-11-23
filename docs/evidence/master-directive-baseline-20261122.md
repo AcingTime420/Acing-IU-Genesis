@@ -1,5 +1,10 @@
 # Master directive: verified execution baseline
 
+Historical starting baseline for this program. The subsequent additive
+[reimbursement candidate](reimbursement-authority-20261122.md) implements and
+validates the bounded internal-record operation identified as missing below;
+this document preserves the findings at initial inspection.
+
 Recorded November 22, 2026 (America/Los_Angeles). Founder: Micki Hart.
 IU means Interface User. Proposed entity Acing Gen LLC is not verified as
 registered. Motto: “Security by Foundation. Personal by Choice. Engineered for Trust.”
