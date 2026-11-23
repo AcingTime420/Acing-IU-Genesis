@@ -1,6 +1,18 @@
 # Acing Guardian Security Platform Architecture
 
-The Acing Guardian Security Platform is designed with a security-first approach, mirroring the robust architecture of Samsung Knox Matrix while introducing a unique Interface User Security Layer. The platform integrates deeply with the operating system, providing real-time threat intelligence, hardware-backed protection, and isolated secure environments.
+**Historical research design, not an implemented architecture or installation
+guide.** The component descriptions and integration steps below express proposed
+behavior. They do not establish OS integration, hardware-backed protection,
+real-time threat prevention, certification or an available device executor.
+Do not apply the boot integration steps to a device without separately approved
+device-specific research and recovery safeguards. For current human-authority
+architecture and verified scope, use the
+[execution baseline](evidence/master-directive-baseline-20261122.md) and
+[capability register](CAPABILITY_REGISTER.md).
+
+This proposed Guardian design explores an Interface User security layer. Device
+trust remains a supporting research control; human authority over AI-assisted
+actions is Genesis's central purpose.
 
 ## Core Components:
 
