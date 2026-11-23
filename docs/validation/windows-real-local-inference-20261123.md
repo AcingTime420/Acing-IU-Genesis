@@ -52,3 +52,17 @@ Docker was temporarily stopped with explicit owner authorization. Restoration is
 ## Limits
 
 Two successful synthetic examples establish this integration path, not general model reliability, hostile prompt resistance, production readiness, or independent security certification. Existing denial/concurrency tests remain distinct evidence. No application merge or deployment was performed.
+
+## Docker restoration outcome
+
+Docker Desktop's engine responded after restart. The original `genesis_devcontainer-db-1` container was running again. Of the second trial's 22 saved full container IDs, 21 were present in the running-container listing; the current running count was 22.
+
+The missing saved container was `elegant_merkle` (ID prefix `e18723fd5cd2`). Docker events identified its image as `vonwig/inotifywait:latest` and recorded start, kill, stop, die, and destroy events. A new `heuristic_robinson` container (ID prefix `3d47afcc7de1`) was running the same image. This supports identifying the discrepancy as a recreated file-watcher container, but does not independently prove equivalent mounts or configuration. The strict original-ID restoration result therefore remains **false**; the missing container was not manually recreated with guessed settings.
+
+The Kong Konnect extension remained in its pre-existing restart loop. It was not reported healthy or repaired by this task. Its state varied during inspection, which was also retained as a restoration mismatch.
+
+The earlier preparation snapshot's missing ID `314370996f1e` still lacks sufficient recorded metadata for identification. That historical gap is distinct from the later identified watcher. The model trial itself returned exit code 0; temporary PostgreSQL cleanup reported no failure, and a subsequent native check found neither its postmaster PID file nor an Ollama listener on port 11434.
+
+## Hosted checks
+
+At commit `047bd080439682494683f503a297127f031f84a4`, all returned pull-request workflow runs completed successfully: clean-clone baseline (45238588523), security/dependency review (45238588970), and repository integrity (45238588436). This list is scoped to the connector's returned PR-triggered runs, not an assertion about every possible workflow. This final documentation amendment does not change application or harness code.
