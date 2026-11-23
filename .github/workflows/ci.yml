@@ -184,6 +184,7 @@ jobs:
           npm run test:genesis-session
           node --experimental-strip-types --test tests/genesis-reimbursement-session.test.mjs
           node --test ../backend/LocalInference/tests/*.test.mjs
+          node --test tests/genesis-real-inference-cleanup.test.mjs
           npm run test:lint
 
       - name: Genesis production HTTP boundary tests
@@ -311,6 +312,13 @@ jobs:
             dotnet test tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration $configuration --filter 'FullyQualifiedName~BackendArtifactTests|FullyQualifiedName~DatabaseGuardTests' --verbosity normal
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
+      - name: Real-model coordinator and launcher guard regressions
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -B -m unittest discover -s tests -p test_real_model_trial_guards.py -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & ./tests/Test-GenesisRealModelTrialLauncher.ps1
 
   # ── Job 5: Container build (Docker) ───────────────────────────────────
   containerization:
