@@ -73,7 +73,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--run-dir", type=Path, required=True)
-    parser.add_argument("--playwright-root", type=Path, required=True)
+    parser.add_argument("--scenario", choices=("browser", "adversarial"), default="browser")
+    parser.add_argument("--playwright-root", type=Path)
     parser.add_argument("--harness", type=Path, required=True)
     parser.add_argument("--expected-commit", required=True)
     parser.add_argument("--model", required=True)
@@ -96,13 +97,15 @@ def main():
         probe.bind(("127.0.0.1", 11434))  # Never hijack an owner's model service.
     if not args.ollama.is_file() or not args.models_dir.is_dir() or not args.harness.is_file():
         raise RuntimeError("installed_runtime_models_and_harness_required")
-    if not (args.playwright_root / "node_modules/playwright/package.json").is_file():
-        raise RuntimeError("existing_playwright_required")
-    if not (root / "frontend/.next/BUILD_ID").is_file():
-        raise RuntimeError("production_frontend_build_required")
+    if args.scenario == "browser":
+        if args.playwright_root is None or not (args.playwright_root / "node_modules/playwright/package.json").is_file():
+            raise RuntimeError("existing_playwright_required")
+        if not (root / "frontend/.next/BUILD_ID").is_file():
+            raise RuntimeError("production_frontend_build_required")
 
     owned, handles = [], []
-    report = {"sourceCommit": head, "mode": "synthetic real-model Windows validation", "passed": False}
+    report = {"sourceCommit": head, "mode": "synthetic real-model Windows validation",
+              "scenario": args.scenario, "passed": False}
     stage = "preflight"
     pressure = threading.Event()
     finished = threading.Event()
@@ -239,6 +242,7 @@ def main():
         recovery_deadline = time.monotonic() + 30
         while True:
             physical, virtual = memory()
+            minimum_free[0] = min(minimum_free[0], physical)
             report["freeMiBBeforeModel"] = physical
             if physical >= 2048 and virtual >= 4096:
                 break
@@ -268,11 +272,14 @@ def main():
                          GENESIS_REAL_FRONTEND_PORT=str(front_port), GENESIS_REAL_INFERENCE_TEST="1",
                          GENESIS_MODEL=args.model, GENESIS_TRIAL_REPO=str(root), NEXT_TELEMETRY_DISABLED="1",
                          GENESIS_TRIAL_COORDINATOR=str(Path(__file__).resolve()), GENESIS_TRIAL_PYTHON=sys.executable,
-                         GENESIS_TRIAL_OLLAMA_PID=str(model.pid))
-        output = command("real-model-connected", [node, args.harness, fixtures, args.playwright_root, private], trial_env, 360)
+                         GENESIS_TRIAL_OLLAMA_PID=str(model.pid), GENESIS_TRIAL_SCENARIO=args.scenario)
+        output = command("real-model-connected", [node, args.harness, fixtures,
+                         args.playwright_root or private, private], trial_env, 360)
         report["observations"] = json.loads(output)
         if report["observations"].get("result") != "passed" or report["observations"].get("simulatedInference") is not False:
             raise RuntimeError("actual_model_trial_not_confirmed")
+        if args.scenario == "adversarial" and report["observations"].get("scenario") != "adversarial":
+            raise RuntimeError("adversarial_scenario_not_confirmed")
         if pressure.is_set():
             raise RuntimeError("memory_guard_triggered")
         report["passed"] = True
