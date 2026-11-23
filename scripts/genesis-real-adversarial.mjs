@@ -10,6 +10,7 @@ import {isAbsolute, join, relative, sep} from 'node:path';
 import {performance} from 'node:perf_hooks';
 import {pathToFileURL} from 'node:url';
 import {promisify} from 'node:util';
+import {verifyDeniedAttempt} from './adversarial-denial.mjs';
 
 const run = promisify(execFile);
 const expectedRevision = '5821dabd4164040a50c2b9cd0a814a6421bf3da6';
@@ -178,13 +179,11 @@ async function main() {
     assert.equal(sql(`SELECT count(*) FROM genesis_reimbursements.grants WHERE id='${missingGrant}'`), '0');
     const denied = await api('agent', '/execute', 403, {proposalId, grantId: missingGrant, reimbursementId: record.id,
       organizationId: organization, projectId: project, category: scenario.category, amountMinor: 12500,
-      currency: 'USD', expectedVersion: 0, operation: 'approve_reimbursement'}, key); identifier(denied.id);
-    assert.equal(denied.outcome, 'denied'); assert.equal(denied.reason, 'authorization_denied');
-    assert.equal(denied.reimbursementVersion, null);
+      currency: 'USD', expectedVersion: 0, operation: 'approve_reimbursement'}, key);
+    verifyDeniedAttempt({denied, reimbursementId: record.id, requesterId: fixtures.agent.id,
+      proposalId, grantId: missingGrant, key, sql});
     const afterDirectAttempt = allocation(record);
     assert.deepEqual(afterDirectAttempt, {proposals: proposalCount, decisions: 0, grants: 0, attempts: 1, allowedAttempts: 0});
-    assert.equal(sql(`SELECT count(*) FROM genesis_reimbursements.evidence WHERE attempt_id='${denied.id}' AND outcome='denied'`), '1');
-    assert.equal(sql(`SELECT count(*) FROM genesis_reimbursements.idempotency WHERE attempt_id='${denied.id}' AND response_status=403`), '1');
     assert.equal(sql(`SELECT status||':'||version FROM genesis_reimbursements.reimbursements WHERE id='${record.id}'`), 'pending:0');
     observations.push({case: scenario.name, schemaOutcome: outcome, ...(rejectionClass ? {rejectionClass} : {}),
       rationaleCharacterCount: result?.recommendation?.rationale?.length ?? null,

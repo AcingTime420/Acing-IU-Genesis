@@ -5,13 +5,13 @@
 import assert from 'node:assert/strict';
 import {execFile, execFileSync, spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
-import {once} from 'node:events';
 import {lstat, readFile, realpath, rename, stat, writeFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {createServer} from 'node:net';
 import {isAbsolute, join, relative, resolve, sep} from 'node:path';
 import {performance} from 'node:perf_hooks';
 import {setTimeout as delay} from 'node:timers/promises';
+import {pathToFileURL} from 'node:url';
 import {promisify} from 'node:util';
 
 const run = promisify(execFile);
@@ -101,14 +101,62 @@ async function waitFrontend(url) {
   }
   throw new Error('Frontend readiness deadline exceeded.');
 }
-async function cleanup() {
-  await browser?.close().catch(() => {});
-  if (frontend && frontend.exitCode === null && frontend.signalCode === null) {
-    frontend.kill('SIGTERM');
-    await Promise.race([frontendClosed, delay(5000)]);
-    if (frontend.exitCode === null && frontend.signalCode === null) frontend.kill('SIGKILL');
+function boundedCompletion(operation, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Owned resource cleanup deadline exceeded.')), timeoutMs);
+    Promise.resolve(operation).then(value => {clearTimeout(timer); resolve(value);},
+      error => {clearTimeout(timer); reject(error);});
+  });
+}
+
+/** Confirm both owned resources closed, even if one cleanup rejects or times out.
+ * frontendClosed must resolve only on the actual child `close` event, not on `exit`
+ * or a swallowed spawn error. Signals alone are not evidence of process closure.
+ */
+export async function cleanupOwnedResources({browser, frontend, frontendClosed,
+  browserTimeoutMs = 5000, graceTimeoutMs = 5000, killTimeoutMs = 5000} = {}) {
+  for (const value of [browserTimeoutMs, graceTimeoutMs, killTimeoutMs])
+    assert.ok(Number.isInteger(value) && value > 0);
+  async function closeBrowser() {
+    if (!browser) return;
+    await boundedCompletion(Promise.resolve().then(() => browser.close()), browserTimeoutMs);
+    if (browser.isConnected() !== false) throw new Error('Browser closure was not confirmed.');
   }
-  if (frontendClosed) await Promise.race([frontendClosed, delay(5000)]);
+  async function closeFrontend() {
+    if (!frontend) return;
+    const waitForClose = async timeoutMs => {
+      if (!frontendClosed || typeof frontendClosed.then !== 'function') return false;
+      try {await boundedCompletion(frontendClosed, timeoutMs); return true;} catch {return false;}
+    };
+    // A process may exit before its stdio handles close. Wait for the actual close
+    // event in that case rather than signalling an exited child's stored PID.
+    if (frontend.exitCode !== null || frontend.signalCode !== null) {
+      if (!await waitForClose(killTimeoutMs)) throw new Error('Frontend closure was not confirmed.');
+      return;
+    }
+    try {frontend.kill('SIGTERM');} catch { /* Still attempt confirmation and escalation. */ }
+    if (await waitForClose(graceTimeoutMs)) return;
+    if (frontend.exitCode === null && frontend.signalCode === null) {
+      try {frontend.kill('SIGKILL');} catch { /* Only a close event can establish success. */ }
+    }
+    if (!await waitForClose(killTimeoutMs)) throw new Error('Frontend closure was not confirmed.');
+  }
+  const results = await Promise.allSettled([closeBrowser(), closeFrontend()]);
+  const errors = results.filter(value => value.status === 'rejected').map(value => value.reason);
+  if (errors.length) throw new AggregateError(errors, 'Owned resource cleanup was not confirmed.');
+}
+
+/** A successful workflow cannot publish passed/completed until cleanup succeeds. */
+export async function runWithConfirmedCleanup({perform, cleanup, completed, failed}) {
+  let summary;
+  const errors = [];
+  try {summary = await perform();} catch (error) {errors.push(error);}
+  try {await cleanup();} catch (error) {errors.push(error);}
+  if (!errors.length) {
+    try {await completed(summary); return summary;} catch (error) {errors.push(error);}
+  }
+  try {await failed();} catch (error) {errors.push(error);}
+  throw new AggregateError(errors, 'Validation or cleanup failed; no passing result was published.');
 }
 async function main() {
   const [suppliedCredentials, playwrightRoot, suppliedRunDirectory] = process.argv.slice(2);
@@ -252,7 +300,7 @@ async function main() {
       NEXT_TELEMETRY_DISABLED: '1', GENESIS_LOCAL_LIVE: '1', GENESIS_AUTHORITY_URL: authorityUrl}, stdio: ['ignore', 'pipe', 'pipe']});
   frontend.once('error', () => {frontendFailed = true;});
   frontend.stdout.on('data', () => {}); frontend.stderr.on('data', () => {});
-  frontendClosed = once(frontend, 'close').catch(() => {});
+  frontendClosed = new Promise(resolve => frontend.once('close', resolve));
   await waitFrontend(frontendUrl + '/genesis/reimbursements');
   const {chromium} = createRequire(resolve(playwrightRoot, 'package.json'))('playwright');
   diagnostic.memoryBeforeBrowser = await waitForMemory('before-browser');
@@ -314,21 +362,32 @@ async function main() {
   assert.equal(sqlResults.allowedReceiptCount, 1); assert.equal(sqlResults.deniedReceiptCount, 1);
   diagnostic.actualRecommendations = staged.map(value => ({recommendation: value.recommendation, provenance: value.provenance}));
   diagnostic.sqlResults = sqlResults;
-  diagnostic.result = 'passed';
   diagnostic.limitations = ['Two synthetic records do not establish general model quality or production readiness.',
     'Provider/runtime diagnostics are not cryptographic attestation.', 'Approval does not initiate payment.'];
   assert.ok(!JSON.stringify(diagnostic).includes(fixtures.human.credential) && !JSON.stringify(diagnostic).includes(fixtures.agent.credential));
-  await mark('completed', 'passed');
   return diagnostic;
 }
-let summary;
-try {
-  summary = await main();
-} catch {
-  await mark(stage, 'failed').catch(() => {});
-  console.error('Real local inference validation failed. Inspect the private progress stage and coordinator diagnostics.');
-  process.exitCode = 1;
-} finally {
-  await cleanup();
+// Importing this module for cleanup regressions must not start a real experiment.
+if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
+  try {
+    const summary = await runWithConfirmedCleanup({
+      perform: main,
+      cleanup: async () => {
+        const previousStage = stage;
+        stage = 'cleanup';
+        await cleanupOwnedResources({browser, frontend, frontendClosed});
+        stage = previousStage;
+      },
+      completed: async value => {
+        value.cleanupConfirmed = true;
+        value.result = 'passed';
+        await mark('completed', 'passed');
+      },
+      failed: () => mark(stage, 'failed'),
+    });
+    console.log(JSON.stringify(summary, null, 2));
+  } catch {
+    console.error('Real local inference validation or cleanup failed. Inspect the private progress stage and coordinator diagnostics.');
+    process.exitCode = 1;
+  }
 }
-if (summary) console.log(JSON.stringify(summary, null, 2));

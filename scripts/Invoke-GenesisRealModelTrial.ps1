@@ -17,6 +17,60 @@ $docker='C:\Program Files\Docker\Docker\resources\bin\docker.exe'
 $private=Join-Path $RunDirectory 'private'
 $trialCode=1
 $restored=$false
+# Pure helpers are extracted by tests/Test-GenesisRealModelTrialLauncher.ps1;
+# none of them starts Docker, PostgreSQL or the coordinator.
+function Resolve-GenesisTrialHarness([string]$EvidenceScriptRoot,[string]$Scenario){
+    if($Scenario -eq 'adversarial'){
+        $candidate=Join-Path $EvidenceScriptRoot 'genesis-real-adversarial.mjs'
+    }elseif($Scenario -eq 'browser'){
+        $evidenceRoot=Split-Path -Parent $EvidenceScriptRoot
+        $candidate=Join-Path $evidenceRoot 'frontend/tests/genesis-real-inference-connected.mjs'
+        if(!(Test-Path -LiteralPath $candidate -PathType Leaf)){
+            $candidate=Join-Path $EvidenceScriptRoot 'genesis-real-inference-connected.mjs'
+        }
+    }else{throw 'Unsupported trial scenario.'}
+    if(!(Test-Path -LiteralPath $candidate -PathType Leaf)){throw 'Evidence trial harness is missing.'}
+    return [IO.Path]::GetFullPath($candidate)
+}
+function Test-GenesisFullContainerIds([string[]]$Ids){
+    [string[]]$values=@()
+    if($null -ne $Ids){$values=$Ids}
+    foreach($id in $values){if($id -cnotmatch '^[a-f0-9]{64}$'){return $false}}
+    return (@($values|Select-Object -Unique).Count -eq $values.Count)
+}
+function Get-GenesisContainerSetDifference([string[]]$SavedIds,[string[]]$ActualIds){
+    if(!(Test-GenesisFullContainerIds $SavedIds) -or !(Test-GenesisFullContainerIds $ActualIds)){
+        throw 'Container inventory requires unique full IDs.'
+    }
+    return [pscustomobject]@{
+        Missing=@($SavedIds|Where-Object{$ActualIds -cnotcontains $_})
+        Unexpected=@($ActualIds|Where-Object{$SavedIds -cnotcontains $_})
+    }
+}
+function Get-GenesisOwnedCluster([string]$PrivateDirectory,[string]$InvocationId,[long]$CoordinatorPid){
+    if($InvocationId -cnotmatch '^[a-f0-9]{32}$' -or $InvocationId -eq ('0'*32) -or $CoordinatorPid -le 0){
+        return $null
+    }
+    $cluster=[IO.Path]::GetFullPath((Join-Path $PrivateDirectory ('postgres-'+$InvocationId)))
+    $marker=$cluster+'.start-requested.json'
+    if(!(Test-Path -LiteralPath $marker -PathType Leaf)){return $null}
+    $markerInfo=Get-Item -LiteralPath $marker -Force
+    if(($markerInfo.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or $markerInfo.Length -gt 4096){
+        throw 'Invalid task-owned cluster marker.'
+    }
+    $claim=[IO.File]::ReadAllText($marker)|ConvertFrom-Json
+    if($null -eq $claim -or [string]$claim.invocationId -cne $InvocationId -or
+       [string]$claim.coordinatorPid -notmatch '^[1-9][0-9]*$' -or [long]$claim.coordinatorPid -ne $CoordinatorPid -or
+       [string]::IsNullOrWhiteSpace([string]$claim.clusterPath) -or
+       ![string]::Equals([string]$claim.clusterPath,$cluster,[StringComparison]::OrdinalIgnoreCase)){
+        throw 'Cluster marker does not match this coordinator invocation.'
+    }
+    if(!(Test-Path -LiteralPath $cluster -PathType Container)){return $null}
+    $clusterInfo=Get-Item -LiteralPath $cluster -Force
+    if(($clusterInfo.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0){throw 'Task cluster must not be a link.'}
+    if(!(Test-Path -LiteralPath (Join-Path $cluster 'postmaster.pid') -PathType Leaf)){return $null}
+    return $cluster
+}
 function Read-Shared([string]$Path){
     $stream=[IO.FileStream]::new($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
     $reader=[IO.StreamReader]::new($stream,[Text.Encoding]::UTF8)
@@ -59,13 +113,16 @@ $ids=@()
 $snapshotValid=$false
 $pgCleanupFailed=$false
 $restorationAttempted=$false
+$invocationId=[guid]::NewGuid().ToString('N')
+$coordinatorPid=0
+$unexpected=@()
 try{
     # Validate before the trial; an invalid snapshot must not run inference or
     # authorize mutations, but the finally block still attempts Desktop startup.
     $snapshot=[IO.File]::ReadAllText($DockerSnapshot)|ConvertFrom-Json
     if($null -eq $snapshot -or $null -eq $snapshot.PSObject.Properties['Containers']){throw 'Invalid saved container snapshot.'}
     $ids=@($snapshot.Containers|ForEach-Object{
-        if($_.Id -notmatch '^[a-f0-9]{12,64}$'){throw 'Invalid saved container ID.'}
+        if($_.Id -cnotmatch '^[a-f0-9]{64}$'){throw 'Snapshot requires full container IDs.'}
         if($null -ne $_.PSObject.Properties['Running'] -and ![bool]$_.Running){throw 'Snapshot contains a previously stopped container.'}
         [string]$_.Id
     })
@@ -73,18 +130,19 @@ try{
     $snapshotValid=$true
 
     $coordinator=Join-Path $PSScriptRoot 'validate-real-local-inference-windows.py'
-    $harnessName=if($Scenario -eq 'adversarial'){'genesis-real-adversarial.mjs'}else{'genesis-real-inference-connected.mjs'}
-    $harness=if($Scenario -eq 'adversarial'){Join-Path $Repository ('scripts/'+$harnessName)}else{Join-Path $Repository ('frontend/tests/'+$harnessName)}
-    if(!(Test-Path -LiteralPath $harness)){$harness=Join-Path $PSScriptRoot $harnessName}
+    # Harnesses belong to this evidence checkout, not the pinned application
+    # checkout, which intentionally predates these trial-only files.
+    $harness=Resolve-GenesisTrialHarness $PSScriptRoot $Scenario
     foreach($path in @($Repository,$private,$PlaywrightRoot,$OllamaExecutable,$ModelsDirectory,$DockerSnapshot,$coordinator,$harness)){
         if(!(Test-Path -LiteralPath $path)){throw 'Required exact trial resource is missing.'}
     }
     $env:TEMP=Join-Path $RunDirectory 'temp';$env:TMP=$env:TEMP
     $arguments=@(('"'+$coordinator+'"'),'--repo',('"'+$Repository+'"'),'--run-dir',('"'+$RunDirectory+'"'),
         '--playwright-root',('"'+$PlaywrightRoot+'"'),'--harness',('"'+$harness+'"'),
-        '--expected-commit',$ExpectedCommit,'--model',$Model,'--ollama',('"'+$OllamaExecutable+'"'),'--models-dir',('"'+$ModelsDirectory+'"'),'--scenario',$Scenario)
+        '--expected-commit',$ExpectedCommit,'--model',$Model,'--ollama',('"'+$OllamaExecutable+'"'),'--models-dir',('"'+$ModelsDirectory+'"'),'--scenario',$Scenario,'--invocation-id',$invocationId)
     $process=Start-Process -FilePath $PythonExecutable -ArgumentList $arguments -NoNewWindow -PassThru -RedirectStandardOutput (Join-Path $private 'coordinator.stdout.log') -RedirectStandardError (Join-Path $private 'coordinator.stderr.log')
     $null=$process.Handle
+    $coordinatorPid=$process.Id
     if(!$process.WaitForExit(600000)){
         $null=& taskkill.exe /PID $process.Id /T /F
         throw 'Task-owned trial exceeded its outer deadline.'
@@ -96,8 +154,10 @@ try{
 }finally{
     # PG cleanup cannot abort the separate Docker restoration attempt.
     try{
-        $cluster=Join-Path $private 'postgres'
-        if(Test-Path (Join-Path $cluster 'postmaster.pid')){
+        # No process was started => no marker can authorize fallback cleanup.
+        # Never inspect or stop the old shared private/postgres location.
+        $cluster=Get-GenesisOwnedCluster $private $invocationId $coordinatorPid
+        if($null -ne $cluster){
             $pg=Start-Process -FilePath 'C:\Program Files\PostgreSQL\17\bin\pg_ctl.exe' -ArgumentList @('-D',('"'+$cluster+'"'),'-m','fast','-w','stop') -NoNewWindow -PassThru -RedirectStandardOutput (Join-Path $private 'outer-pg-stop.log') -RedirectStandardError (Join-Path $private 'outer-pg-stop.stderr.log')
             $null=$pg.Handle
             if(!$pg.WaitForExit(45000)){$pg.Kill();$pgCleanupFailed=$true}
@@ -127,7 +187,10 @@ try{
                 }
                 $running=Docker-Command @('--context','desktop-linux','ps','-q','--no-trunc') 10
                 $actual=@($running.Output -split '\s+'|Where-Object{$_})
-                $missing=@($ids|Where-Object{$savedId=$_;!(@($actual|Where-Object{$_.StartsWith($savedId)}).Count -eq 1)})
+                $difference=Get-GenesisContainerSetDifference $ids $actual
+                $missing=@($difference.Missing)
+                $unexpected=@($difference.Unexpected)
+                # Report extras; never stop a container absent from the snapshot.
                 $stateMismatches=@()
                 foreach($item in $snapshot.Containers){
                     $state=Docker-Command @('--context','desktop-linux','inspect','--format','{{json .State}}',[string]$item.Id) 10
@@ -135,14 +198,14 @@ try{
                     try{$value=$state.Output|ConvertFrom-Json}catch{$stateMismatches+=[string]$item.Id;continue}
                     if(!$value.Running -or [bool]$value.Paused -ne [bool]$item.Paused){$stateMismatches+=[string]$item.Id}
                 }
-                $restored=($running.Code -eq 0 -and $missing.Count -eq 0 -and $stateMismatches.Count -eq 0)
+                $restored=($running.Code -eq 0 -and $missing.Count -eq 0 -and $unexpected.Count -eq 0 -and $stateMismatches.Count -eq 0)
                 try{
-                    [ordered]@{ExpectedContainers=$ids.Count;RestoredContainers=($ids.Count-$missing.Count);AllRestored=$restored;Missing=$missing;StateMismatches=$stateMismatches}|ConvertTo-Json -Depth 3|Set-Content -LiteralPath (Join-Path $private 'docker-restoration.json') -Encoding UTF8
+                    [ordered]@{ExpectedContainers=$ids.Count;RestoredContainers=($ids.Count-$missing.Count);AllRestored=$restored;Missing=$missing;Unexpected=$unexpected;StateMismatches=$stateMismatches}|ConvertTo-Json -Depth 3|Set-Content -LiteralPath (Join-Path $private 'docker-restoration.json') -Encoding UTF8
                 }catch{} # The verified result does not depend on log availability.
             }
         }catch{$restored=$false}
         finally{
-            [ordered]@{TrialExitCode=$trialCode;DockerRestorationAttempted=$restorationAttempted;SnapshotValid=$snapshotValid;DockerRestored=$restored;PostgresCleanupFailed=$pgCleanupFailed;ResultFile=(Join-Path $RunDirectory 'real-model-result.json')}|ConvertTo-Json -Depth 3
+            [ordered]@{TrialExitCode=$trialCode;DockerRestorationAttempted=$restorationAttempted;SnapshotValid=$snapshotValid;DockerRestored=$restored;PostgresCleanupFailed=$pgCleanupFailed;UnexpectedContainers=$unexpected;InvocationId=$invocationId;ResultFile=(Join-Path $RunDirectory 'real-model-result.json')}|ConvertTo-Json -Depth 3
         }
     }
 }

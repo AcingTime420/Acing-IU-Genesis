@@ -61,8 +61,11 @@ Docker backend/Desktop processes 182/167/129 MiB. These are a point-in-time samp
 not additive accounting or proof that any process can safely be stopped.
 
 Run only after normal application use or an explicitly authorized service pause
-provides sufficient headroom; the 2,048 MiB start gate and 768 MiB running floor
-remain unchanged. Do not disable memory compression, security software, or terminate
+provides sufficient headroom. Starting the model requires at least 2,048 MiB free
+physical RAM and 4,096 MiB available page-file memory (Windows commit headroom).
+While running, the watchdog requires at least 768 MiB free physical RAM and
+2,048 MiB available page-file memory. These gates remain unchanged. Do not disable
+memory compression, security software, or terminate
 unrelated applications to force the test. The earlier authorized Docker-pause trial
 demonstrated that the installed model can run, but the initial blocked attempt did not pause Docker.
 

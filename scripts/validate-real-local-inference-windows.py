@@ -19,6 +19,7 @@ import sys
 import threading
 import time
 import urllib.request
+import uuid
 
 
 class MemoryStatus(ctypes.Structure):
@@ -69,6 +70,58 @@ def free_port():
         return probe.getsockname()[1]
 
 
+def trial_database_environment(source, port, password):
+    """libpq must not inherit a host address, service, options or credentials."""
+    clean = {key: value for key, value in source.items() if not key.upper().startswith("PG")}
+    clean.update(PGHOST="127.0.0.1", PGPORT=str(port), PGUSER="genesis_trial",
+                 PGDATABASE="postgres", PGPASSWORD=password,
+                 ASPNETCORE_ENVIRONMENT="Test", DOTNET_ENVIRONMENT="Test")
+    return clean
+
+
+def invocation_token(value=None):
+    token = uuid.uuid4().hex if value is None else value
+    if not isinstance(token, str) or not re.fullmatch(r"[0-9a-f]{32}", token) or token == "0" * 32:
+        raise ValueError("invalid_invocation_id")
+    return token
+
+
+def claim_cluster(private, token):
+    cluster = private / ("postgres-" + invocation_token(token))
+    cluster.mkdir(mode=0o700)  # Atomic exclusive claim; never adopt existing storage.
+    return cluster
+
+
+def record_cluster_start(private, token, cluster, pid):
+    marker = private / ("postgres-" + invocation_token(token) + ".start-requested.json")
+    with marker.open("x", encoding="utf-8") as stream:
+        json.dump({"invocationId": token, "clusterPath": str(cluster.resolve()),
+                   "coordinatorPid": pid}, stream)
+
+
+def settle_watchdog(finished, watcher, pressure, timeout=45):
+    """A sample already in progress must publish its verdict before success."""
+    finished.set()
+    if watcher is not None:
+        try:
+            watcher.join(timeout)
+        except RuntimeError:
+            return False  # Includes a thread whose start failed; cleanup must continue.
+        if watcher.is_alive():
+            return False
+    return not pressure.is_set()
+
+
+def write_report(run_dir, report, sample=memory):
+    """Optional final diagnostics must not erase stage and cleanup evidence."""
+    try:
+        report["freeMiBAfterCleanup"] = sample()[0]
+    except Exception:
+        report["freeMiBAfterCleanup"] = None
+        report["finalMemoryMeasurementUnavailable"] = True
+    (run_dir / "real-model-result.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, required=True)
@@ -77,11 +130,13 @@ def main():
     parser.add_argument("--playwright-root", type=Path)
     parser.add_argument("--harness", type=Path, required=True)
     parser.add_argument("--expected-commit", required=True)
+    parser.add_argument("--invocation-id")
     parser.add_argument("--model", required=True)
     parser.add_argument("--ollama", type=Path, required=True)
     parser.add_argument("--models-dir", type=Path, required=True)
     parser.add_argument("--pg-bin", type=Path, default=Path(r"C:\Program Files\PostgreSQL\17\bin"))
     args = parser.parse_args()
+    token = invocation_token(args.invocation_id)
     if sys.platform != "win32":
         raise RuntimeError("native_windows_required")
     root, run_dir = args.repo.resolve(), args.run_dir.resolve()
@@ -105,15 +160,16 @@ def main():
 
     owned, handles = [], []
     report = {"sourceCommit": head, "mode": "synthetic real-model Windows validation",
-              "scenario": args.scenario, "passed": False}
+              "scenario": args.scenario, "invocationId": token, "passed": False}
     stage = "preflight"
     pressure = threading.Event()
     finished = threading.Event()
     minimum_free = [memory()[0]]
     pg_started = False
     model = None
+    watcher = None
     guard_reason = [None]
-    pgdata = private / "postgres"
+    pgdata = private / ("postgres-" + token)
     if pgdata.exists():
         raise RuntimeError("new_task_owned_cluster_required")
     clean_base = dict(os.environ)
@@ -214,14 +270,14 @@ def main():
         pgport, backend_port, front_port = free_port(), free_port(), free_port()
         if len({pgport, backend_port, front_port, 11434}) != 4:
             raise RuntimeError("distinct_test_ports_required")
-        db_env = dict(clean_base, PGHOST="127.0.0.1", PGPORT=str(pgport), PGUSER="genesis_trial",
-                      PGDATABASE="postgres", PGPASSWORD=password,
-                      ASPNETCORE_ENVIRONMENT="Test", DOTNET_ENVIRONMENT="Test")
+        db_env = trial_database_environment(clean_base, pgport, password)
         db_env["PATH"] = str(args.pg_bin) + os.pathsep + db_env["PATH"]
+        pgdata = claim_cluster(private, token)
         command("initdb", [args.pg_bin / "initdb.exe", "-D", pgdata, "-U", "genesis_trial",
                            "--auth=scram-sha-256", "--pwfile", pwfile, "--encoding=UTF8", "--no-locale"], db_env)
         # pg_ctl may daemonize a server inheriting handles; wait on the control PID,
         # not pipe EOF. The exact new data directory is used again during cleanup.
+        record_cluster_start(private, token, pgdata, os.getpid())
         pg_started = True
         command("pg-start", [args.pg_bin / "pg_ctl.exe", "-D", pgdata, "-l", private / "postgres.log",
                             "-o", f"-h 127.0.0.1 -p {pgport}", "-w", "start"], db_env, 45)
@@ -280,7 +336,7 @@ def main():
             raise RuntimeError("actual_model_trial_not_confirmed")
         if args.scenario == "adversarial" and report["observations"].get("scenario") != "adversarial":
             raise RuntimeError("adversarial_scenario_not_confirmed")
-        if pressure.is_set():
+        if not settle_watchdog(finished, watcher, pressure):
             raise RuntimeError("memory_guard_triggered")
         report["passed"] = True
     except Exception:
@@ -288,7 +344,14 @@ def main():
         report["memoryGuardTriggered"] = guard_reason[0] == "memory"
         report["guardReason"] = guard_reason[0]
     finally:
-        finished.set()
+        if not settle_watchdog(finished, watcher, pressure):
+            report["passed"] = False
+            report.setdefault("failureStage", stage)
+            report["guardReason"] = guard_reason[0]
+            report["memoryGuardTriggered"] = guard_reason[0] == "memory"
+            if watcher is not None and watcher.is_alive():
+                report["cleanupFailed"] = True
+                report["watchdogShutdownFailed"] = True
         for process in reversed(owned):
             try:
                 stop_process(process)
@@ -307,8 +370,7 @@ def main():
         if report.get("cleanupFailed"):
             report["passed"] = False
         report["minimumFreeMiB"] = minimum_free[0]
-        report["freeMiBAfterCleanup"] = memory()[0]
-        (run_dir / "real-model-result.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+        write_report(run_dir, report)
         print(json.dumps(report, indent=2))
     return 0 if report["passed"] and not report.get("cleanupFailed") else 1
 
