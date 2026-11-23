@@ -1,5 +1,48 @@
 # Acing IU: Genesis Capability Register
 
+## Current reconciliation — November 22, 2026
+
+This section supersedes the historical maturity labels below for the listed
+capabilities. It describes specific unmerged candidates, not deployed master.
+The historical inventory is retained for provenance. See
+[the execution baseline](evidence/master-directive-baseline-20261122.md) for
+commit identities, inspected CI, architecture, gaps and integration order.
+“Implemented and Verified” means the bounded behavior and environment named in
+the evidence, never general security, production readiness or human certification.
+
+| State | Meaning |
+|---|---|
+| Implemented and Verified | Working behavior with repeatable, commit-specific evidence within stated limits. |
+| Implemented but Unverified | Source exists; required behavior validation is incomplete. |
+| Experimental | Research or prototype functionality. |
+| Simulator | Demonstrates behavior without the corresponding real action. |
+| Planned | Designed or required, implementation incomplete. |
+| Unavailable | Capability absent or deliberately disabled. |
+| Blocked | A required dependency or safety condition is unresolved. |
+
+| Capability | State | Scope and evidence | Remaining limitation |
+|---|---|---|---|
+| Exact document append with human approval, expiry, revocation, idempotency and receipts | Implemented and Verified | Development/Test candidate #245, inherited by #248; `backend/HumanAuthority`, `tests/HumanAuthority.IntegrationTests`; [Windows evidence](evidence/windows-connected-validation-20261118.md) | Prototype credentials, loopback only; independent human review outstanding. Not reimbursement processing. |
+| Human reviewer session and stale-action binding | Implemented and Verified | Same candidate; `frontend/src/app/api/genesis/route.ts`, frontend boundary/connected tests | No production identity/recovery or multi-organization verification. |
+| DeviceTrust ownership, mutation/audit rollback | Implemented and Verified | #245 plus #248 canonical-source test host; `tests/DeviceTrust.OwnershipTests` | Synthetic identity host; production JWT launcher and broader privileged-role policy remain review gates. |
+| DeviceTrust anonymous failure redaction and bounded API contract | Implemented and Verified | #247/#248; [28 tests and 11 HTTP observations](evidence/devicetrust-contract-20261120.md) | List database failure and full API conformance remain outside coverage. |
+| Local AI chat | Experimental | Separate #220, `prototype/local-genesis-assistant` at `5a7be09738a604d27d7df67b6964023c7d707263`; historical measured Windows inference | Separate Node/Ollama application; not connected to durable authority; no current model quality/license evaluation. |
+| AI-to-durable-authority proposal adapter | Planned | Model output must stay untrusted; preserve existing local inference code | No verified integrated adapter identified. |
+| Project/category/amount/currency constrained reimbursement approval | Planned | Directive requires internal records only, no payment execution | Existing operation is append; no reimbursement schema, effect or amount enforcement identified. |
+| Cross-organization delegation | Planned | Existing HumanAuthority ownership is principal/document based | Organization dimension and cross-tenant tests not identified; user ownership is not tenant isolation. |
+| Transactional authority evidence | Implemented and Verified | `database/migrations/001_human_authority.sql`, authority integration rollback cases | Ordinary durable records, not cryptographic tamper evidence or independent attestation. |
+| Cryptographic audit integrity and independent receipt authentication | Planned | Integrity/key-custody/anchoring design and adversarial tests required | No validated implementation identified in durable authority. |
+| WebXR repair bundle | Experimental | Six-file `Genesis_Configuration_Repair.zip`, externally stored; 10 configuration tests rerun November 22 | Partial repair, not full export; repository lineage, full application, runner conversion and PostgreSQL validation unresolved. |
+| Rooting / privileged device executor | Unavailable | Existing hard-disabled RootMaster boundary | No verified executor; no device changes authorized by this baseline. |
+| Hardware attestation | Planned | Software fixture/emulator only | No attestation integration or certification. |
+| Device dashboards and Vault emulator | Simulator | Historical source references below | Fixtures and in-process map do not establish live device protection. |
+| Production deployment | Blocked | Local prototype validation exists | Identity, organizational isolation, independent review, recovery, privacy and operational gates incomplete. |
+
+Historical labels map conservatively: Implemented/Tested → Implemented but
+Unverified; Target → Planned; Not available → Unavailable. An external dependency
+is an architectural property, not a maturity state. Historical “immutable audit”
+wording below must not be read as a tamperproof guarantee.
+
 **Status:** Phase 0 baseline inventory + Phase 4 Task 4.6 claim-surface review
 **Recorded:** 2026-08-16
 **Last claim-surface update:** 2026-09-13 (issue #63)
