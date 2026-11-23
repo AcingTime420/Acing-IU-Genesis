@@ -23,6 +23,7 @@ public static class ReimbursementEndpoints
         var group = app.MapGroup("/v1/authority/reimbursements");
         group.MapPost("/records", CreateRecord);
         group.MapGet("/records/{id}", GetRecord);
+        group.MapGet("/records/{id}/proposal-context", GetAgentContext);
         group.MapGet("/records/{id}/evidence", GetEvidence);
         group.MapPost("/proposals", Propose);
         group.MapGet("/proposals/{id}", GetProposal);
@@ -131,16 +132,22 @@ public static class ReimbursementEndpoints
         await ReadRecord(context, id, db, evidence: false);
     private static async Task<IResult> GetEvidence(HttpContext context, string id, AuthorityDatabase db) =>
         await ReadRecord(context, id, db, evidence: true);
-    private static async Task<IResult> ReadRecord(HttpContext context, string id, AuthorityDatabase db, bool evidence)
+    private static async Task<IResult> GetAgentContext(HttpContext context, string id, AuthorityDatabase db) =>
+        await ReadRecord(context, id, db, evidence: false, proposalContext: true);
+    private static async Task<IResult> ReadRecord(HttpContext context, string id, AuthorityDatabase db, bool evidence,
+        bool proposalContext = false)
     {
-        var actor = Actor(context, "human");
+        var actor = Actor(context, proposalContext ? "agent" : "human");
         var recordId = Id(id);
         await using var c = await db.Open();
         await using var tx = await c.BeginTransactionAsync(IsolationLevel.ReadCommitted, CancellationToken.None);
         var s = new AuthoritySession(c, tx);
         var record = await LockVisibleRecord(s, recordId, actor);
-        if (record is null || record.ManagerId != actor.Id ||
-            !await Scope(s, record.OrganizationId, record.ProjectId, actor.Id)) return Missing();
+        if (record is null || (!proposalContext && record.ManagerId != actor.Id) ||
+            !await Scope(s, record.OrganizationId, record.ProjectId, record.ManagerId,
+                proposalContext ? actor.Id : null)) return Missing();
+        if (proposalContext && record.Status != "pending")
+            throw new AuthorityRequestException(409, "reimbursement_stale");
         IResult result = Results.Ok(record);
         if (evidence)
         {

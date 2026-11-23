@@ -330,6 +330,36 @@ paths:
           $ref: '#/components/responses/Error503'
       parameters:
       - $ref: '#/components/parameters/LookupKey'
+  /records/{id}/proposal-context:
+    get:
+      operationId: getReimbursementProposalContext
+      summary: Read exact reimbursement context for a member agent proposal
+      description: Authenticated agent only. Requires an enabled organization/project, enabled designated
+        human manager with current manager membership, and enabled requesting agent with current agent
+        membership. Returns the pending reimbursement fields needed to draft an exact proposal. Foreign,
+        unknown or unavailable scope returns not_found; a nonpending/already approved record returns conflict.
+        This read grants no approval authority. The separate GET /records/{id} route remains designated-manager-only.
+      parameters:
+      - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Current pending reimbursement context; no authorization or execution occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Record'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '503':
+          $ref: '#/components/responses/Error503'
 components:
   securitySchemes:
     LocalBearer:
