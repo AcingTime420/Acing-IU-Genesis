@@ -3,6 +3,7 @@ import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesS
 buildscript {
   dependencies {
     constraints {
+      classpath("com.google.guava:guava:33.7.2-jre")
       classpath("org.bouncycastle:bcprov-jdk18on:1.85")
       classpath("org.bouncycastle:bcpkix-jdk18on:1.85")
       classpath("org.bouncycastle:bcutil-jdk18on:1.85")
@@ -84,6 +85,12 @@ googleServices {
 
 
 configurations.configureEach {
+  resolutionStrategy.eachDependency {
+    if (requested.group == "com.google.guava" && requested.name == "guava") {
+      val variant = if (requested.version?.endsWith("-android") == true) "android" else "jre"
+      useVersion("33.7.2-$variant")
+    }
+  }
   resolutionStrategy.force(
     "org.bouncycastle:bcprov-jdk18on:1.85",
     "org.bouncycastle:bcpkix-jdk18on:1.85",
