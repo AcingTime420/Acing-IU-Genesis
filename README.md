@@ -1,7 +1,11 @@
 # Acing IU: Genesis
 
-> **An Android-oriented security research and engineering platform for device
-> trust, boot-integrity experimentation, and governed administrative workflows.**
+> **A human-authority platform for AI-assisted actions, built around explicit
+> permission, narrowly scoped authority, independent enforcement, revocation,
+> and verifiable evidence.**
+
+Genesis remains in development. This describes its purpose; capabilities require
+revision-specific validation.
 
 ---
 
