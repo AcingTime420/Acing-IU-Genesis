@@ -122,6 +122,21 @@ def write_report(run_dir, report, sample=memory):
     (run_dir / "real-model-result.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
 
 
+def finalize_report(run_dir, report, handles, sample=memory):
+    """Attempt every log close and preserve a failing verdict if any close fails."""
+    for handle in handles:
+        try:
+            handle.close()
+        except Exception:
+            # A flush/close error must not hide earlier results or skip other logs.
+            # Never copy arbitrary exception text from private logs into the report.
+            report["cleanupFailed"] = True
+            report["logCloseFailed"] = True
+    if report.get("cleanupFailed"):
+        report["passed"] = False
+    write_report(run_dir, report, sample=sample)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, required=True)
@@ -365,12 +380,8 @@ def main():
                                    env=db_env, stdout=log, stderr=log, timeout=45, check=True)
             except Exception:
                 report["cleanupFailed"] = True
-        for handle in handles:
-            handle.close()
-        if report.get("cleanupFailed"):
-            report["passed"] = False
         report["minimumFreeMiB"] = minimum_free[0]
-        write_report(run_dir, report)
+        finalize_report(run_dir, report, handles)
         print(json.dumps(report, indent=2))
     return 0 if report["passed"] and not report.get("cleanupFailed") else 1
 
