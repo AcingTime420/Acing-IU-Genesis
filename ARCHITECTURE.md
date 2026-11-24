@@ -1,185 +1,62 @@
 # Architecture — Acing IU: Genesis
 
-> **Feature-status legend used throughout this document**
-> | Status | Meaning |
-> |---|---|
-> | ✅ Implemented | Code exists and is verifiable in this repository. |
-> | 🧪 Experimental | Present but not production-hardened; subject to change. |
-> | 📋 Planned | Documented intent; no code yet. |
+## Purpose and status
 
----
+Genesis is a human-authority platform for AI-assisted actions. Its target architecture places a person's explicit permission ahead of execution, with independent enforcement, revocation and evidence. Device security supports that purpose.
 
-## 1. Project overview
+This is a development/research architecture. The canonical baseline and unmerged prototypes have different capabilities. This document does not claim a finished OS, hardware-backed vault, certified attestation or production enforcement.
 
-**Acing IU: Genesis** is a custom Android-based OS security platform.  
-Its primary purpose is to provide hardware-backed security, boot integrity, and a hardened administrative interface for Acing OS devices.
+## Logical boundaries
 
----
-
-## 2. High-level component map
-
-```
-┌────────────────────────────────────────────────────────────────┐
-│                     Acing OS (Android base)                     │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                  Acing Guardian Platform                  │  │
-│  │                                                           │  │
-│  │  ┌─────────────────┐  ┌──────────────────────────────┐  │  │
-│  │  │  Boot Integrity  │  │   GuardianService (Kotlin)   │  │  │
-│  │  │  guardian_init   │  │   ├─ AcingVaultEmulator      │  │  │
-│  │  │  acing_vault_*   │  │   ├─ ThreatEngine            │  │  │
-│  │  └─────────────────┘  │   └─ AdminDashboardBridge     │  │  │
-│  │                        └──────────────────────────────┘  │  │
-│  │  ┌─────────────────┐  ┌──────────────────────────────┐  │  │
-│  │  │  IU Security     │  │  Policy & Compliance Engine  │  │  │
-│  │  │  iu_security_init│  │  (policies.json)             │  │  │
-│  │  │  iu_auth_service │  └──────────────────────────────┘  │  │
-│  │  └─────────────────┘                                      │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 3. Component details
-
-### 3.1 Boot Integrity Layer ✅ Experimental
-
-| File | Purpose |
-|---|---|
-| `system/security/guardian/boot/guardian_init.sh` | Init-sequence script; verifies AVB, starts keystore, activates IU security. |
-| `system/security/guardian/boot/acing_vault_init` | Initialises the Acing Vault (hardware-backed key store emulator). |
-| `system/security/guardian/boot/acing_vault_check_tamper` | Detects runtime tampering of the vault. |
-
-### 3.2 Interface User (IU) Security ✅ Experimental
-
-| File | Purpose |
-|---|---|
-| `system/security/guardian/iu_security/iu_security_init` | Protects admin UI mount points and runs anti-tamper checks. |
-| `system/security/guardian/auth/iu_auth_service` | Auth stub; placeholder for full biometric/strong-auth integration. |
-
-### 3.3 GuardianService ✅ Experimental
-
-Kotlin system service (`system/security/guardian/core/GuardianService.kt`) that orchestrates:
-
-- Acing Vault initialisation and tamper detection
-- Threat engine start-up (malware scanner, anomaly detector, network monitor)
-- Admin Dashboard security state feed
-- Interface User protection (biometric gate, secure workspace, session key storage)
-
-### 3.4 AcingVaultEmulator 🧪 Experimental
-
-`system/security/guardian/core/AcingVaultEmulator.kt` — software emulation of hardware-backed key storage for development.  
-Production target: TrustZone / hardware Keystore.
-
-### 3.5 Threat Engine ✅ Experimental
-
-| File | Capability |
-|---|---|
-| `threat/MalwareScanner.kt` | Signature + heuristic malware detection stub. |
-| `threat/AnomalyDetector.kt` | Behavioural anomaly detection stub. |
-| `threat/NetworkThreatMonitor.kt` | Network traffic monitoring stub. |
-
-### 3.6 Policy & Compliance Engine ✅ Experimental
-
-`system/security/guardian/policy/policies.json` — declarative security policies (boot integrity, keystore init, tamper detection, biometric auth, secure workspace).
-
-### 3.7 Admin Dashboard ✅ Experimental
-
-`system/security/guardian/dashboard/AdminDashboardSecurityCard.kt` — Compose/View component for displaying security posture in the admin UI.
-
----
-
-## 4. Build system
-
-| Artefact | Tool | Status |
+| Boundary | Responsibility | Current implementation context |
 |---|---|---|
-| `guardian.jar` (Kotlin) | `kotlinc` + `jar` via `make` | ✅ Experimental |
-| Shell scripts / binaries | `make` copy rules | ✅ Implemented |
-| OS image | `build.sh` (placeholder) | 📋 Planned |
+| Human review interface | Explain exact proposed action, scope, current state and outcome | Baseline fixture surfaces; separate mock and local reviewer prototypes |
+| Model/requesting agent | Suggest work and submit proposals within permitted interfaces | Separate local-assistant candidate; model output is untrusted |
+| Identity/session boundary | Distinguish actors and authenticate requests | Baseline Identity service; prototype-specific session/auth boundaries require reconciliation |
+| Authority service | Bind decisions to scope, check expiry/version/revocation and serialize execution | Separate C#/PostgreSQL Development/Test prototype and integration PRs |
+| Action executor | Perform only an authorized bounded operation | Prototype document append; no verified device executor |
+| Evidence storage | Record decisions, denials and execution consistently | Baseline audit sources and prototype transaction evidence have different guarantees |
+| DeviceTrust and Guardian | Supply supporting device/security research signals | Baseline source, tests, emulator and stubs; hardware enforcement unverified |
 
-Build output is written to `system/security/guardian/build/out/` and the root `out/` directory.  
-Both paths are excluded from version control via `.gitignore`.
+The model must not own the policy that grants it permission. The interface must not silently substitute a simulation when a real service fails. Successful authentication does not itself authorize an action.
 
----
+## Canonical source map
 
-## 5. Container / deployment architecture 📋 Planned
+| Path | Role |
+|---|---|
+| `backend/` | Canonical backend implementation root; inspect the solution for included projects |
+| `frontend/` | Web interface, including fixture surfaces |
+| `app/` | Android client/scaffold |
+| `system/security/guardian/` | Kotlin orchestration, boot research scripts, software vault emulator and threat stubs |
+| `infrastructure/` | Compose, gateway, database initialization, Redis and service scripts |
+| `database/` | Migration sources; reconcile with initialization and installer paths before release |
+| `tests/` | Component and database tests; existence does not prove a current passing run |
+| `docs/` | Requirements, decisions, evidence and governance |
+| `acing-iu/backend/` | Frozen legacy duplicate; not a new development root |
+| `installer/payload/platform/backend/` | Generated payload; do not edit independently |
 
-No Dockerfiles or Compose files exist in this repository today.  
-The planned containerisation approach will:
+See [repository governance](docs/governance/REPOSITORY_GOVERNANCE.md) for authoritative path and integration controls.
 
-- Wrap each service in a minimal, non-root, read-only-root-filesystem container.
-- Use pinned base-image digests.
-- Include `HEALTHCHECK` directives and resource limits.
-- Be orchestrated with Docker Compose (development) and optionally Kubernetes (production).
+## Execution model to validate
 
-See `RELEASE_PROCESS.md` for planned milestone.
+A requester proposes an exact action. The human reviews the scope and state. The service issues narrowly bound authority only after a valid decision. At execution it independently checks actor, target, content, expiry, relevant version and revocation. Mutation, consumption and evidence must be consistent; retries must not duplicate mutation.
 
----
+Concurrent revocation and execution need defined transactional ordering. Revoking unused authority does not undo a completed write. Rollback or compensating actions need their own explicit design.
 
-## 6. Security architecture
+These requirements are exercised in limited document prototypes. Their test results are not proof for arbitrary tools, operating-system administration or physical devices.
 
-See `SECURITY.md` and `THREAT_MODEL.md` for full detail.
+## Build and deployment boundaries
 
-Key design principles:
+Guardian uses Kotlin/JDK and Make; its outputs are generated artifacts. The repository also contains .NET services, a web frontend, Android scaffolding and Compose infrastructure. There is no single root validator that proves every component.
 
-1. **Hardware root of trust** — Acing Vault (TrustZone target) is the root of all key operations.
-2. **Verified boot** — every boot image is AVB-verified before execution.
-3. **Least privilege** — IU Security mounts and protects only the surfaces it owns.
-4. **Defence in depth** — boot integrity + runtime threat engine + policy engine layer independently.
-5. **Auditability** — all security events are logged (structured audit log: 📋 Planned).
+The Bash pre-merge script can skip missing Kotlin, recognizes only root-level Compose files, and skips HTTP readiness. The PowerShell validator is a separate broader pipeline that can start services and apply database migrations. Inspect the selected revision and configure a disposable environment before running it.
 
----
+Use [backend setup](backend/README.md) and [infrastructure setup](infrastructure/README.md) for the baseline. Use the selected PR's documentation for prototypes; do not assume prototype files exist on `master`.
 
-## 7. Directory layout
+## Evidence and unresolved work
 
-```
-Acing-IU-Genesis/
-├── .github/
-│   ├── ISSUE_TEMPLATE/          # Bug, feature, and custom issue templates
-│   └── workflows/               # CI: baseline validation, repo integrity
-├── docs/
-│   ├── adr/                     # Architecture Decision Records
-│   ├── evidence/                # Baseline validation evidence reports
-│   └── *.md / *.mmd / *.d2      # Architecture diagrams and descriptions
-├── scripts/
-│   ├── validate-premerge.sh     # Linux/macOS clean-clone validator
-│   └── validate-premerge.ps1    # Windows/PowerShell variant
-├── system/
-│   └── security/
-│       └── guardian/
-│           ├── auth/            # Authentication service stub
-│           ├── boot/            # Boot-time init scripts
-│           ├── build/           # Makefile; output in build/out/ (gitignored)
-│           ├── core/            # GuardianService, AcingVaultEmulator
-│           ├── dashboard/       # Admin UI security card
-│           ├── iu_security/     # IU security init
-│           ├── policy/          # policies.json
-│           └── threat/          # Threat engine stubs
-├── build.sh                     # Top-level build entry point
-├── .gitignore                   # Excludes all generated artifacts
-├── ARCHITECTURE.md              # This file
-├── CONTRIBUTING.md
-├── SECURITY.md
-├── SUPPORT.md
-├── RELEASE_PROCESS.md
-├── DEPRECATION_POLICY.md
-├── THREAT_MODEL.md
-├── DATA_CLASSIFICATION.md
-└── PRIVACY.md
-```
+Read [the capability register](docs/CAPABILITY_REGISTER.md) with its recorded dates, and [the project guide](docs/PROJECT_GUIDE.md) for current review order and completion conditions. PRs #222 and #223 describe the stale-approval and connected-reviewer candidates; PR #220 describes a separate local-model experiment. PR #180 contains an overlapping identity proposal that needs reconciliation before integration.
 
----
+Remaining work includes branch consolidation, independent review, identity/policy integration, persistent operational guarantees, deployment hardening, recovery and model evaluation. Guardian's vault remains a software emulator, threat components include stubs, and hardware attestation and firmware support remain unverified targets.
 
-## 8. Known gaps and next actions
-
-| # | Gap | Priority | Owner |
-|---|---|---|---|
-| 1 | No integration tests; only build-time compilation validated | High | Engineering |
-| 2 | No Docker / Compose baseline | High | Engineering |
-| 3 | AcingVaultEmulator is not a real hardware integration | High | Platform |
-| 4 | No HTTP/health endpoints to probe in CI | Medium | Engineering |
-| 5 | Auth service is a shell stub, not a real auth implementation | High | Security |
-| 6 | No OpenTelemetry / structured logging | Medium | Engineering |
-
-See `docs/evidence/repository-integrity-baseline.md` for a current-state snapshot.
+Security design and reporting: [SECURITY.md](SECURITY.md), [THREAT_MODEL.md](THREAT_MODEL.md). Release authorization: [RELEASE_PROCESS.md](RELEASE_PROCESS.md). Public capability claims require current, scoped evidence; architecture prose is not such evidence.
