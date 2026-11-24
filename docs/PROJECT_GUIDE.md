@@ -1,7 +1,7 @@
 # Understanding, reviewing and implementing Genesis
 
-**Audience:** anyone evaluating, contributing to or considering using Acing IU: Genesis.  
-**Creator and project lead:** Micki Hart.  
+**Audience:** anyone evaluating, contributing to or considering using Acing IU: Genesis.
+**Creator and project lead:** Micki Hart.
 **Status:** development/research; this guide is a review map, not production approval.
 
 ## The problem being addressed
@@ -66,7 +66,7 @@ Record the reviewed head/base, files inspected, commands run, environment, outco
 
 Use one of three conclusions: no blocking findings in the reviewed scope; changes required with concrete blockers; or review incomplete with the missing evidence. Approval of code is not permission to merge, deploy or begin a pilot.
 
-Report exploitable vulnerabilities through SECURITY.md. Keep ordinary design feedback and non-sensitive findings in the relevant review.
+Report suspected vulnerabilities privately by following SECURITY.md, whether or not exploitability has been confirmed. Keep ordinary design feedback and non-sensitive findings in the relevant public review.
 
 ## Authorship and contribution boundaries
 
