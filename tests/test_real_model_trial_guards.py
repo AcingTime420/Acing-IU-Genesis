@@ -101,6 +101,64 @@ class WatchdogVerdictTests(unittest.TestCase):
 
 
 class ReportPreservationTests(unittest.TestCase):
+    def test_log_close_failure_preserves_report_and_attempts_remaining_handles(self):
+        closed = []
+
+        class Log:
+            def __init__(self, name, fails=False):
+                self.name, self.fails = name, fails
+
+            def close(self):
+                closed.append(self.name)
+                if self.fails:
+                    raise OSError("Synthetic private log close failure")
+
+        with tempfile.TemporaryDirectory() as directory:
+            report = {"passed": True, "observations": {"result": "passed"}}
+            trial.finalize_report(Path(directory), report,
+                                  [Log("first", True), Log("second"), Log("third", True)],
+                                  sample=lambda: (2049, 4097))
+            saved = json.loads((Path(directory) / "real-model-result.json").read_text())
+            self.assertEqual(closed, ["first", "second", "third"])
+            self.assertFalse(saved["passed"])
+            self.assertTrue(saved["cleanupFailed"])
+            self.assertTrue(saved["logCloseFailed"])
+            self.assertEqual(saved["observations"], {"result": "passed"})
+            self.assertNotIn("Synthetic private", json.dumps(saved))
+
+    def test_successful_log_cleanup_preserves_trial_verdict_and_closes_real_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run_dir = Path(directory)
+            for passed in (False, True):
+                with self.subTest(passed=passed):
+                    handle = (run_dir / "process.log").open("wb")
+                    handle.write(b"private process output")
+                    report = {"passed": passed}
+                    trial.finalize_report(run_dir, report, [handle], sample=lambda: (2049, 4097))
+                    saved = json.loads((run_dir / "real-model-result.json").read_text())
+                    self.assertTrue(handle.closed)
+                    self.assertEqual(saved["passed"], passed)
+                    self.assertNotIn("cleanupFailed", saved)
+                    self.assertNotIn("logCloseFailed", saved)
+                    self.assertEqual((run_dir / "process.log").read_bytes(), b"private process output")
+
+    def test_log_and_memory_failures_preserve_existing_failure_stage(self):
+        class BrokenLog:
+            def close(self):
+                raise OSError("private diagnostic")
+
+        def unavailable():
+            raise OSError("private measurement")
+
+        with tempfile.TemporaryDirectory() as directory:
+            report = {"passed": False, "failureStage": "database_init"}
+            trial.finalize_report(Path(directory), report, [BrokenLog()], sample=unavailable)
+            saved = json.loads((Path(directory) / "real-model-result.json").read_text())
+            self.assertEqual(saved["failureStage"], "database_init")
+            self.assertTrue(saved["cleanupFailed"])
+            self.assertTrue(saved["finalMemoryMeasurementUnavailable"])
+            self.assertFalse(saved["passed"])
+
     def test_diagnostic_failure_does_not_erase_stage_or_cleanup_result(self):
         def unavailable():
             raise OSError("Synthetic measurement failure; not an actual Windows probe")
