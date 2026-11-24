@@ -86,3 +86,37 @@ Source: `.github/workflows/release.yml` plus tag ruleset. Signature/commit consi
 ## Execution evidence
 
 Read-only API/file inspection completed. No local Windows shell, CI workflow, model sandbox, security scanner or operating-system enforcement test was executed in this assessment. No claims of sandbox isolation or AI self-editing are verified. The only permitted repository write in this cycle is this documentation assessment on the existing draft PR branch.
+
+## 2026-11-24 Milestone 3 local/runtime reconnaissance addendum
+
+### Authorized Windows device — read-only metadata
+
+Connected Desktop Commander reported device `DESKTOP-7PJDIRC` online. Read-only PowerShell inspection of `D:\\Acing-IU\\Genesis` returned:
+
+- Local Git branch: `copilot/copilotreview-acing-iu-genesis` at `67ce0fc02505885148cefdab1d063ca9a5555146`; not `master` or the PR #256 branch.
+- Working tree has modified `.vscode/settings.json` and `frontend/package-lock.json`, plus untracked `.codex/`, `.devcontainer/`, `.vs/`, `.work/`, `dependabot-alerts.json`, `docs/evidence/local-validation/`, `files.zip`. **All preserved; no local writes, checkout, cleanup, commits, containers stopped, or credentials accessed.**
+- PowerShell ran as the ordinary logged-in Windows identity `desktop-7pjdirc\\edandspring`. This does **not** prove that the account is non-administrative or isolated from protected filesystem paths; access-token rights, ACLs and effective process privilege remain unverified.
+- Process-name/executable-path metadata showed active `codex.exe` and several `node.exe` processes; no inference about their effective authorizations or model runtime is justified.
+- Docker listed multiple running services, including `genesis_devcontainer-db-1` using `mcr.microsoft.com/mssql/server:2019-latest`. This establishes only a live named development database container, **not** a verified Genesis AI worker, isolated security foundation, or safe execution sandbox.
+- Local repository has a set of Gemini workflows matching the canonical workflow filenames. No local Docker container was started, stopped, inspected for secrets or altered.
+
+### Gemini dispatcher entrypoint and effective privilege concerns
+
+Current `master` workflows were inspected using read-only GitHub file access:
+
+- `.github/workflows/gemini-dispatch.yml` handles PR opening, issue opening/reopening, review/comment events, and routes commands from `@gemini-cli` comments by recognized author association. For `@gemini-cli /approve`, it calls `gemini-plan-execute.yml` with `contents:write`, `id-token:write`, `issues:write`, `pull-requests:write` and inherited secrets.
+- The dispatcher also activates plan execution on an `@gemini-cli /approve` command from an accepted OWNER/MEMBER/COLLABORATOR author association. This is *not* an independent cryptographic approval or a separate human release authorization; it is a workflow dispatch condition.
+- `gemini-plan-execute.yml` requests a GitHub App token with write scopes and advertises content-file create/update/delete, branch creation, pull-request creation, and push operations to the Gemini CLI. Actual tokens, installation scope and available branch protections were not tested.
+- `gemini-invoke.yml` requests read-only repository content and explicitly lists only read-oriented GitHub MCP tools (apart from issue commenting). This separation may be reused as a proposal-only concept, but its runtime enforcement is **NOT EXECUTED**.
+- `gemini-review.yml` is an opt-in review workflow when `vars.GEMINI_REVIEW_ENABLED == 'true'`; its active status was not established and it does not constitute independent human review.
+
+**Security recommendation:** Before implementing AI self-modification, do not use the existing `/approve` dispatch as a security authorization primitive. Design a separate narrowly scoped *proposal-only* agent identity without contents-write permission, and an independently controlled human-governed promotion mechanism. Validate exact token scopes, policy enforcement and revocation on a disposable test repository. This is a **recommended future remediation**, not an applied change.
+
+### Updated readiness and outstanding evidence
+
+- Windows working-tree state: **PASS (read-only inventory)**; do not modify this dirty checkout.
+- Workflow dispatch/token permission static inspection: **PASS (configuration read)**, but **IMPLEMENTATION UNVERIFIED** for effective GitHub token capabilities and runtime isolation.
+- AI sandbox privilege separation: **NOT EXECUTED**.
+- Local file ACL/host-container namespace enforcement: **NOT EXECUTED**.
+- Production acceptance, independent human review, full CI/security tests: **BLOCKED / NOT EXECUTED**.
+- Current conclusion: **NO-GO** for autonomous production self-modification; continue non-destructive specification and review.
