@@ -27,7 +27,7 @@ classification; historical register labels retain their original provenance.
 | DeviceTrust ownership and transactional audit behavior | VERIFIED IMPLEMENTED | [Bounded HTTP/PostgreSQL evidence](docs/evidence/devicetrust-contract-20261120.md). Synthetic identity host; production identity and broader role policy remain review gates. |
 | Local model to reimbursement proposal | EXPERIMENTAL | [Recorded Windows model trial](docs/validation/windows-real-local-inference-20261123.md) and [four adversarial cases](docs/validation/real-model-adversarial-20261123.md). Model recommendations remain advisory; broad reliability and injection resistance are unverified. |
 | Mock authority UI, device dashboards and Vault emulator | SIMULATED | Fixtures and software emulation do not establish live device protection or hardware-isolated storage. Connected reviewer routes have their own bounded evidence above. |
-| Guardian security components | EXPERIMENTAL | Research sources in `system/security/guardian/`; the expected build Makefile is absent from this candidate. |
+| Guardian security components | EXPERIMENTAL | Research sources and Kotlin build in `system/security/guardian/`; scripts include simulated components. |
 | Privileged device executor / RootMaster | UNSUPPORTED | Public controls remain unavailable; no verified device-changing executor. |
 | Hardware attestation and cryptographic receipt integrity | PLANNED | No validated hardware attestation, independently authenticated receipts or tamperproof audit storage. |
 | Production deployment | BLOCKED | Independent human review, production identity/recovery, privacy and operational readiness remain incomplete. |
@@ -110,9 +110,9 @@ Compose cleanup. Inspect it before use; it must not target an existing owner or
 production stack. It is not a read-only check and is not equivalent to the Unix
 validator. Neither validator alone establishes readiness for release.
 
-`bash build.sh` fails when the expected Guardian Makefile or artifacts are missing.
-The fail-closed repair prevents false success; it does not restore the missing
-Guardian build system or produce an operating-system image.
+`bash build.sh` compiles the Guardian Kotlin sources and stages the JAR and
+scripts; it fails when the Makefile or expected artifacts are missing. This does
+not produce an operating-system image or establish device protection.
 
 ## Documentation and reporting
 
