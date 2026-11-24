@@ -255,8 +255,8 @@ jobs:
           python3 ../scripts/genesis-reimbursements.py --credentials "$scratch/fixtures.json" migrate
           node tests/genesis-reimbursement-connected.mjs "$scratch/fixtures.json" "$scratch/browser"
           node tests/genesis-inference-connected.mjs "$scratch/fixtures.json" "$scratch/browser"
-      - name: Local credential file guard regressions
-        run: python3 -m unittest discover -s tests -p test_authority_credentials.py
+      - name: Local Python guard and build entrypoint regressions
+        run: python3 -B -m unittest discover -s tests -p 'test_*.py' -v
       - name: Run actual authority HTTP and PostgreSQL integration tests
         run: dotnet test tests/HumanAuthority.IntegrationTests/HumanAuthority.IntegrationTests.csproj --configuration "${{ matrix.configuration }}" --verbosity normal
       - name: DeviceTrust canonical-source HTTP and PostgreSQL ownership tests

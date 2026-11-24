@@ -1,150 +1,130 @@
 # Acing IU: Genesis
 
-> **An Android-oriented security research and engineering platform for device
-> trust, boot-integrity experimentation, and governed administrative workflows.**
+**Secure by Foundation. Personal by Choice.**
 
----
+Acing IU: Genesis is a human-authority platform for AI-assisted actions.
+**IU means Interface User:** the person decides what an agent may do, limits that
+permission, can revoke it, and can inspect evidence of the outcome. Enforcement
+operates independently of model output. AI can propose an action; it cannot approve
+its own authority.
 
-## Feature status
+Genesis is under development. This branch contains local Development/Test
+candidates with bounded validation evidence. It is not a production release.
+The canonical repository is [AcingTime420/Acing-IU-Genesis](https://github.com/AcingTime420/Acing-IU-Genesis),
+whose default branch is `master`. Candidate results do not establish deployed
+capabilities on `master`.
 
-> ✅ Implemented · 🧪 Experimental · 📋 Planned
+## Capability status
 
-| Capability | Status |
-|---|---|
-| Boot integrity verification (AVB) | 🧪 Experimental |
-| Acing Vault (hardware key store) | 🧪 Experimental (emulated) |
-| IU Security initialisation | 🧪 Experimental |
-| GuardianService orchestration | 🧪 Experimental |
-| Real-time threat engine (malware, anomaly, network) | 🧪 Experimental |
-| Security policy enforcement (`policies.json`) | 🧪 Experimental |
-| Admin Dashboard security card | 🧪 Experimental |
-| Container deployment | 📋 Planned |
-| HTTP health endpoints | 📋 Planned |
-| Structured audit logging | 📋 Planned |
-| Integration / E2E tests | 📋 Planned |
+The [capability register](docs/CAPABILITY_REGISTER.md) contains source locations,
+commit-specific evidence and limitations. The states below use the current owner
+classification; historical register labels retain their original provenance.
 
----
-
-## Quick start
-
-### Prerequisites
-
-| Tool | Minimum version |
-|---|---|
-| JDK | 17 |
-| Kotlin compiler (`kotlinc`) | 1.9+ |
-| GNU Make | 3.81+ |
-| Git | 2.39+ |
-| Bash | 5.0+ |
-
-### Clone and validate
-
-```bash
-git clone https://github.com/AcingTime420/Acing-IU-Genesis.git
-cd Acing-IU-Genesis
-bash scripts/validate-premerge.sh
-```
-
-A clean run exits 0 and reports the status of each validation step.
-
-### Build the Guardian platform
-
-```bash
-cd system/security/guardian/build
-make
-# Output: build/out/guardian.jar and associated scripts
-```
-
-Or use the top-level script:
-
-```bash
-bash build.sh
-# Output: out/security/guardian/
-```
-
-### Run baseline validation
-
-```bash
-# Full validation (skips Compose/health checks when not available)
-bash scripts/validate-premerge.sh
-
-# Skip build (only check repo integrity + env)
-bash scripts/validate-premerge.sh --skip-build
-
-# Windows / PowerShell
-pwsh scripts/validate-premerge.ps1
-pwsh scripts/validate-premerge.ps1 -SkipBuild
-```
-
----
-
-## Repository layout
-
-```
-Acing-IU-Genesis/
-├── .github/workflows/        # CI: ci.yml, repo-integrity.yml
-├── docs/
-│   ├── adr/                  # Architecture Decision Records
-│   └── evidence/             # Baseline validation evidence reports
-├── scripts/
-│   ├── validate-premerge.sh  # Linux/macOS clean-clone validator
-│   └── validate-premerge.ps1 # Windows/PowerShell variant
-├── system/security/guardian/ # Guardian Security Platform source
-│   ├── auth/                 # Auth service stub
-│   ├── boot/                 # Boot-time init scripts
-│   ├── build/                # Makefile (output in build/out/ — gitignored)
-│   ├── core/                 # GuardianService, AcingVaultEmulator
-│   ├── dashboard/            # Admin UI security card
-│   ├── iu_security/          # IU security init
-│   ├── policy/               # policies.json
-│   └── threat/               # Threat engine stubs
-├── build.sh                  # Top-level build entry point
-├── ARCHITECTURE.md           # Component map and design decisions
-├── CONTRIBUTING.md           # Development workflow and PR checklist
-├── SECURITY.md               # Vulnerability reporting process
-├── THREAT_MODEL.md           # STRIDE threat analysis
-└── ...                       # Other governance docs
-```
-
----
-
-## CI checks
-
-| Workflow | Trigger | Checks |
+| Capability | Classification | Evidence and boundary |
 |---|---|---|
-| `ci.yml` | push / PR | Repo integrity + clean-clone build |
-| `repo-integrity.yml` | push / PR | No tracked generated artifacts |
+| Exact document approval, execution, expiry, revocation and idempotent retry | VERIFIED IMPLEMENTED | Bounded Development/Test candidate; [Windows authority evidence](docs/evidence/windows-connected-validation-20261118.md). Prototype identity and loopback operation. |
+| Reimbursement proposal, manager approval and separate agent execution | VERIFIED IMPLEMENTED | [Synthetic-record validation](docs/evidence/reimbursement-authority-20261122.md). Exact single-use USD approval; no payments or external financial transactions. |
+| DeviceTrust ownership and transactional audit behavior | VERIFIED IMPLEMENTED | [Bounded HTTP/PostgreSQL evidence](docs/evidence/devicetrust-contract-20261120.md). Synthetic identity host; production identity and broader role policy remain review gates. |
+| Local model to reimbursement proposal | EXPERIMENTAL | [Recorded Windows model trial](docs/validation/windows-real-local-inference-20261123.md) and [four adversarial cases](docs/validation/real-model-adversarial-20261123.md). Model recommendations remain advisory; broad reliability and injection resistance are unverified. |
+| Mock authority UI, device dashboards and Vault emulator | SIMULATED | Fixtures and software emulation do not establish live device protection or hardware-isolated storage. Connected reviewer routes have their own bounded evidence above. |
+| Guardian security components | EXPERIMENTAL | Research sources in `system/security/guardian/`; the expected build Makefile is absent from this candidate. |
+| Privileged device executor / RootMaster | UNSUPPORTED | Public controls remain unavailable; no verified device-changing executor. |
+| Hardware attestation and cryptographic receipt integrity | PLANNED | No validated hardware attestation, independently authenticated receipts or tamperproof audit storage. |
+| Production deployment | BLOCKED | Independent human review, production identity/recovery, privacy and operational readiness remain incomplete. |
 
----
+Recorded Windows results describe their pinned application and harness revisions.
+They are not new executions on this branch. Runtime-reported model metadata is not
+independent attestation. No Samsung Knox certification, carrier certification or
+finished operating system is claimed.
 
-## Documentation
+## Source layout and review
 
-| Document | Purpose |
+| Path | Purpose |
 |---|---|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Component map, build system, known gaps |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Development workflow, PR checklist |
-| [SECURITY.md](SECURITY.md) | Vulnerability reporting, security design |
-| [THREAT_MODEL.md](THREAT_MODEL.md) | STRIDE analysis, attack surface |
-| [RELEASE_PROCESS.md](RELEASE_PROCESS.md) | Release stages and checklist |
-| [DEPRECATION_POLICY.md](DEPRECATION_POLICY.md) | Deprecation lifecycle |
-| [DATA_CLASSIFICATION.md](DATA_CLASSIFICATION.md) | Data sensitivity levels |
-| [PRIVACY.md](PRIVACY.md) | Privacy commitments |
-| [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
-| [docs/evidence/](docs/evidence/repository-integrity-baseline.md) | Baseline validation evidence |
+| `backend/HumanAuthority/` | Durable document and reimbursement authority prototype (.NET 10) |
+| `backend/AuthorityCredentialFiles/` | Native credential-file safety helper (.NET 10) |
+| `backend/LocalInference/` | Local model proposal boundary and deterministic tests |
+| `backend/Identity/src/`, `backend/DeviceTrust/src/` | Canonical Identity and DeviceTrust APIs |
+| `frontend/` | Next.js interfaces, simulated workflows and connected reviewer routes |
+| `database/migrations/` | Authority database migrations; use only isolated test resources |
+| `tests/`, `scripts/` | Regression tests, CLI tools and validation coordinators |
+| `app/`, `system/security/guardian/` | Supporting Android/security research |
+| `docs/` | Contracts, decisions, capability register, evidence and runbooks |
 
----
+Develop under canonical `backend/`. The duplicate `acing-iu/backend/` is frozen,
+and installer payloads are derived. Follow [repository governance](docs/governance/REPOSITORY_GOVERNANCE.md).
+Start independent review with the [pinned review packet](docs/review/human-authority-local-ai-20261123.md).
+Review is outstanding; passing automated checks do not count as completed human review.
 
-## Contributing
+## Validation without services or model downloads
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).  
-Security issues: see [SECURITY.md](SECURITY.md) — **do not open a public issue**.
+Run from the repository root with Node 24+, Python 3.10+, Bash and Make for the
+build-entrypoint regressions. These tests require no editable Python package
+installation. The loopback transport test uses port 11434; run on an isolated host
+with that port free. Do not stop another person's model service to run it.
 
----
+```bash
+python3 -B -m unittest discover -s tests -p 'test_*.py' -v
+node --test backend/LocalInference/tests/*.test.mjs frontend/tests/genesis-real-inference-cleanup.test.mjs
+node --experimental-strip-types --test frontend/tests/genesis-adapter.test.mjs frontend/tests/genesis-session.test.mjs frontend/tests/genesis-reimbursement-session.test.mjs
+bash scripts/check-claim-surface.sh
+```
+
+Windows uses `python` where `python3` is unavailable. Linux skips the native
+Windows credential IPC cases. Those skips do not validate Windows ACLs. Inference
+tests inject model responses; they do not run an installed model.
+
+For dependency-backed frontend checks, use the lockfile:
+
+```bash
+cd frontend
+npm ci
+npm run lint
+npx --no-install tsc --noEmit
+npm run build
+cd ..
+```
+
+These are instructions, not a claim that those dependency-backed checks passed in
+the current session. `npm test --if-present` is not test evidence: this package
+uses named test scripts and has no default `test` script.
+
+Backend requirements differ by project: the authority service/helper target .NET
+10; the older backend solution includes .NET 8 projects. Inspect the applicable
+project and CI job before building. PostgreSQL-backed tests and migrations require
+new disposable databases. See the [authority setup](docs/prototypes/genesis-live-integration.md),
+[reimbursement setup](docs/prototypes/genesis-reimbursements.md),
+[local inference guide](backend/LocalInference/README.md) and
+[recovery runbook](docs/operations/authority-stabilization-review.md).
+
+## Legacy validation limits
+
+`scripts/validate-premerge.sh` is a partial legacy baseline. It can skip missing
+toolchains and only discovers root-level Compose files; the tracked stack is under
+`infrastructure/`. A zero exit code does not establish complete platform validation.
+It can also create a root `.env` from the example.
+
+`scripts/validate-premerge.ps1` has different scope and no `-SkipBuild` parameter.
+It uses `infrastructure/.env`, starts services, applies migrations and performs
+Compose cleanup. Inspect it before use; it must not target an existing owner or
+production stack. It is not a read-only check and is not equivalent to the Unix
+validator. Neither validator alone establishes readiness for release.
+
+`bash build.sh` fails when the expected Guardian Makefile or artifacts are missing.
+The fail-closed repair prevents false success; it does not restore the missing
+Guardian build system or produce an operating-system image.
+
+## Documentation and reporting
+
+- [Architecture](ARCHITECTURE.md) and [architecture decisions](docs/adr/README.md)
+- [Security reporting](SECURITY.md) and [threat model](THREAT_MODEL.md)
+- [Contributing](CONTRIBUTING.md), [release process](RELEASE_PROCESS.md) and [privacy](PRIVACY.md)
+- [This stabilization and README reconciliation](docs/evidence/stabilization-readme-import-reconciliation.md)
+
+Historical documents may describe earlier revisions; assess current claims against
+source and pinned evidence. Report sensitive findings through `SECURITY.md`.
 
 ## License
 
-*License to be determined — see project maintainer.*
-
-## Repository Governance
-
-The canonical source repository is AcingTime420/Acing-IU-Genesis. The public logical identifier for the maintainer's Windows worktree is `canonical-windows-worktree`; its machine-specific location remains private. Repository controls, authorized recovery paths, and the archive-only legacy remote policy are defined in [docs/governance/REPOSITORY_GOVERNANCE.md](docs/governance/REPOSITORY_GOVERNANCE.md).
+License terms remain unresolved. Consult the maintainer before redistribution or
+assuming an open-source license applies.
