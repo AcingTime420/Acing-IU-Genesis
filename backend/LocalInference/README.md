@@ -1,9 +1,13 @@
 # Local inference to durable reimbursement proposals
 
-**Experimental Development/Test integration.** The real CLI/authority/database/
-manager-browser pipeline is tested with explicitly simulated model responses.
-Actual model inference, quality, resource use and native Windows execution of this
-bridge remain unverified. Historical #220 Windows inference does not validate it.
+**EXPERIMENTAL Development/Test integration.** Deterministic tests inject model
+responses. Later [Windows installed-model evidence](../../docs/validation/windows-real-local-inference-20261123.md)
+records two synthetic authority workflows at application commit
+`5821dabd4164040a50c2b9cd0a814a6421bf3da6`; [four actual-model hostile-input cases](../../docs/validation/real-model-adversarial-20261123.md)
+have separate bounded evidence. Those records are not a fresh run of the current
+branch. General model quality, reliability, prompt-injection resistance and
+independent human review remain unverified. Historical #220 inference alone does
+not validate this bridge. Runtime metadata is not independent model attestation.
 
 The provider adapts `backend/LocalAssistant/ollama.mjs` from separate branch
 `prototype/local-genesis-assistant` at

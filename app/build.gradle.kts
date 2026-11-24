@@ -1,5 +1,16 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
+buildscript {
+  dependencies {
+    constraints {
+      classpath("com.google.guava:guava:33.7.2-jre")
+      classpath("org.bouncycastle:bcprov-jdk18on:1.85")
+      classpath("org.bouncycastle:bcpkix-jdk18on:1.85")
+      classpath("org.bouncycastle:bcutil-jdk18on:1.85")
+    }
+  }
+}
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
@@ -72,6 +83,31 @@ googleServices {
   missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN
 }
 
+
+configurations.configureEach {
+  resolutionStrategy.eachDependency {
+    if (requested.group == "com.google.guava" && requested.name == "guava") {
+      val variant = if (requested.version?.endsWith("-android") == true) "android" else "jre"
+      useVersion("33.7.2-$variant")
+    }
+  }
+  resolutionStrategy.force(
+    "org.bouncycastle:bcprov-jdk18on:1.85",
+    "org.bouncycastle:bcpkix-jdk18on:1.85",
+    "org.bouncycastle:bcutil-jdk18on:1.85",
+    "io.netty:netty-buffer:4.1.137.Final",
+    "io.netty:netty-codec:4.1.137.Final",
+    "io.netty:netty-codec-http:4.1.137.Final",
+    "io.netty:netty-codec-http2:4.1.137.Final",
+    "io.netty:netty-codec-socks:4.1.137.Final",
+    "io.netty:netty-common:4.1.137.Final",
+    "io.netty:netty-handler:4.1.137.Final",
+    "io.netty:netty-handler-proxy:4.1.137.Final",
+    "io.netty:netty-resolver:4.1.137.Final",
+    "io.netty:netty-transport:4.1.137.Final",
+    "io.netty:netty-transport-native-unix-common:4.1.137.Final",
+  )
+}
 
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
