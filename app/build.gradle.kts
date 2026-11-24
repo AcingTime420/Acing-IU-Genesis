@@ -76,6 +76,9 @@ googleServices {
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {
+  constraints {
+    testImplementation("org.bouncycastle:bcprov-jdk18on:1.85")
+  }
   implementation(platform(libs.androidx.compose.bom))
   implementation(platform(libs.firebase.bom))
   // implementation(libs.accompanist.permissions)
