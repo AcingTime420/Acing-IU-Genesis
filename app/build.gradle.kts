@@ -1,5 +1,15 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
+buildscript {
+  dependencies {
+    constraints {
+      classpath("org.bouncycastle:bcprov-jdk18on:1.85")
+      classpath("org.bouncycastle:bcpkix-jdk18on:1.85")
+      classpath("org.bouncycastle:bcutil-jdk18on:1.85")
+    }
+  }
+}
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
@@ -73,12 +83,17 @@ googleServices {
 }
 
 
+configurations.configureEach {
+  resolutionStrategy.force(
+    "org.bouncycastle:bcprov-jdk18on:1.85",
+    "org.bouncycastle:bcpkix-jdk18on:1.85",
+    "org.bouncycastle:bcutil-jdk18on:1.85",
+  )
+}
+
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {
-  constraints {
-    testImplementation("org.bouncycastle:bcprov-jdk18on:1.85")
-  }
   implementation(platform(libs.androidx.compose.bom))
   implementation(platform(libs.firebase.bom))
   // implementation(libs.accompanist.permissions)
