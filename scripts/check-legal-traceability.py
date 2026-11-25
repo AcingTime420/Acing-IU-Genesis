@@ -135,7 +135,7 @@ def validate(root: Path) -> list[str]:
     for warning in required_warnings:
         if warning.casefold() not in register.casefold():
             errors.append(f"Terminology register missing status caveat: {warning}")
-    if "not a determination that a statute applies" not in crosswalk:
+    if "not a determination that a statute applies" not in re.sub(r"[*_`]", "", crosswalk):
         errors.append("Crosswalk missing explicit disclaimer on legal applicability")
     if "NOT EXECUTED" not in crosswalk:
         errors.append("Crosswalk missing unexecuted test-status warning")
