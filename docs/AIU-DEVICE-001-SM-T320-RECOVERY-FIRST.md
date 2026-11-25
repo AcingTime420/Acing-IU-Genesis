@@ -171,3 +171,20 @@ A user-supplied photograph of the **actual Download Mode screen** was visually i
 5. Before any future firmware write, obtain a provenance-checked, exact-model build and documented fallback/recovery pathway; require separate owner approval of the specific artifact and action.
 
 **Current decision:** **NO-GO FOR FLASH**; no working recovery menu has been verified, no Odin archive selected, and no Genesis OS image exists. Resume firmware selection only when device diagnostics and artifact provenance are sufficient.
+
+## 2026-11-25 local artifact inspection — read-only
+
+**Host:** Windows `DESKTOP-7PJDIRC`; owner reports downloaded files and Samloader clone.
+
+- **Found:** `D:\\twrp-3.7.0_9-0-mondrianwifi.img.tar`, 12,451,840 bytes.
+- **Archive inventory:** exactly `recovery.img` (listed without extraction).
+- **Calculated local SHA-256:** `9dfd5e342e9716a3d3765fc7380d42824fea6c8ea0b77c9d5906b4b837a85426`.
+- **Independent comparison:** Team Win's published SHA-256 from `https://dl.twrp.me/mondrianwifi/twrp-3.7.0_9-0-mondrianwifi.img.tar.sha256` matched exactly on the Windows host.
+- **Classification:** **VERIFIED IMPLEMENTED only for file integrity versus published SHA-256**. This is a TWRP recovery archive and **not stock Android firmware, a full ROM, or a Genesis image**. PGP signer verification, actual flash compatibility, tablet recovery function and boot are **NOT EXECUTED**.
+- **Also found:** existing `D:\\Odin3_v3.13.1`, `D:\\Odin3_v3.14.4`, and `D:\\Samsung\\SmartSwitch` folders. No execution or modification of these tools.
+- **Not found in inspected paths:** exact-model SM-T320 stock firmware archive; initial search covered user Downloads/Desktop/Documents top-level, D:\\ root and selected Samsung/Odin/recovery directories. This is **not an exhaustive search of every drive**.
+- **Samloader:** clone location **NOT FOUND** in inspected shallow folder paths; do not assert that the clone is missing or installed incorrectly. Do not invoke unfamiliar source without inspecting its actual checkout.
+- **Unrelated firmware:** D:\\ contains an SM-S938U-named folder; **incompatible with SM-T320, never use as a substitute**.
+- **No Odin use, flashing, extraction, local file modification, or partition writes occurred.**
+
+**Next gated decision:** Determine the location and current status of the Samloader source and any stock Android archive; verify firmware model/region/revision/provenance and a recovery plan before requesting owner approval for a specific device operation. The verified recovery checksum does not establish a working operating system. The current flash decision remains **NO-GO**.
