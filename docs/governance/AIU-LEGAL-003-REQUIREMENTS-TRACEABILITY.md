@@ -44,7 +44,7 @@ This crosswalk maps actual SRS requirement IDs to the **legal research items to 
 | X-03 | LEG-03, LEG-04 — electronic agents and electronic signatures | Keep separate `authentication`, `authorization`, `consent`, `e_signature` contracts and proof | DESIGN + LEGAL_REVIEW |
 | X-04 | LEG-09 — consumer claims | Every displayed capability label must tie to documented evidence; distinguish VERIFIED IMPLEMENTED, EXPERIMENTAL, SIMULATED and PLANNED | TEST + OWNER_APPROVAL |
 | X-05 | LEG-10 — subscriptions | No recurring billing until disclosures/cancellation/privacy/tax analysis are reviewed | LEGAL_REVIEW + OWNER_APPROVAL |
-| X-06 | LEG-15, LEG-16, LEG-17 — privacy and automated decisions | Determine actual jurisdiction, consumer and product scope before claiming a right or obligation | LEGAL_REVIEW |
+| X-06 | LEG-08, LEG-15, LEG-16, LEG-17 — privacy, consumer health data and automated decisions | Determine actual jurisdiction, consumer, health-data and product scope before claiming a right or obligation | LEGAL_REVIEW |
 | X-07 | LEG-18 — NIST AI RMF | Treat NIST as a voluntary governance reference, not certification or legally compulsory text | DESIGN + TEST |
 | X-08 | LEG-19 — accessibility | Review applicable obligations and create accessible acceptance tests | DESIGN + LEGAL_REVIEW |
 | X-09 | LEG-20 — evidence | Record immutable-protection expectations separately from actual audit verification | TEST + OWNER_APPROVAL |
