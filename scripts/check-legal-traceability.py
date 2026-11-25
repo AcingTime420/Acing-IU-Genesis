@@ -13,7 +13,7 @@ from pathlib import Path
 
 FR_ID = re.compile(r"FR-\d+\.\d+")
 LEGAL_ID = re.compile(r"LEG-\d{2}")
-SRS_ROW = re.compile(r"^\s*\*\s*(FR-\d+\.\d+)\s*\(", re.MULTILINE)
+SRS_ROW = re.compile(r"^\s*\*\s*\*{0,2}(FR-\d+\.\d+)\b", re.MULTILINE)
 LEGAL_ROW = re.compile(r"^\|\s*(LEG-\d{2})\s*\|", re.MULTILINE)
 TABLE_DIVIDER = re.compile(r"^\s*:?-{3,}:?\s*$")
 
