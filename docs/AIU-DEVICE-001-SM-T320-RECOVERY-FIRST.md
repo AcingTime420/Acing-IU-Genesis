@@ -150,3 +150,24 @@ A user-supplied photograph of the **actual Download Mode screen** was visually i
 6. Only after a clean stock baseline boots and essential hardware passes tests, develop a lightweight Genesis Android application separately from any firmware experiment.
 
 **Decision:** **NO-GO FOR FLASH**. Next safe observation is a *non-destructive recovery-mode availability check*; no Odin image approval or flashing instructions have been issued.
+
+## 2026-11-24 recovery-mode diagnostic result
+
+**Reported user observation:** The SM-T320 shows a Samsung logo followed by a black screen or boot loop when attempting recovery; no stock recovery or TWRP menu has been observed.
+
+**What is and is not established:**
+- **VERIFIED BY OWNER REPORT:** Recovery-mode attempt did not produce a working recovery menu.
+- **PREVIOUS PHOTO VERIFIED:** Download Mode identifies the device as SM-T320, with custom binary/system states and Knox warranty flag 0x1.
+- **UNVERIFIED:** Whether the button combination registered correctly, the battery and power state, OS boot/system partition integrity, recovery partition contents, storage health, USB connection, firmware CSC/revision or any presently viable recovery installation.
+- **NOT A DIAGNOSIS:** A logo/black screen does not conclusively indicate a damaged recovery partition; an incompatible installation, power issue or other faults are also possible.
+- **ERASURE AUTHORIZATION:** Owner has said data can be erased if necessary, but no specific flash has been approved.
+
+### Safe non-writing verification gate
+
+1. Treat device recovery as unavailable until actual screen observation contradicts this status. Do not attempt an install, wipe, PIT repartition, downgrade or bootloader write on an unverified image.
+2. Confirm steady charging using a suitable wall charger and inspect external cable/USB-port condition; stop if device becomes unusually hot, swollen, or physically damaged.
+3. Record exactly which state occurs during a **single non-destructive normal restart** (logo steady, cyclic logo, black display, or Android boot). Avoid repeated forced attempts.
+4. Have a knowledgeable repair technician assess power, USB enumeration, recovery accessibility, and compatibility if the boot/recovery state remains uncertain.
+5. Before any future firmware write, obtain a provenance-checked, exact-model build and documented fallback/recovery pathway; require separate owner approval of the specific artifact and action.
+
+**Current decision:** **NO-GO FOR FLASH**; no working recovery menu has been verified, no Odin archive selected, and no Genesis OS image exists. Resume firmware selection only when device diagnostics and artifact provenance are sufficient.
