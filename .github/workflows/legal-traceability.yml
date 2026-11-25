@@ -1,0 +1,39 @@
+name: Legal Requirements Traceability
+
+on:
+  pull_request:
+    paths:
+      - "docs/SRS.md"
+      - "docs/governance/AIU-LEGAL-*.md"
+      - "scripts/check-legal-traceability.py"
+      - "tests/test_legal_traceability.py"
+      - ".github/workflows/legal-traceability.yml"
+  push:
+    branches: ["**"]
+    paths:
+      - "docs/SRS.md"
+      - "docs/governance/AIU-LEGAL-*.md"
+      - "scripts/check-legal-traceability.py"
+      - "tests/test_legal_traceability.py"
+      - ".github/workflows/legal-traceability.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  traceability:
+    name: Validate Legal Requirements Traceability
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.11"
+      - name: Check cross-document IDs
+        run: python scripts/check-legal-traceability.py
+      - name: Run positive and negative tests
+        run: python -m unittest discover -s tests -p "test_legal_traceability.py" -v
