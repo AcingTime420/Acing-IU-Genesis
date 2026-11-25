@@ -240,3 +240,18 @@ Owner-reported firmware download was located directly on connected Windows host 
 - **No human release/flash authorization, Odin Start, PIT repartition, or tablet firmware write** occurred.
 
 **Gate decision: NO-GO for actual flash**, pending exact board/region/rollback compatibility evidence, trusted original firmware provenance, and controlled recovery plan. Extracted artifacts are research-only.
+
+## 2026-11-25 offline boot, recovery, PIT header, and publisher checksum assessment
+
+A further **read-only** Windows host inspection was run against the previously extracted `.tar.md5` archives in `D:\\SM-T320-Recovery-Verification\\T320UES1AQA2`:
+
+- `boot.img`: Android boot-image header magic `ANDROID!` confirmed; kernel size 7,854,664 bytes; ramdisk 1,387,494 bytes; page size 2048 bytes.
+- `recovery.img`: Android boot-image header magic `ANDROID!` confirmed; kernel size 7,854,664 bytes; ramdisk 2,951,874 bytes; page size 2048 bytes.
+- `MONDRIANWIFI_USA_OPEN.pit`: first four bytes `76 98 34 12` match expected little-endian Samsung PIT file magic `0x12349876`. **This does not validate any partition layout against the physical tablet.**
+- Third-party SamFW catalog listing at `https://samfw.com/firmware/SM-T320/XAR/T320UES1AQA2` identifies SM-T320, `XAR`, `T320UES1AQA2`, Android 4.4.2, binary/revision `1`, and a published download MD5 `4b2f9ae8532def87b6c04ba1e308f569`.
+- **Computed local full ZIP MD5:** `4b2f9ae8532def87b6c04ba1e308f569` — **PASS MATCH** against the distributor's published MD5. This confirms the local ZIP matches the publisher's indexed digest; a third-party MD5 value is **not a Samsung signature, and MD5 is not a collision-resistant authenticity mechanism**.
+- The owner's previous Download Mode photograph displayed `RP SWREV: S1, T1, R1, A1, P1`. The distributor lists a `BIT 1` firmware. This is **a consistency signal only**; actual per-component anti-rollback enforcement and original CSC cannot be conclusively determined offline.
+- Samsung's public emergency recovery reference remains `https://update.kies.samsung.com/SmartSwitchPC_recovery_guide/firmware/emergencyrecovery/`. Eligibility for this retired tablet remains UNVERIFIED.
+- The distributed stock system is Android **4.4.2**, unsuitable as a secure internet-connected system for sensitive personal use today.
+
+**Decision:** The research-only image is structurally consistent with the target model and matches the distributor's checksum. **NO-GO** remains for actual flashing because Samsung-origin signature validation, exact physical partition/bootloader compatibility, charging health and fallback recovery are NOT VERIFIED. No flashing, PIT operation, Odin start, or physical device write occurred.
