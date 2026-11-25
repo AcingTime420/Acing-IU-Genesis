@@ -255,3 +255,21 @@ A further **read-only** Windows host inspection was run against the previously e
 - The distributed stock system is Android **4.4.2**, unsuitable as a secure internet-connected system for sensitive personal use today.
 
 **Decision:** The research-only image is structurally consistent with the target model and matches the distributor's checksum. **NO-GO** remains for actual flashing because Samsung-origin signature validation, exact physical partition/bootloader compatibility, charging health and fallback recovery are NOT VERIFIED. No flashing, PIT operation, Odin start, or physical device write occurred.
+
+## 2026-11-25 Odin tool readiness inspection and next manual gate
+
+The owner confirms having already reviewed Samsung's recovery guidance and requests the next step. The current phase remains **offline/manual preparation only**.
+
+Read-only inspection of local Odin executables and active process:
+
+- `D:\\Odin3_v3.13.1\\Odin3_v3.13.1\\Odin3 v3.13.1.exe`, 3,172,864 bytes, Windows Authenticode status `NotSigned`.
+- `D:\\Odin3_v3.14.4\\Odin3_v3.14.4\\Odin3_v3.14.4.exe`, 3,167,744 bytes, Windows Authenticode status `NotSigned`.
+- Active Windows process: `Odin3_v3.14.4.exe` PID `29892` at the second path (observed at inspection; may change).
+- An unsigned exe cannot be authenticated by Authenticode; this does **not** establish compromise, but provenance remains unverified.
+- Extracted AP, BL and CSC archives remain in isolated `D:\\SM-T320-Recovery-Verification\\T320UES1AQA2` with recorded byte sizes.
+- Official-like third-party Odin guides confirm conventional BL/AP/CSC slot mapping for multi-file Samsung firmware; this particular SM-T320 Wi-Fi package has **no separate CP archive**, so one must not invent a CP.
+- **Do not select CSC PIT manually or enable Re-Partition**, and do not assume that the included PIT implies a required partition rewrite. On-device partition map remains unavailable.
+
+**Next human step (non-writing):** In existing Odin GUI, check only that `ID:COM` stays recognized, `Re-Partition` and `Nand Erase All` remain unchecked, no PIT is explicitly loaded, and only expected BL/AP/CSC packages are considered. Capture/redact a screenshot of those slots/options before flashing. Firmware provenance and target-region uncertainty are still documented, so there is **no automatic Go**. Owner must separately authorize the exact firmware operation after review.
+
+Nothing was clicked or written to Odin/the tablet by this inspection.
