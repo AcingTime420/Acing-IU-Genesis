@@ -204,3 +204,23 @@ jobs:
           else
             echo "Frontend Dockerfile not ready — skipping"
           fi
+
+  # ── Job 6: Read-only firmware inspector tests (Python) ─────────────────
+  firmware-inspector-tests:
+    name: Firmware Inspector Python Tests
+    runs-on: ubuntu-latest
+    needs: repo-integrity
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+
+      - name: Validate Python syntax
+        run: python -m py_compile scripts/firmware_inspect.py tests/firmware/test_firmware_inspect.py
+
+      - name: Run read-only firmware inspector tests
+        run: python -m unittest discover -s tests/firmware -p 'test_*.py' -v
