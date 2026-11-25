@@ -224,3 +224,19 @@ Owner-reported firmware download was located directly on connected Windows host 
 - Actual device partition/write health, charging margin, firmware's original CSC, signature chain and anti-rollback compatibility remain UNKNOWN.
 
 **Flash gate:** NO-GO pending authentic package provenance, model/build verification against on-device data, and separate explicit owner approval for precise firmware operation. No extraction, Odin Start, device write or firmware flash has occurred.
+
+## 2026-11-25 controlled local extraction and TAR member inventory
+
+**Execution scope:** Owner approved continuation of offline package review. Device write/flash was NOT authorized or performed. Inspection used read-only archive access and extracted copies to an isolated Windows folder, not Genesis source directories.
+
+- Source ZIP unchanged: `D:\\SAMFW.COM_SM-T320_XAR_T320UES1AQA2_fac.zip`
+- Extraction destination: `D:\\SM-T320-Recovery-Verification\\T320UES1AQA2`
+- Four expected ZIP members extracted and byte lengths checked; **PASS**, with no overwrite of pre-existing files.
+- AP TAR members: `boot.img` (10,125,584 B), `recovery.img` (11,690,256 B), `system.img.ext4` (2,048,758,964 B), `modem.bin` (20,563,712 B).
+- BL TAR members: `aboot.mbn` (1,379,248 B), `sbl1.mbn` (279,332 B), `rpm.mbn` (164,460 B), `tz.mbn` (312,580 B), `sdi.mbn` (32,356 B), `NON-HLOS.bin` (7,849,728 B).
+- CSC TAR members: `MONDRIANWIFI_USA_OPEN.pit` (4,244 B), `cache.img.ext4` (172,163,328 B), `hidden.img.ext4` (7,266,488 B).
+- All inspected TAR members reported regular files; TARs were **inspected only**, their internal partition images were **not extracted or written** to any physical device.
+- Findings: `MONDRIANWIFI_USA_OPEN.pit` is consistent in filename with target codename but **MUST NOT be used for repartitioning without independent verified need and physical device partition evidence**. BL includes low-level bootloader components; current bootloader/revision and rollback compatibility remain UNKNOWN.
+- **No human release/flash authorization, Odin Start, PIT repartition, or tablet firmware write** occurred.
+
+**Gate decision: NO-GO for actual flash**, pending exact board/region/rollback compatibility evidence, trusted original firmware provenance, and controlled recovery plan. Extracted artifacts are research-only.
