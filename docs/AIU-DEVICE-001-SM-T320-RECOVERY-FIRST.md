@@ -208,3 +208,19 @@ Owner-reported firmware download was located directly on connected Windows host 
 - **Samloader checkupdate** with model `SM-T320` and region `XAR` returned `Model or region not found (403)`. Samloader installed and CLI works, but server metadata lookup is unavailable for this pair as tested.
 
 **Next gate:** Validate power stability and firmware authenticity independently, check device-specific signed bootloader downgrade constraints, establish a feasible fallback, and require separate owner confirmation for the precise flash action.
+
+## 2026-11-25 follow-up power report and Odin package digest inspection
+
+**User report:** Device has remained continuously in Download Mode for an extended period while Odin detects it. This is positive evidence of apparent stability in Download Mode only; battery health, charge state, flash-time voltage margin, and eventual boot are NOT VERIFIED.
+
+**Windows read-only verification (host DESKTOP-7PJDIRC):**
+- Firmware ZIP: `D:\\SAMFW.COM_SM-T320_XAR_T320UES1AQA2_fac.zip`
+- `D:` free space: 760,340,197,376 bytes at the inspection time, sufficient for extraction of the three archives (combined approx. 2.28GB uncompressed).
+- The three Odin `.tar.md5` members have Samsung-style MD5 checksum lines; streaming MD5 calculations over TAR payload bytes (excluding trailing checksum line) matched each embedded checksum exactly:
+  - AP: `fbea59fa99eb8d8b116d0a3e6226cad1` — PASS
+  - BL: `8cd1c7d179208ac8bda52cc8dbb698b1` — PASS
+  - CSC: `16ce7c1dcebb3103f9c0723180c79dbe` — PASS
+- Earlier ZIP member CRC32 checks (4/4) and package SHA-256 are documented above. These checks indicate file consistency and do **not** verify authenticity or device compatibility.
+- Actual device partition/write health, charging margin, firmware's original CSC, signature chain and anti-rollback compatibility remain UNKNOWN.
+
+**Flash gate:** NO-GO pending authentic package provenance, model/build verification against on-device data, and separate explicit owner approval for precise firmware operation. No extraction, Odin Start, device write or firmware flash has occurred.
