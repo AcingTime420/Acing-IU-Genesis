@@ -2,7 +2,7 @@
 
 **Status:** PLANNED / NOT FLASHED / NO BOOTABLE GENESIS IMAGE  
 **Inspection date:** 2026-11-24  
-**Owner-reported state:** Device displays Samsung Download Mode/Odin Mode; no exact on-screen product-name or firmware identifiers supplied yet.  
+**Photo-observed state:** Device shows Download Mode with PRODUCT NAME `SM-T320`, CURRENT BINARY `Custom`, SYSTEM STATUS `Custom`, KNOX KERNEL LOCK `0x0`, KNOX WARRANTY VOID `0x1`, QUALCOMM SECUREBOOT `ENABLE (CSB)`, RP SWREV `S1, T1, R1, A1, P1`, WRITE PROTECTION `Enable`, and `UDC START`. Observation is not an authentication of current firmware or proof of flash compatibility.  
 **Scope:** Authorized, non-invasive research, safety, architecture, and a reproducible evidence checklist. No firmware is written by this document.
 
 ## Verified hardware references
@@ -24,9 +24,9 @@ Record the following from the **actual device**, not from a website or inference
 
 | Evidence | Status / required observation |
 |---|---|
-| Download Mode PRODUCT NAME/model string | NOT PROVIDED — confirm exact match to compatible artifact |
-| Current binary/system status, if displayed | NOT PROVIDED |
-| Knox/warranty/revision indicators, if displayed | NOT PROVIDED; never infer a secure boot guarantee |
+| Download Mode PRODUCT NAME/model string | **PHOTO VERIFIED: `SM-T320`**. Exact firmware package, regional variant and revision still need independent verification |
+| Current binary/system status, if displayed | **PHOTO VERIFIED: `CURRENT BINARY: Custom`; `SYSTEM STATUS: Custom`**; does not identify installed OS or recovery version |
+| Knox/warranty/revision indicators, if displayed | **PHOTO VERIFIED:** `KNOX KERNEL LOCK: 0x0`; `KNOX WARRANTY VOID: 0x1`; `QUALCOMM SECUREBOOT: ENABLE (CSB)`; `RP SWREV: S1, T1, R1, A1, P1`; `WRITE PROTECTION: Enable`. Do not interpret any one flag as a guaranteed boot, verified security posture, or ability to downgrade |
 | Current recovery behavior (stock, TWRP, unavailable) | NOT PROVIDED |
 | Existing personal data and need for preservation | NOT PROVIDED — stop if data matters and no viable backup |
 | Battery condition and USB-port/cable stability | NOT VERIFIED |
@@ -84,7 +84,7 @@ Preferred phased architecture:
 | Gate | Current result |
 |---|---|
 | Model-specific public reference discovery | PASS (research only) |
-| Exact connected hardware identity | BLOCKED (device-side observation needed) |
+| Exact connected hardware identity | **PARTIALLY VERIFIED**: Download Mode identifies `SM-T320`; region, stock build, partitions and hardware health not verified |
 | Data backup and stock recovery | NOT EXECUTED |
 | Compatible Android base and build | PLANNED |
 | Genesis APK port | PLANNED |
@@ -95,6 +95,26 @@ Preferred phased architecture:
 
 ## Next bounded action
 
-Request a **transcription or photograph of the Download Mode information** with only technical fields visible and any serial number/personal identifier redacted. Also establish whether user files must be preserved. Use that evidence to choose the appropriate authorized restoration route **before** generating any flash package.
+Photo evidence of Download Mode has been received and transcribed above. **Next: establish whether existing user data must be preserved**, and whether recovery mode is accessible without any writing. Record the firmware/region only from trusted sources before selecting an artifact. No package is approved for flashing.
 
 Keep this document as a non-operational research/acceptance artifact during the repository stabilization freeze. No activation, protected merge, firmware write, or deployment is authorized.
+
+## 2026-11-24 physical evidence addendum
+
+A user-supplied photograph of the **actual Download Mode screen** was visually inspected. The photograph is not copied into this public repository; only non-unique technical status fields are recorded. No serial number or other device identifier is included. Observations:
+
+| Field | Photo transcription |
+|---|---|
+| PRODUCT NAME | `SM-T320` |
+| CURRENT BINARY | `Custom` |
+| SYSTEM STATUS | `Custom` |
+| KNOX KERNEL LOCK | `0x0` |
+| KNOX WARRANTY VOID | `0x1` |
+| QUALCOMM SECUREBOOT | `ENABLE (CSB)` |
+| RP SWREV | `S1, T1, R1, A1, P1` |
+| WRITE PROTECTION | `Enable` |
+| Last red status | `UDC START` |
+
+**Interpretation limits:** The custom status suggests the installed firmware has been modified at some point but does not prove that root is currently operational. The warranty-void flag is shown as `0x1`, commonly associated with a tripped Knox warranty indicator, and must not be represented as reversible by stock firmware. The displayed Download Mode status proves the mode is present, not that recovery, Odin transfers, USB, storage health, partition images, or boot functions have been verified.
+
+**User-data status: NOT DETERMINED.** No write, erase, PIT, firmware selection or flash operation has been performed. Preserve original user data until its importance is determined.
