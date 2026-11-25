@@ -118,3 +118,35 @@ A user-supplied photograph of the **actual Download Mode screen** was visually i
 **Interpretation limits:** The custom status suggests the installed firmware has been modified at some point but does not prove that root is currently operational. The warranty-void flag is shown as `0x1`, commonly associated with a tripped Knox warranty indicator, and must not be represented as reversible by stock firmware. The displayed Download Mode status proves the mode is present, not that recovery, Odin transfers, USB, storage health, partition images, or boot functions have been verified.
 
 **User-data status: NOT DETERMINED.** No write, erase, PIT, firmware selection or flash operation has been performed. Preserve original user data until its importance is determined.
+
+## 2026-11-24 stock recovery baseline research and erasure authorization
+
+**Owner decision:** Existing user data may be erased if necessary; this removes the *data preservation* decision blocker, but is **not** approval to perform a specific flashing operation. Existing modem/board/CSC state, image provenance, and recovery mode accessibility remain unverified.
+
+### Firmware family identification
+
+- Stock Samsung SM-T320 Android **4.4.2 KitKat** is the historical recovery-baseline family; treat this as a restoration target, **not a secure up-to-date daily-driver OS**.
+- Historical third-party Samsung firmware indexes list **SM-T320 XAR** (US) `T320UES1AQA2` and `T320UEU1AOC1`, and **SM-T320 XEO** (Poland) `T320XXU1BQB2`. Sources:
+  - https://firmwareindex.com/samsung/sm-t320/
+  - https://samfrew.com/devices/galaxy-tab-pro-8-4/sm-t320
+  - https://samfw.com/firmware/SM-T320/
+- **Candidate only. No archive downloaded, cryptographic digest verified, official signature/provenance confirmed, regional CSC confirmed or flash authorized.** Do not assume user's residence determines device's original CSC. No listed build is designated the correct image yet.
+- Samsung support page explicitly identifies model SM-T320: https://www.samsung.com/uk/support/model/SM-T320NZKABGL/
+- Official Samsung emergency recovery reference: https://update.kies.samsung.com/SmartSwitchPC_recovery_guide/firmware/emergencyrecovery/ (device support on this old model unverified).
+
+### Recovery alternative
+
+- TWRP's **official** page identifies `mondrianwifi`, support status `Current`, and a model-specific Odin-installable recovery `.tar` option: https://twrp.me/samsung/samsunggalaxytabpro8.4wifi.html.
+- This is a *recovery image*, not a complete ROM. Its existence does not prove this tablet's partition/USB/flash health.
+- No TWRP or stock image has been selected or written.
+
+### Required preflash checks — not yet passed
+
+1. Determine whether device can boot existing recovery without a write, and distinguish stock recovery / custom TWRP / absent or stuck.
+2. Confirm model `SM-T320` once more on the exact device and establish the original firmware CSC/revision from reliable device or official support evidence; no region guessing.
+3. Confirm battery/USB reliability and host USB detection without changing the device.
+4. Acquire a device-specific trusted firmware archive via an approved source and compare origin, intended region, build identifier, size, format and published SHA-256 when available; source alone must not be equated with verification.
+5. Document recovery/rollback and a supervised human go/no-go review. Never enable exploratory PIT/repartition, NAND erase, forced downgrade or bootloader rewrites.
+6. Only after a clean stock baseline boots and essential hardware passes tests, develop a lightweight Genesis Android application separately from any firmware experiment.
+
+**Decision:** **NO-GO FOR FLASH**. Next safe observation is a *non-destructive recovery-mode availability check*; no Odin image approval or flashing instructions have been issued.
