@@ -188,3 +188,23 @@ A user-supplied photograph of the **actual Download Mode screen** was visually i
 - **No Odin use, flashing, extraction, local file modification, or partition writes occurred.**
 
 **Next gated decision:** Determine the location and current status of the Samloader source and any stock Android archive; verify firmware model/region/revision/provenance and a recovery plan before requesting owner approval for a specific device operation. The verified recovery checksum does not establish a working operating system. The current flash decision remains **NO-GO**.
+
+## 2026-11-25 stock firmware archive inspection (read only)
+
+Owner-reported firmware download was located directly on connected Windows host `DESKTOP-7PJDIRC`, and its container verified without flashing, extracting, or modifying the firmware file.
+
+- Path: `D:\\SAMFW.COM_SM-T320_XAR_T320UES1AQA2_fac.zip`
+- ZIP byte size: `1462354752`
+- Calculated SHA-256: `d78b91266895777e09fde28c6216fc3b7683860fa5d140916a8d79655725bf73`
+- ZIP archive structure (four members):
+  - `AP_T320UES1AQA2_CL4441590_QB12357844_REV00_user_low_ship_MULTI_CERT.tar.md5` — 2,091,151,466 uncompressed bytes
+  - `BL_T320UES1AQA2_CL4441590_QB12357844_REV00_user_low_ship_MULTI_CERT.tar.md5` — 10,025,066 uncompressed bytes
+  - `CSC_XAR_T320XAR1AQA2_CL4441590_QB12357844_REV00_user_low_ship_MULTI_CERT.tar.md5` — 179,445,871 uncompressed bytes
+  - `_FirmwareInfo_Samfw.com.txt` — 719 uncompressed bytes
+- ZIP CRC32 validated with full streaming reads of **all four members**, with no errors (PASS). Model/build identifiers in AP, BL and CSC filenames are consistent with `SM-T320`, `T320UES1AQA2`, `XAR`.
+- Included SamFW text *claims* firmware was sourced from Samsung Cloud Server and warns of user risk. This is a distributor's statement and **not cryptographic proof** of Samsung origin.
+- **NOT VERIFIED:** published SHA-256 from an independent authoritative publisher; Samsung firmware signature/chain; bootloader revision and actual downgrade compatibility; device's original CSC; authenticity of the internal TAR.MD5 members; tablet battery/power stability or recovery success.
+- **NO-GO remains:** Do not flash BL/AP/CSC or TWRP on the basis of filename and CRC checks alone. A flash is a separate protected operation requiring device-specific readiness review and explicit approval.
+- **Samloader checkupdate** with model `SM-T320` and region `XAR` returned `Model or region not found (403)`. Samloader installed and CLI works, but server metadata lookup is unavailable for this pair as tested.
+
+**Next gate:** Validate power stability and firmware authenticity independently, check device-specific signed bootloader downgrade constraints, establish a feasible fallback, and require separate owner confirmation for the precise flash action.
