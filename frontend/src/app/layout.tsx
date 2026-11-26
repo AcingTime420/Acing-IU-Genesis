@@ -3,8 +3,8 @@ import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "Acing IU Security Center",
-  description: "SM-S938U Verizon Firmware Trust & Zero-Trust Matrix",
+  title: "Acing IU: Genesis — Human Authority Prototype",
+  description: "Local mock interface for reviewing human authority over an AI agent proposal. Not live or enforced.",
 };
 
 export default function RootLayout({
@@ -19,16 +19,16 @@ export default function RootLayout({
         <Sidebar />
 
         {/* Primary Screen Area */}
-        <main className="flex-1 flex flex-col overflow-y-auto">
+        <main className="min-w-0 flex-1 flex flex-col overflow-y-auto">
           {/* Top Operational Status Bar */}
-          <header className="h-16 border-b border-cyberBorder px-8 flex items-center justify-between shrink-0 bg-cyberDark/90 backdrop-blur-md sticky top-0 z-10">
+          <header className="h-16 border-b border-cyberBorder px-3 sm:px-8 flex items-center justify-between shrink-0 bg-cyberDark/90 backdrop-blur-md sticky top-0 z-10">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 bg-cyberGreen rounded-full animate-pulse"></span>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                Acing Operations Grid — SM-S938U Baseline [VZW]
+                Genesis Human Authority Prototype — local preview
               </span>
             </div>
-            <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
+            <div className="hidden sm:flex items-center gap-4 text-xs font-semibold text-slate-400">
               <span>Timezone: <strong className="text-slate-200">UTC-7</strong></span>
               <span>•</span>
               <span>Matrix Key: <strong className="text-slate-200">ACTIVE_TIMA_RKP</strong></span>
@@ -36,7 +36,7 @@ export default function RootLayout({
           </header>
 
           {/* Page Content Container */}
-          <div className="p-8 max-w-7xl w-full mx-auto flex-1">
+          <div className="p-4 sm:p-8 max-w-7xl w-full mx-auto flex-1">
             {children}
           </div>
         </main>
