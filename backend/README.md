@@ -7,6 +7,7 @@
 | **Identity** | 8080 | S2 | Register, login, refresh, logout, MFA TOTP, profile |
 | **Device Trust** | 8081 | S3 | Telemetry submit, trust score, device registry |
 | **SharedKernel** | — | — | Result monad, RFC 9457 problem details |
+| **AI Gateway foundation** | — | Phase 8 | Provider-neutral advisory boundary and scoped delegated-action approval; no provider adapter or HTTP service |
 
 ## Identity API
 
@@ -56,7 +57,27 @@ docker compose up -d --build
 ```
 backend/
 ├── AcingIU.sln
+├── AiGateway/src/AcingIU.AiGateway/
 ├── SharedKernel/src/AcingIU.SharedKernel/
 ├── Identity/src/AcingIU.Identity.Api/
 └── DeviceTrust/src/AcingIU.DeviceTrust.Api/
 ```
+
+## Governed AI boundary
+
+`AcingIU.AiGateway` implements the provider-neutral foundation required by
+ADR-007. It denies disabled providers, unlisted use cases, excessive output
+limits, and data above each provider policy's permitted classification before an
+adapter is invoked. Provider output is advisory only.
+
+Consequential execution uses a separate `DelegatedActionCoordinator`. An
+approval must be granted, unexpired, and match the exact proposal, action, and
+resource, including the action-payload digest. Approval evidence is opaque and
+must be validated by a trusted verifier; callers cannot authorize execution by
+constructing a granted data object. The action committer contract requires the mutation and its success
+audit to commit atomically and requires idempotency by proposal identifier.
+Audit events intentionally exclude prompts, outputs, raw action
+arguments, credentials, and exception messages.
+
+No OpenAI or xAI adapter, API endpoint, provider credential, persistence layer,
+or production provider call is part of this foundation.
