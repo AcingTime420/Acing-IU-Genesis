@@ -1,0 +1,29 @@
+name: Delegated Action Reference (simulator)
+
+on:
+  pull_request:
+    paths:
+      - tests/delegated_action/**
+      - .github/workflows/delegated-action-reference.yml
+  push:
+    paths:
+      - tests/delegated_action/**
+      - .github/workflows/delegated-action-reference.yml
+
+permissions:
+  contents: read
+
+jobs:
+  reference-acceptance:
+    name: Local reference acceptance (not application integration)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Validate Python runtime
+        run: python3 -c 'import sys; print(sys.version); assert sys.version_info >= (3, 11)'
+      - name: Run local-only acceptance reference
+        run: python3 tests/delegated_action/test_acceptance.py
