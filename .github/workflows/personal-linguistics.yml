@@ -1,0 +1,30 @@
+name: Personal Linguistics Research Tests
+
+on:
+  pull_request:
+    paths:
+      - "research/personal_linguistics/**"
+      - ".github/workflows/personal-linguistics.yml"
+  push:
+    paths:
+      - "research/personal_linguistics/**"
+      - ".github/workflows/personal-linguistics.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  semantic-core-unit-tests:
+    name: Semantic Core Python Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - name: Check syntax
+        run: python -m py_compile research/personal_linguistics/semantic_core.py research/personal_linguistics/tests/test_semantic_core.py
+      - name: Run focused unit tests
+        run: python -m unittest discover -s research/personal_linguistics/tests -p "test_*.py" -v
