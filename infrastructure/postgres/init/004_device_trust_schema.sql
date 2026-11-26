@@ -1,6 +1,6 @@
 -- Acing IU Genesis — 004_device_trust_schema.sql
 -- Requires: 001_init_identity_schema.sql (users table exists)
--- Creates device trust and telemetry tables
+-- Creates reserved device-evidence tables. These tables are not proof of hardware attestation or active enforcement.
 
 -- Devices table (extends registered_devices from 001)
 CREATE TABLE IF NOT EXISTS device_telemetry (
@@ -53,16 +53,16 @@ CREATE INDEX IF NOT EXISTS idx_device_quarantine_active ON device_quarantine_log
 CREATE INDEX IF NOT EXISTS idx_device_quarantine_created_at ON device_quarantine_log (created_at DESC);
 
 -- Comments
-COMMENT ON TABLE device_telemetry IS 'Telemetry submissions from devices for trust score calculation';
-COMMENT ON TABLE device_attestations IS 'Hardware attestations (TIMA, Knox, bootloader) for device verification';
-COMMENT ON TABLE device_quarantine_log IS 'Audit trail of device quarantine and release events';
+COMMENT ON TABLE device_telemetry IS 'Reserved telemetry-history schema; canonical DeviceTrust currently updates registered_devices and does not use this table.';
+COMMENT ON TABLE device_attestations IS 'Target attestation-evidence schema only; no hardware attestation provider is integrated or verified.';
+COMMENT ON TABLE device_quarantine_log IS 'Target quarantine-history schema only; no live quarantine enforcement is established by this table.';
 
--- Grants
-GRANT SELECT, INSERT ON TABLE device_telemetry TO acing_device_trust;
-GRANT SELECT, INSERT ON TABLE device_attestations TO acing_device_trust;
-GRANT SELECT, INSERT ON TABLE device_quarantine_log TO acing_device_trust;
-GRANT USAGE, SELECT ON SEQUENCE device_telemetry_id_seq TO acing_device_trust;
-GRANT USAGE, SELECT ON SEQUENCE device_quarantine_log_id_seq TO acing_device_trust;
+-- No runtime grants are issued here. These are target/reserved schemas until
+-- an implementation, authorization model, and tests are added.
+REVOKE ALL PRIVILEGES ON TABLE device_telemetry, device_attestations, device_quarantine_log
+    FROM acing_device_trust;
+REVOKE ALL PRIVILEGES ON SEQUENCE device_telemetry_id_seq, device_quarantine_log_id_seq
+    FROM acing_device_trust;
 
 INSERT INTO schema_migrations (version, description)
 VALUES ('004', 'device trust telemetry and attestation schemas')

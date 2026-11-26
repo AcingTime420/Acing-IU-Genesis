@@ -1,4 +1,5 @@
 using AcingIU.Identity.Api.Data;
+using System.Security.Cryptography;
 using AcingIU.Identity.Api.Models;
 using AcingIU.Identity.Api.Options;
 using Microsoft.Extensions.Options;
@@ -23,6 +24,7 @@ public sealed class AuthService : IAuthService
     private readonly ITokenService _tokens;
     private readonly ITokenRevocationStore _revocation;
     private readonly IMfaService _mfa;
+    private readonly IMfaSecretProtector _mfaSecretProtector;
     private readonly JwtOptions _jwt;
 
     public AuthService(
@@ -31,6 +33,7 @@ public sealed class AuthService : IAuthService
         ITokenService tokens,
         ITokenRevocationStore revocation,
         IMfaService mfa,
+        IMfaSecretProtector mfaSecretProtector,
         IOptions<JwtOptions> jwt)
     {
         _users = users;
@@ -38,6 +41,7 @@ public sealed class AuthService : IAuthService
         _tokens = tokens;
         _revocation = revocation;
         _mfa = mfa;
+        _mfaSecretProtector = mfaSecretProtector;
         _jwt = jwt.Value;
     }
 
@@ -136,7 +140,8 @@ public sealed class AuthService : IAuthService
         if (user.MfaEnabled) return (null, "MFA is already enabled.", 409);
 
         var secret = _mfa.GenerateSecret();
-        await _users.SetMfaSecretAsync(userId, secret, ct);
+        var protectedSecret = _mfaSecretProtector.Protect(secret);
+        await _users.SetMfaSecretAsync(userId, protectedSecret, ct);
         var uri = _mfa.BuildOtpAuthUri(user.Email, secret);
 
         await _users.WriteAuditAsync("auth.mfa.enroll", "INFO", userId.ToString(), "/api/auth/mfa/enroll", null, traceId, ct);
@@ -151,14 +156,34 @@ public sealed class AuthService : IAuthService
 
     public async Task<(MfaVerifyResponse? Response, string? Error, int Status)> VerifyMfaAsync(Guid userId, string code, string? traceId, CancellationToken ct = default)
     {
-        var secret = await _users.GetMfaSecretAsync(userId, ct);
-        if (string.IsNullOrEmpty(secret))
+        var storedSecret = await _users.GetMfaSecretAsync(userId, ct);
+        if (string.IsNullOrEmpty(storedSecret))
             return (null, "MFA enrollment has not been started.", 400);
+
+        var legacyPlaintextSecret = !_mfaSecretProtector.IsProtected(storedSecret);
+        string secret;
+        try
+        {
+            secret = legacyPlaintextSecret
+                ? storedSecret
+                : _mfaSecretProtector.Unprotect(storedSecret);
+        }
+        catch (CryptographicException)
+        {
+            await _users.WriteAuditAsync("auth.mfa.secret.protection_failure", "CRITICAL", userId.ToString(), "/api/auth/mfa/verify", null, traceId, ct);
+            return (null, "MFA secret protection could not be verified. Restart enrollment.", 500);
+        }
 
         if (!_mfa.VerifyCode(secret, code))
         {
             await _users.WriteAuditAsync("auth.mfa.verify.failure", "WARNING", userId.ToString(), "/api/auth/mfa/verify", null, traceId, ct);
             return (null, "Invalid MFA code.", 401);
+        }
+
+        if (legacyPlaintextSecret)
+        {
+            await _users.SetMfaSecretAsync(userId, _mfaSecretProtector.Protect(secret), ct);
+            await _users.WriteAuditAsync("auth.mfa.secret.reencrypted", "INFO", userId.ToString(), "/api/auth/mfa/verify", null, traceId, ct);
         }
 
         await _users.EnableMfaAsync(userId, ct);

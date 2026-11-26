@@ -32,7 +32,6 @@ New-Item -ItemType Directory -Force -Path $PlatformDest, $DocsDest, $BrandingDes
 # Copy compose stack (exclude heavy/runtime-only paths if any)
 $copyItems = @(
     "docker-compose.yml",
-    ".env.example",
     "README.md",
     "nginx",
     "redis",
@@ -50,6 +49,15 @@ foreach ($item in $copyItems) {
     } else {
         Write-Warning "Missing: $src"
     }
+}
+
+# Runtime configuration template lives at repository root, not infrastructure/.
+$RootEnvExample = Join-Path $RepoRoot ".env.example"
+if (Test-Path $RootEnvExample) {
+    Copy-Item $RootEnvExample (Join-Path $PlatformDest ".env.example") -Force
+    Write-Host "  + platform\.env.example"
+} else {
+    Write-Error ".env.example not found at $RootEnvExample"
 }
 
 # Backend README into documentation
@@ -81,15 +89,17 @@ if (Test-Path $BackendSrc) {
     New-Item -ItemType Directory -Force -Path $BackendDest | Out-Null
     Copy-Item (Join-Path $BackendSrc "Identity") $BackendDest -Recurse -Force
     Copy-Item (Join-Path $BackendSrc "DeviceTrust") $BackendDest -Recurse -Force
-    Write-Host "  + platform\backend\Identity, DeviceTrust"
+    Copy-Item (Join-Path $BackendSrc "SharedKernel") $BackendDest -Recurse -Force
+    Write-Host "  + platform\backend\Identity, DeviceTrust, SharedKernel"
 }
 
-# Fix compose build contexts for installed layout
+# Fix compose build contexts for installed layout.
+# Canonical compose uses repository root (..) as build context. In the installed
+# payload, backend/ lives directly under platform/, so use platform root (.).
 $ComposeFile = Join-Path $PlatformDest "docker-compose.yml"
 if (Test-Path $ComposeFile) {
     $c = Get-Content $ComposeFile -Raw
-    $c = $c -replace 'context: \.\./backend/Identity/src/AcingIU\.Identity\.Api', 'context: ./backend/Identity/src/AcingIU.Identity.Api'
-    $c = $c -replace 'context: \.\./backend/DeviceTrust/src/AcingIU\.DeviceTrust\.Api', 'context: ./backend/DeviceTrust/src/AcingIU.DeviceTrust.Api'
+    $c = $c -replace '(?m)^(\s+)context:\s+\.\., '$1context: .'
     Set-Content $ComposeFile -Value $c -Encoding UTF8
-    Write-Host "  ~ docker-compose.yml build contexts adjusted for installer layout"
+    Write-Host "  ~ docker-compose.yml build contexts adjusted to platform root"
 }

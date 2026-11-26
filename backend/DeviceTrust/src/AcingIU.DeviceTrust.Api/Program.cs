@@ -13,8 +13,18 @@ builder.Services.AddSingleton<ITrustScoreEngine, TrustScoreEngine>();
 builder.Services.AddScoped<ITrustService, TrustService>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var signingKey = jwtSection["SigningKey"]
-    ?? throw new InvalidOperationException("Jwt:SigningKey is required.");
+var signingKey = jwtSection["SigningKey"];
+if (string.IsNullOrWhiteSpace(signingKey))
+    throw new InvalidOperationException("Jwt:SigningKey is required.");
+if (signingKey.Length < 32 ||
+    signingKey.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase) ||
+    signingKey.Contains("placeholder", StringComparison.OrdinalIgnoreCase))
+    throw new InvalidOperationException("Jwt:SigningKey must be a non-placeholder secret of at least 32 characters.");
+
+var issuer = jwtSection["Issuer"];
+var audience = jwtSection["Audience"];
+if (string.IsNullOrWhiteSpace(issuer) || string.IsNullOrWhiteSpace(audience))
+    throw new InvalidOperationException("Jwt:Issuer and Jwt:Audience are required.");
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -23,9 +33,9 @@ builder.Services
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = jwtSection["Issuer"] ?? "acing-iu",
+            ValidIssuer = issuer,
             ValidateAudience = true,
-            ValidAudience = jwtSection["Audience"] ?? "acing-iu-api",
+            ValidAudience = audience,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
             ValidateLifetime = true,
@@ -75,8 +85,11 @@ builder.Logging.AddJsonConsole(o =>
 });
 
 var app = builder.Build();
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

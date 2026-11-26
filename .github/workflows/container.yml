@@ -11,7 +11,6 @@ concurrency:
 
 permissions:
   contents: read
-  # No packages:write on PR — this workflow does not run on pull_request
 
 jobs:
   build-scan:

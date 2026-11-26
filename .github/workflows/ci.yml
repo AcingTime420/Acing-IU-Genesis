@@ -25,7 +25,8 @@ jobs:
           FAIL=0
           PATTERNS=("bin" "obj" "out" "dist" "TestResults" "coverage" "node_modules" ".next")
           for pattern in "${PATTERNS[@]}"; do
-            matches=$(git ls-files -- "$pattern" 2>/dev/null || true)
+            escaped="${pattern//./\\.}"
+            matches=$(git ls-files | grep -E "(^|/)${escaped}(/|$)" || true)
             if [[ -n "$matches" ]]; then
               echo "::error::Tracked generated files under '${pattern}/':${matches}"
               FAIL=1
@@ -45,6 +46,12 @@ jobs:
         run: |
           chmod +x scripts/check-claim-surface.sh
           bash scripts/check-claim-surface.sh
+
+      - name: Installer payload provenance sync
+        shell: bash
+        run: |
+          chmod +x scripts/check-installer-payload-sync.sh
+          bash scripts/check-installer-payload-sync.sh
 
   # ── Job 2: Full validate-premerge (build + conditional compose) ────────
   validate-baseline:
@@ -74,7 +81,6 @@ jobs:
       - name: Install Kotlin compiler
         shell: bash
         run: |
-          # Install Kotlin via SDKMAN or direct download
           KOTLIN_VERSION="2.0.0"
           curl -fsSL "https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip" \
             -o /tmp/kotlin.zip
@@ -101,6 +107,25 @@ jobs:
     name: Backend Build & Test (.NET)
     runs-on: ubuntu-latest
     needs: repo-integrity
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: acing_admin
+          POSTGRES_PASSWORD: ci_admin_password_only
+          POSTGRES_DB: acing_iu
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U acing_admin -d acing_iu"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_PASSWORD: ci_admin_password_only
+      MIGRATOR_DB_PASSWORD: ci_migrator_password_only
+      IDENTITY_DB_PASSWORD: ci_identity_password_only
+      DEVICE_TRUST_DB_PASSWORD: ci_device_trust_password_only
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -118,6 +143,21 @@ jobs:
             echo "No backend solution found — skipping"
           fi
 
+      - name: Wait for PostgreSQL readiness
+        shell: bash
+        env:
+          PGPASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        run: |
+          for i in $(seq 1 60); do
+            if pg_isready -h localhost -p 5432 -U acing_admin -d acing_iu >/dev/null 2>&1; then
+              echo "PostgreSQL is ready."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::PostgreSQL did not become ready in time."
+          exit 1
+
       - name: Build Backend Solution
         run: |
           if [ -f backend/AcingIU.sln ]; then
@@ -133,6 +173,9 @@ jobs:
           else
             echo "No backend solution found — skipping"
           fi
+
+      - name: Run DeviceTrust PostgreSQL integration tests
+        run: dotnet test tests/DeviceTrust.PostgresIntegrationTests/DeviceTrust.PostgresIntegrationTests.csproj --configuration Release --no-build --verbosity normal
 
   # ── Job 4: Frontend build and test (Node.js) ──────────────────────────
   frontend-build-test:
@@ -189,13 +232,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
 
-      - name: Build Gateway Service Container
-        run: |
-          if [ -f backend/Gateway/Dockerfile ]; then
-            docker build -t acing-iu-gateway:latest -f backend/Gateway/Dockerfile backend
-          else
-            echo "Gateway Dockerfile not ready — skipping"
-          fi
+      - name: Build Identity Service Container
+        run: docker build -t acing-iu-identity:ci -f backend/Identity/src/AcingIU.Identity.Api/Dockerfile .
+
+      - name: Build DeviceTrust Service Container
+        run: docker build -t acing-iu-device-trust:ci -f backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Dockerfile .
 
       - name: Build Next.js Frontend Container
         run: |

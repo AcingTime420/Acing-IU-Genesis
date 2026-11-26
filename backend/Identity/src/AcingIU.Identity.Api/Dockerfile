@@ -3,7 +3,7 @@
 # Repository-root Docker build context
 # =============================================================================
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:5dfdb3b19e6900a3dc449760547a0a3fdd1f47900062d274d57e7ab725484c16 AS build
 
 WORKDIR /src
 
@@ -24,13 +24,16 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0.32-alpine3.24@sha256:cf6f271f1c106dcb4d
 
 WORKDIR /app
 
-RUN wget --help >/dev/null 2>&1
+# Apply current Alpine security fixes from the pinned runtime repository, then verify the health-check dependency.
+RUN apk upgrade --no-cache \
+    && wget --help >/dev/null 2>&1
 
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 COPY --from=build /app/publish .
 
+# .NET 8 images include the unprivileged 'app' user.
 USER app
 
 EXPOSE 8080

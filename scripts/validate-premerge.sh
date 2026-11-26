@@ -66,7 +66,8 @@ ARTIFACT_PATTERNS=(
 
 ARTIFACT_FOUND=false
 for pattern in "${ARTIFACT_PATTERNS[@]}"; do
-  matches=$(git ls-files -- "$pattern" 2>/dev/null || true)
+  escaped="${pattern//./\\.}"
+  matches=$(git ls-files | grep -E "(^|/)${escaped}(/|$)" || true)
   if [[ -n "$matches" ]]; then
     echo "    Tracked generated files under '${pattern}/':"
     echo "$matches" | sed 's/^/      /'
@@ -122,36 +123,107 @@ fi
 # ── 4. Docker Compose (conditional) ───────────────────────────────────────
 step "4/5  Docker Compose"
 
+COMPOSE_STARTED=false
+VALIDATION_ENV=""
+
+cleanup_compose() {
+  if $COMPOSE_STARTED && [[ -n "$VALIDATION_ENV" ]]; then
+    docker compose -f infrastructure/docker-compose.yml --env-file "$VALIDATION_ENV" down >/dev/null 2>&1 || true
+  fi
+  if [[ -n "$VALIDATION_ENV" && -f "$VALIDATION_ENV" ]]; then
+    rm -f "$VALIDATION_ENV"
+  fi
+}
+trap cleanup_compose EXIT
+
 if $SKIP_COMPOSE; then
   skip "Compose skipped via --skip-compose"
-elif [[ -f "docker-compose.yml" ]] || [[ -f "compose.yaml" ]]; then
+elif [[ -f "infrastructure/docker-compose.yml" ]]; then
   if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-    echo "    Building Compose services..."
-    docker compose build \
-      && ok "Compose build succeeded" \
-      || fail "Compose build failed"
+    if ! command -v openssl >/dev/null 2>&1; then
+      fail "openssl is required to generate disposable validation secrets"
+    else
+      VALIDATION_ENV="$(mktemp)"
+      cat > "$VALIDATION_ENV" <<EOF
+ASPNETCORE_ENVIRONMENT=Development
+POSTGRES_DB=acing_iu
+POSTGRES_USER=acing_admin
+POSTGRES_PASSWORD=$(openssl rand -hex 24)
+MIGRATOR_DB_USER=acing_migrator
+MIGRATOR_DB_PASSWORD=$(openssl rand -hex 24)
+IDENTITY_DB_USER=acing_identity
+IDENTITY_DB_PASSWORD=$(openssl rand -hex 24)
+DEVICE_TRUST_DB_USER=acing_device_trust
+DEVICE_TRUST_DB_PASSWORD=$(openssl rand -hex 24)
+REDIS_PASSWORD=$(openssl rand -hex 24)
+JWT_ISSUER=acing-iu-validation
+JWT_AUDIENCE=acing-iu-validation-api
+JWT_SIGNING_KEY=$(openssl rand -hex 32)
+MFA_SECRET_PROTECTION_ACTIVE_KEY_ID=mfa-v1
+MFA_SECRET_PROTECTION_KEY_MFA_V1=$(openssl rand -base64 32 | tr -d "\n")
+GATEWAY_PORT=8080
+POSTGRES_PORT=5433
+REDIS_PORT=6379
+EOF
 
-    echo "    Starting Compose services..."
-    docker compose up -d \
-      && ok "Compose services started" \
-      || fail "Compose up failed"
+      echo "    Building Compose services..."
+      if docker compose -f infrastructure/docker-compose.yml --env-file "$VALIDATION_ENV" build; then
+        ok "Compose build succeeded"
+      else
+        fail "Compose build failed"
+      fi
 
-    sleep 5
-
-    echo "    Stopping Compose services..."
-    docker compose down \
-      && ok "Compose services stopped cleanly" \
-      || fail "Compose down failed"
+      echo "    Starting Compose services..."
+      if docker compose -f infrastructure/docker-compose.yml --env-file "$VALIDATION_ENV" up -d; then
+        COMPOSE_STARTED=true
+        ok "Compose services started"
+      else
+        fail "Compose up failed"
+      fi
+    fi
   else
     skip "docker/compose not available — skipping Compose checks"
   fi
 else
-  skip "No docker-compose.yml / compose.yaml found — container baseline is planned (see ARCHITECTURE.md)"
+  fail "Canonical infrastructure/docker-compose.yml is missing"
 fi
 
 # ── 5. Readiness / health checks ──────────────────────────────────────────
 step "5/5  Readiness / health checks"
-skip "No HTTP endpoints configured yet — health checks are planned (see docs/adr/ADR-001)"
+if $SKIP_COMPOSE; then
+  skip "Health checks skipped with Compose"
+elif ! $COMPOSE_STARTED; then
+  skip "Compose stack was not started — health checks unavailable"
+elif command -v curl >/dev/null 2>&1; then
+  HEALTHY=false
+  for _ in $(seq 1 60); do
+    if curl --fail --silent --show-error "http://127.0.0.1:8080/health/live" >/dev/null 2>&1; then
+      HEALTHY=true
+      break
+    fi
+    sleep 2
+  done
+
+  if $HEALTHY; then
+    ok "Gateway liveness endpoint responded"
+  else
+    docker compose -f infrastructure/docker-compose.yml --env-file "$VALIDATION_ENV" ps || true
+    docker compose -f infrastructure/docker-compose.yml --env-file "$VALIDATION_ENV" logs --no-color || true
+    fail "Gateway liveness endpoint did not become healthy"
+  fi
+else
+  skip "curl not available — health endpoint probe skipped"
+fi
+
+if $COMPOSE_STARTED; then
+  echo "    Stopping Compose services..."
+  if docker compose -f infrastructure/docker-compose.yml --env-file "$VALIDATION_ENV" down; then
+    COMPOSE_STARTED=false
+    ok "Compose services stopped cleanly"
+  else
+    fail "Compose down failed"
+  fi
+fi
 
 # ── Summary ───────────────────────────────────────────────────────────────
 echo ""
