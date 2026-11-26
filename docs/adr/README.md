@@ -32,6 +32,7 @@ and linked to the replacing ADR.
 | [ADR-006](ADR-006-android-and-firmware-safety.md) | Android and firmware operation safety | Accepted | 2026-08-16 |
 | [ADR-007](ADR-007-ai-provider-governance.md) | Governed AI and external API integration | Accepted | 2026-08-16 |
 | [ADR-008](ADR-008-release-provenance-and-recovery.md) | Reproducible releases, provenance, and recovery | Accepted | 2026-08-16 |
+| [ADR-009](ADR-009-genesis-sovereign-agent-human-authority.md) | Genesis sovereign agent and Human Sovereignty Gate | Accepted architecture / verifier pending | 2026-10-01 |
 
 ---
 

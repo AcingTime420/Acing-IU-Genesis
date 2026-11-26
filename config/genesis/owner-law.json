@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0.0",
+  "ownerLawVersion": "1.0.0",
+  "constitutionVersion": "1.0.0",
+  "defaultDecision": "deny",
+  "authorityModel": {
+    "finalAuthority": "physical-human-being",
+    "highestNonHumanAuthority": "Genesis",
+    "selfEscalationAllowed": false,
+    "delegationCanAmplifyAuthority": false
+  },
+  "humanSovereignty": {
+    "enforcementState": "blocked-until-verified-runtime",
+    "failClosed": true,
+    "approvalTTLSeconds": 300,
+    "requireActionDigest": true,
+    "requireFreshChallenge": true,
+    "requireUserVerification": true,
+    "acceptRawBiometrics": false,
+    "proofRequirements": [
+      "webauthn-user-verification",
+      "device-bound-genesis-approval-key"
+    ],
+    "genericSyncedPasskeyAloneSatisfiesSeparateDeviceRequirement": false
+  },
+  "protectedActions": [
+    "owner-law-change",
+    "genesis-constitution-change",
+    "human-sovereignty-verifier-change",
+    "approval-device-enroll",
+    "approval-device-revoke",
+    "agent-standing-authority-grant",
+    "root-trust-anchor-change",
+    "production-release",
+    "production-deployment",
+    "irreversible-data-destruction",
+    "security-denial-override",
+    "audit-disable",
+    "provenance-disable",
+    "privileged-device-executor-enable",
+    "protected-capability-graduation"
+  ],
+  "principles": [
+    "claims-follow-evidence",
+    "personal-by-choice",
+    "fail-closed",
+    "simulation-must-look-like-simulation",
+    "architecture-before-privilege",
+    "least-privilege",
+    "human-sovereignty",
+    "auditability",
+    "reversibility",
+    "privacy-by-restraint"
+  ]
+}
