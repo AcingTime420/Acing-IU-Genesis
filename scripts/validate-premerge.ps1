@@ -37,6 +37,7 @@ $ComposeDir = Join-Path $Root "infrastructure"
 $EnvFile = Join-Path $ComposeDir ".env"
 
 $script:CleanedUp = $false
+$script:SmokeComposeProject = $null
 
 
 function Invoke-Cleanup {
@@ -46,13 +47,14 @@ function Invoke-Cleanup {
 
   $script:CleanedUp = $true
 
-  if (Test-Path $EnvFile) {
-    Write-Host "`n=== Cleanup (preserving named volumes) ==="
+  if ($script:SmokeComposeProject -and
+      $env:COMPOSE_PROJECT_NAME -eq $script:SmokeComposeProject) {
+    Write-Host "`n=== Cleanup (removing isolated smoke-test volumes) ==="
 
     try {
       Push-Location $ComposeDir
 
-      docker compose down --remove-orphans 2>$null | Out-Null
+      docker compose down --volumes --remove-orphans 2>$null | Out-Null
     }
     catch {
       # Cleanup is best-effort and must not hide the original failure.
@@ -216,6 +218,24 @@ function Assert-ExitZero {
 
 Step "0. Load environment" {
   Import-DotEnv -Path $EnvFile
+
+  $smokeRunId = [Guid]::NewGuid().ToString("N")
+  $env:SMOKE_TEST_MODE = "1"
+  $env:POSTGRES_DB = "acing_iu_smoke_test"
+  $env:COMPOSE_PROJECT_NAME = "acing-iu-smoke-test-$smokeRunId"
+  $script:SmokeComposeProject = $env:COMPOSE_PROJECT_NAME
+  $env:POSTGRES_CONTAINER_NAME = "$($env:COMPOSE_PROJECT_NAME)-postgres"
+  $env:REDIS_CONTAINER_NAME = "$($env:COMPOSE_PROJECT_NAME)-redis"
+  $env:GATEWAY_CONTAINER_NAME = "$($env:COMPOSE_PROJECT_NAME)-gateway"
+  $env:IDENTITY_CONTAINER_NAME = "$($env:COMPOSE_PROJECT_NAME)-identity"
+  $env:DEVICE_TRUST_CONTAINER_NAME = "$($env:COMPOSE_PROJECT_NAME)-device-trust"
+  $env:MIGRATOR_CONTAINER_NAME = "$($env:COMPOSE_PROJECT_NAME)-migrator"
+  $env:POSTGRES_VOLUME_NAME = "$($env:COMPOSE_PROJECT_NAME)-postgres"
+  $env:REDIS_VOLUME_NAME = "$($env:COMPOSE_PROJECT_NAME)-redis"
+  $env:POSTGRES_PORT = [string](Get-Random -Minimum 20000 -Maximum 60000)
+  $env:REDIS_PORT = [string](Get-Random -Minimum 20000 -Maximum 60000)
+  $env:GATEWAY_PORT = [string](Get-Random -Minimum 20000 -Maximum 60000)
+  $env:BASE_URL = "http://localhost:$($env:GATEWAY_PORT)"
 }
 
 

@@ -14,9 +14,12 @@ docker compose up -d --build
 docker compose ps
 docker compose logs -f identity gateway
 
-# End-to-end vertical slice
-./scripts/smoke-auth.sh
 ```
+
+The end-to-end smoke test provisions enrolled-device fixtures and must only run
+against an isolated test stack. Follow the guarded setup in
+[`../tests/e2e/README.md`](../tests/e2e/README.md); the smoke script refuses the
+normal deployment database and volumes.
 
 ### Verify
 
@@ -24,7 +27,7 @@ docker compose logs -f identity gateway
 # Gateway live
 curl -s http://localhost:8080/health/live
 
-# Register → profile (or use smoke-auth.sh)
+# Register → profile
 curl -s -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"dev@acing.iu","password":"DevPassword!2026Secure"}'
@@ -52,6 +55,7 @@ infrastructure/
     ├── wait-for-postgres.sh
     ├── wait-for-redis.sh
     ├── up.sh
+    ├── provision-smoke-fixtures.sh
     └── smoke-auth.sh
 ```
 

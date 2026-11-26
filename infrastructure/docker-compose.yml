@@ -11,12 +11,13 @@ name: acing-iu
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: acing-postgres
+    container_name: ${POSTGRES_CONTAINER_NAME:-acing-postgres}
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-acing_admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:-acing_iu}
+      SMOKE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-}
       PGDATA: /var/lib/postgresql/data/pgdata
       MIGRATOR_DB_PASSWORD: ${MIGRATOR_DB_PASSWORD:?MIGRATOR_DB_PASSWORD must be set}
       IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?IDENTITY_DB_PASSWORD must be set}
@@ -45,7 +46,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: acing-redis
+    container_name: ${REDIS_CONTAINER_NAME:-acing-redis}
     restart: unless-stopped
     command:
       - redis-server
@@ -76,7 +77,7 @@ services:
 
   gateway:
     image: nginx:1.27-alpine
-    container_name: acing-gateway
+    container_name: ${GATEWAY_CONTAINER_NAME:-acing-gateway}
     restart: unless-stopped
     ports:
       - "${GATEWAY_PORT:-8080}:80"
@@ -108,10 +109,10 @@ services:
         tag: "{{.Name}}"
 
   identity:
+    container_name: ${IDENTITY_CONTAINER_NAME:-acing-identity}
     build:
       context: ..
       dockerfile: backend/Identity/src/AcingIU.Identity.Api/Dockerfile
-    container_name: acing-identity
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
@@ -146,10 +147,10 @@ services:
         tag: "{{.Name}}"
 
   device-trust:
+    container_name: ${DEVICE_TRUST_CONTAINER_NAME:-acing-device-trust}
     build:
       context: ..
       dockerfile: backend/DeviceTrust/src/AcingIU.DeviceTrust.Api/Dockerfile
-    container_name: acing-device-trust
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
@@ -180,8 +181,8 @@ services:
 
   # Upgrade path for existing volumes (not a substitute for empty-volume init)
   db-migrate:
+    container_name: ${MIGRATOR_CONTAINER_NAME:-acing-db-migrate}
     image: postgres:16-alpine
-    container_name: acing-db-migrate
     restart: "no"
     environment:
       PGHOST: postgres
@@ -203,11 +204,10 @@ services:
 networks:
   acing-net:
     driver: bridge
-    name: acing-iu-net
+    name: ${COMPOSE_PROJECT_NAME:-acing-iu}-net
 
 volumes:
   postgres_data:
-    name: acing-postgres-data
+    name: ${POSTGRES_VOLUME_NAME:-acing-postgres-data}
   redis_data:
-    name: acing-redis-data
-
+    name: ${REDIS_VOLUME_NAME:-acing-redis-data}

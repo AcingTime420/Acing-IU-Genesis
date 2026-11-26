@@ -7,15 +7,19 @@ Platform foundation stack: **PostgreSQL 16**, **Redis 7**, **Nginx API Gateway**
 ```bash
 cd infrastructure
 cp .env.example .env
-# Edit .env — set POSTGRES_PASSWORD, REDIS_PASSWORD, JWT_SIGNING_KEY (≥ 32 chars)
+# Edit .env — set POSTGRES_PASSWORD, REDIS_PASSWORD, JWT_SIGNING_KEY (≥ 32 chars),
+# and MFA_SECRET_PROTECTION_KEY_MFA_V1 (openssl rand -base64 32)
 
 docker compose up -d --build
 docker compose ps
 docker compose logs -f identity gateway
 
-# End-to-end vertical slice
-./scripts/smoke-auth.sh
 ```
+
+The end-to-end smoke test provisions enrolled-device fixtures and must only run
+against an isolated test stack. Follow the guarded setup in
+[`../tests/e2e/README.md`](../tests/e2e/README.md); the smoke script refuses the
+normal deployment database and volumes.
 
 ### Verify
 
@@ -23,7 +27,7 @@ docker compose logs -f identity gateway
 # Gateway live
 curl -s http://localhost:8080/health/live
 
-# Register → profile (or use smoke-auth.sh)
+# Register → profile
 curl -s -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"dev@acing.iu","password":"DevPassword!2026Secure"}'
@@ -51,6 +55,7 @@ infrastructure/
     ├── wait-for-postgres.sh
     ├── wait-for-redis.sh
     ├── up.sh
+    ├── provision-smoke-fixtures.sh
     └── smoke-auth.sh
 ```
 
@@ -68,6 +73,12 @@ Identity service source: `../backend/Identity/src/AcingIU.Identity.Api`
 | 2.1 Register / Login | Done | Identity AuthController |
 | 2.2 Refresh token rotation | Done | Family rotation + reuse detection |
 | 2.4 Protected route | Done | `GET /api/auth/me` |
+
+## MFA secret protection
+
+The Identity API stores newly enrolled TOTP secrets as authenticated AES-256-GCM ciphertext. The active key identifier and base64-encoded 32-byte key are required at startup; Compose fails closed if either value is absent. Store real key material in the approved secret manager and provide it through `MFA_SECRET_PROTECTION_KEY_MFA_V1`; never commit it to `.env` or source control.
+
+To rotate a key, retain the existing key configuration, add the new key identifier and its key material, deploy with the new active key identifier, then re-encrypt existing secrets through an approved migration runbook. Do not remove an old key until every protected secret referencing it has been re-encrypted and the migration evidence has been reviewed.
 
 ## Redis key conventions (JWT revocation)
 

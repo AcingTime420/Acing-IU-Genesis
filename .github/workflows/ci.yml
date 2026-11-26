@@ -101,6 +101,22 @@ jobs:
     name: Backend Build & Test (.NET)
     runs-on: ubuntu-latest
     needs: repo-integrity
+    env:
+      POSTGRES_PASSWORD: ci_test_only_change_me_57
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: acing_admin
+          POSTGRES_PASSWORD: ci_test_only_change_me_57
+          POSTGRES_DB: acing_iu_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U acing_admin -d acing_iu_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -109,6 +125,8 @@ jobs:
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
           dotnet-version: '8.0.x'
+      - name: Set PostgreSQL integration test connection
+        run: echo "DEVICE_TRUST_TEST_CONNECTION_STRING=Host=localhost;Port=5432;Database=acing_iu_test;Username=acing_admin" >> "$GITHUB_ENV"
 
       - name: Restore dependencies
         run: |
